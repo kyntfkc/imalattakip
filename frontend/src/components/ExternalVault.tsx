@@ -36,6 +36,7 @@ import { useCompanies } from '../context/CompanyContext';
 import { useLog } from '../context/LogContext';
 import { KaratType } from '../types';
 import type { ColumnsType } from 'antd/es/table';
+import { parseNumberFromInput, formatNumberForDisplay } from '../utils/numberFormat';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -447,12 +448,28 @@ const ExternalVault: React.FC = () => {
               { type: 'number', min: 0.01, message: 'Miktar 0.01\'den büyük olmalı!' }
             ]}
           >
-            <InputNumber
-              placeholder="0.00"
+            <Input
+              placeholder="0,00"
               size="large"
               style={{ width: '100%' }}
-              precision={2}
-              min={0.01}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Sadece sayı, virgül ve nokta karakterlerine izin ver
+                if (/^[\d,.]*$/.test(value)) {
+                  // Form'a parse edilmiş değeri gönder
+                  const numericValue = parseNumberFromInput(value);
+                  if (!isNaN(numericValue)) {
+                    form.setFieldsValue({ amount: numericValue });
+                  }
+                }
+              }}
+              onBlur={(e) => {
+                const value = e.target.value;
+                if (value && !isNaN(parseNumberFromInput(value))) {
+                  const formattedValue = formatNumberForDisplay(parseNumberFromInput(value));
+                  e.target.value = formattedValue;
+                }
+              }}
             />
           </Form.Item>
 
