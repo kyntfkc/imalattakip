@@ -400,7 +400,7 @@ const ExternalVault: React.FC = () => {
             label="Ayar"
             name="karat"
             rules={[{ required: true, message: 'Ayar seçiniz!' }]}
-            initialValue="14K"
+            initialValue="24K"
           >
             <Select placeholder="Altın ayarını seçin" size="large">
               {karatOptions.map(karat => (
