@@ -234,9 +234,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       width: 120,
       render: (amount: number, record: any) => {
         const isIncoming = record.toUnit === unitId;
+        const safeAmount = typeof amount === 'number' ? amount : parseFloat(amount) || 0;
         return (
           <Text strong style={{ color: isIncoming ? '#52c41a' : '#ff4d4f' }}>
-            {isIncoming ? '+' : '-'}{amount.toFixed(2)} gr
+            {isIncoming ? '+' : '-'}{safeAmount.toFixed(2)} gr
           </Text>
         );
       }
@@ -291,15 +292,18 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       title: 'Stok',
       dataIndex: 'stock',
       key: 'stock',
-      render: (stock: number) => `${stock.toFixed(2)} gr`
+      render: (stock: number) => `${(typeof stock === 'number' ? stock : parseFloat(stock) || 0).toFixed(2)} gr`
     },
     {
       title: 'Has Karşılığı',
       dataIndex: 'has',
       key: 'has',
-      render: (has: number) => (
-        <Text style={{ color: '#52c41a' }}>{has.toFixed(2)} gr</Text>
-      )
+      render: (has: number) => {
+        const safeHas = typeof has === 'number' ? has : parseFloat(has) || 0;
+        return (
+          <Text style={{ color: '#52c41a' }}>{safeHas.toFixed(2)} gr</Text>
+        );
+      }
     }
   ];
 
@@ -308,11 +312,14 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       title: 'Fire',
       dataIndex: 'fire',
       key: 'fire',
-      render: (fire: number) => (
-        <Tag color={getFireColor(fire)}>
-          {fire.toFixed(2)} gr
-        </Tag>
-      )
+      render: (fire: number) => {
+        const safeFire = typeof fire === 'number' ? fire : parseFloat(fire) || 0;
+        return (
+          <Tag color={getFireColor(safeFire)}>
+            {safeFire.toFixed(2)} gr
+          </Tag>
+        );
+      }
     });
   }
 
@@ -599,7 +606,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                 <Col span={12}>
                   <Statistic
                     title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Fire Miktarı</Text>}
-                    value={Number(unit.totalFire.toFixed(2))}
+                    value={Number((typeof unit.totalFire === 'number' ? unit.totalFire : parseFloat(unit.totalFire) || 0).toFixed(2))}
                     suffix="gr"
                     valueStyle={{ 
                       color: unit.totalFire > 0 ? '#dc2626' : '#059669',
