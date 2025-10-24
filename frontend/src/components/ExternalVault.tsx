@@ -16,7 +16,8 @@ import {
   Select,
   message,
   Divider,
-  Popconfirm
+  Popconfirm,
+  Drawer
 } from 'antd';
 import { 
   BankOutlined, 
@@ -60,11 +61,13 @@ interface ExternalTransaction {
 
 const ExternalVault: React.FC = () => {
   const { stockByKarat, totalStock, totalHas, addTransaction, transactions, deleteTransaction } = useExternalVault();
-  const { companies } = useCompanies();
+  const { companies, createCompany } = useCompanies();
   const { addLog } = useLog();
   const [modalVisible, setModalVisible] = useState(false);
   const [transactionType, setTransactionType] = useState<'input' | 'output'>('input');
   const [form] = Form.useForm();
+  const [quickAddDrawerVisible, setQuickAddDrawerVisible] = useState(false);
+  const [quickAddForm] = Form.useForm();
 
   const karatOptions: KaratType[] = ['14K', '18K', '22K', '24K'];
 
@@ -125,6 +128,31 @@ const ExternalVault: React.FC = () => {
   const handleOpenModal = (type: 'input' | 'output') => {
     setTransactionType(type);
     setModalVisible(true);
+  };
+
+  const handleQuickAddCompany = async (values: any) => {
+    try {
+      // API ile firma oluştur
+      const newCompany = await createCompany({
+        name: values.name,
+        type: values.type,
+        contact: values.contact || '',
+        address: values.address || '',
+        notes: values.notes || ''
+      });
+      
+      message.success(`✅ ${values.type === 'company' ? 'Firma' : 'Kişi'} başarıyla eklendi!`);
+      
+      // Form'u sıfırla ve drawer'ı kapat
+      quickAddForm.resetFields();
+      setQuickAddDrawerVisible(false);
+      
+      // Ana form'da yeni eklenen firmayı seç
+      form.setFieldsValue({ companyId: newCompany.id });
+      
+    } catch (error) {
+      message.error('Firma eklenirken hata oluştu!');
+    }
   };
 
   const handleSubmit = (values: any) => {
@@ -443,6 +471,17 @@ const ExternalVault: React.FC = () => {
                   popupRender={menu => (
                     <>
                       {menu}
+                      <Divider style={{ margin: '8px 0' }} />
+                      <div style={{ padding: '8px 12px' }}>
+                        <Button
+                          type="dashed"
+                          icon={<PlusOutlined />}
+                          onClick={() => setQuickAddDrawerVisible(true)}
+                          style={{ width: '100%' }}
+                        >
+                          Hızlı Firma Ekle
+                        </Button>
+                      </div>
                     </>
                   )}
                 >
@@ -497,6 +536,105 @@ const ExternalVault: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Hızlı Firma Ekleme Drawer */}
+      <Drawer
+        title={
+          <Space>
+            <PlusOutlined />
+            <span>Hızlı Firma Ekle</span>
+          </Space>
+        }
+        open={quickAddDrawerVisible}
+        onClose={() => {
+          quickAddForm.resetFields();
+          setQuickAddDrawerVisible(false);
+        }}
+        width={500}
+        footer={
+          <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+            <Button onClick={() => setQuickAddDrawerVisible(false)}>
+              İptal
+            </Button>
+            <Button 
+              type="primary" 
+              onClick={() => quickAddForm.submit()}
+              icon={<PlusOutlined />}
+            >
+              Ekle
+            </Button>
+          </Space>
+        }
+      >
+        <Form
+          form={quickAddForm}
+          layout="vertical"
+          onFinish={handleQuickAddCompany}
+        >
+          <Form.Item
+            label="Tür"
+            name="type"
+            rules={[{ required: true, message: 'Tür seçiniz!' }]}
+            initialValue="company"
+          >
+            <Select size="large">
+              <Option value="company">
+                <Space>
+                  <BankOutlined />
+                  <span>Firma</span>
+                </Space>
+              </Option>
+              <Option value="person">
+                <Space>
+                  <UserOutlined />
+                  <span>Kişi</span>
+                </Space>
+              </Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label="Ad"
+            name="name"
+            rules={[{ required: true, message: 'Ad giriniz!' }]}
+          >
+            <Input 
+              placeholder="Firma veya kişi adı" 
+              size="large"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="İletişim"
+            name="contact"
+          >
+            <Input 
+              placeholder="Telefon, email vb." 
+              size="large"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Adres"
+            name="address"
+          >
+            <Input.TextArea 
+              placeholder="Adres bilgisi" 
+              rows={2}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Notlar"
+            name="notes"
+          >
+            <Input.TextArea 
+              placeholder="Ek notlar..." 
+              rows={2}
+            />
+          </Form.Item>
+        </Form>
+      </Drawer>
     </div>
   );
 };
