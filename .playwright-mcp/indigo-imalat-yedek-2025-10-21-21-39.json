@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-10-21T18:39:48.377Z",
+  "version": "1.0.0",
+  "data": {
+    "transfers": [],
+    "externalVaultTransactions": [],
+    "externalVaultStock": {},
+    "companies": []
+  }
+}
