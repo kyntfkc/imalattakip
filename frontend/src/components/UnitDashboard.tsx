@@ -205,7 +205,7 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
                 fontSize: '22px', 
                 fontWeight: '600'
               }}>
-                {(typeof unit.totalStock === 'number' ? unit.totalStock : parseFloat(unit.totalStock) || 0).toFixed(2)} gr
+                {((typeof unit?.totalStock === 'number' ? unit.totalStock : parseFloat(unit?.totalStock) || 0) || 0).toFixed(2)} gr
               </Text>
             </div>
             
@@ -223,7 +223,7 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
                 fontSize: '20px', 
                 fontWeight: '600'
               }}>
-                {(typeof unit.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit.hasEquivalent) || 0).toFixed(2)} gr
+                {((typeof unit?.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit?.hasEquivalent) || 0) || 0).toFixed(2)} gr
               </Text>
             </div>
 
@@ -237,13 +237,13 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
                 <Text style={{ color: '#6b7280', fontSize: '15px', fontWeight: '500' }}>
                   Fire
                 </Text>
-                <Tag color={getFireColor(unit.totalFire)} style={{ 
+                <Tag color={getFireColor(unit?.totalFire || 0)} style={{ 
                   fontWeight: '600',
                   borderRadius: '8px',
                   padding: '2px 8px',
                   fontSize: '14px'
                 }}>
-                  {(typeof unit.totalFire === 'number' ? unit.totalFire : parseFloat(unit.totalFire) || 0).toFixed(2)} gr
+                  {((typeof unit?.totalFire === 'number' ? unit.totalFire : parseFloat(unit?.totalFire) || 0) || 0).toFixed(2)} gr
                 </Tag>
               </div>
             )}
