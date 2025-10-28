@@ -503,66 +503,68 @@ const AppContent: React.FC = () => {
         
         <Layout>
           <Header style={{ 
-            background: isMobile 
-              ? 'rgba(255, 255, 255, 0.95)' 
-              : 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%)',
-            padding: isMobile ? '0 0' : '0 32px',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)',
+            background: '#ffffff',
+            padding: 0,
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: 'none',
-            height: isMobile ? '64px' : '80px',
+            borderBottom: '1px solid #e5e7eb',
+            height: isMobile ? '56px' : '72px',
             zIndex: 100,
             position: 'sticky',
-            top: 0,
-            overflow: 'hidden',
-            backdropFilter: 'blur(12px)',
+            top: 0
           }}>
-            <Space size={isMobile ? 8 : 12} align="center" style={{ flex: '0 0 auto', paddingLeft: isMobile ? '16px' : 0 }}>
+            {/* Sol Kısım - Mobil Menü & Başlık */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              flex: '0 0 auto',
+              height: '100%',
+              paddingLeft: isMobile ? '12px' : '32px',
+              gap: isMobile ? '12px' : '16px'
+            }}>
               {isMobile && (
                 <Button
                   type="text"
                   onClick={() => setCollapsed(!collapsed)}
                   style={{
-                    fontSize: '22px',
+                    fontSize: '20px',
                     padding: 0,
-                    height: '64px',
-                    width: '48px',
-                    minWidth: '48px',
-                    color: '#1f2937',
-                    fontWeight: 700,
-                    transition: 'all 0.2s ease'
+                    height: '40px',
+                    width: '40px',
+                    minWidth: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '8px',
+                    color: '#64748b'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#6366f1'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#1f2937'}
                 >
                   ☰
                 </Button>
               )}
               <Title level={2} style={{ 
                 margin: 0, 
-                background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                fontWeight: 800,
-                fontSize: isMobile ? '20px' : '26px',
-                lineHeight: 1.2,
-                whiteSpace: 'nowrap',
-                letterSpacing: '-0.5px'
+                color: '#1f2937',
+                fontWeight: 700,
+                fontSize: isMobile ? '18px' : '24px',
+                lineHeight: 1,
+                whiteSpace: 'nowrap'
               }}>
                 {isMobile ? 'İmalat' : 'İmalat Takip'}
               </Title>
-            </Space>
-            <Space 
-              size={isMobile ? 10 : 16} 
-              style={{ 
-                flex: '0 0 auto', 
-                paddingRight: isMobile ? '16px' : 0,
-                minWidth: 0
-              }}
-            >
+            </div>
+            
+            {/* Sağ Kısım - Action Buttons */}
+            <div style={{ 
+              display: 'flex',
+              alignItems: 'center',
+              flex: '0 0 auto',
+              height: '100%',
+              paddingRight: isMobile ? '12px' : '32px',
+              gap: isMobile ? '8px' : '12px'
+            }}>
               {!isMobile && (
                 <Button 
                   type="primary" 
@@ -571,21 +573,9 @@ const AppContent: React.FC = () => {
                   size="large"
                   style={{
                     borderRadius: '12px',
-                    height: '48px',
-                    padding: '0 28px',
-                    fontWeight: 600,
-                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                    border: 'none',
-                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(99, 102, 241, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)';
+                    height: '44px',
+                    padding: '0 24px',
+                    fontWeight: 600
                   }}
                 >
                   Yeni Transfer
@@ -619,23 +609,17 @@ const AppContent: React.FC = () => {
                   <Button
                     type="text"
                     style={{
-                      height: '44px',
-                      width: '44px',
-                      padding: 0,
-                      borderRadius: '12px',
-                      background: '#f8fafc',
-                      transition: 'all 0.2s ease'
+                      height: '40px',
+                      padding: '0 8px',
+                      borderRadius: '12px'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = '#f8fafc'}
                   >
                     <Avatar 
                       size="default" 
                       icon={<UserOutlined />}
                       style={{
-                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                        color: 'white',
-                        boxShadow: '0 2px 8px rgba(99, 102, 241, 0.25)'
+                        background: '#64748b',
+                        color: 'white'
                       }}
                     />
                   </Button>
@@ -643,37 +627,26 @@ const AppContent: React.FC = () => {
                   <Button
                     type="text"
                     style={{
-                      height: '48px',
+                      height: '44px',
                       padding: '0 16px',
                       borderRadius: '12px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 10,
+                      gap: 8,
                       background: '#f8fafc',
                       border: '1px solid #e5e7eb',
-                      color: '#64748b',
-                      transition: 'all 0.2s ease',
-                      fontWeight: 500
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#f1f5f9';
-                      e.currentTarget.style.borderColor = '#cbd5e1';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#f8fafc';
-                      e.currentTarget.style.borderColor = '#e5e7eb';
+                      color: '#64748b'
                     }}
                   >
                     <Avatar 
                       size="small" 
                       icon={<UserOutlined />}
                       style={{
-                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                        color: 'white',
-                        boxShadow: '0 2px 6px rgba(99, 102, 241, 0.2)'
+                        background: '#64748b',
+                        color: 'white'
                       }}
                     />
-                    <span style={{ color: '#1f2937', fontWeight: '600', fontSize: '14px' }}>
+                    <span style={{ color: '#64748b', fontWeight: '500' }}>
                       {user?.name}
                     </span>
                   </Button>
@@ -695,11 +668,12 @@ const AppContent: React.FC = () => {
                     padding: 0,
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
                   }}
                 />
               )}
-            </Space>
+            </div>
           </Header>
           
           <Content style={{ 
