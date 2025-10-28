@@ -72,10 +72,10 @@ export const LogProvider: React.FC<LogProviderProps> = ({ children }) => {
       // Backend formatını frontend formatına çevir
       const formattedLogs: LogEntry[] = response.logs.map((log: any) => ({
         id: log.id.toString(),
-        user: log.user,
+        user: log.username || log.user || 'Bilinmeyen',
         action: log.action,
-        entityType: log.entityType,
-        entityName: log.entityName,
+        entityType: log.entity_type || log.entityType,
+        entityName: log.entity_name || log.entityName,
         details: log.details,
         timestamp: log.created_at
       }));
@@ -123,10 +123,10 @@ export const LogProvider: React.FC<LogProviderProps> = ({ children }) => {
       // Backend'den dönen veriyi frontend formatına çevir
       const newLog: LogEntry = {
         id: response.id.toString(),
-        user: response.user,
+        user: response.username || response.user || 'Bilinmeyen',
         action: response.action,
-        entityType: response.entityType,
-        entityName: response.entityName,
+        entityType: response.entity_type || response.entityType,
+        entityName: response.entity_name || response.entityName,
         details: response.details,
         timestamp: response.created_at
       };
