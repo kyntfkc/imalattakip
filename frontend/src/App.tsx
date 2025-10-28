@@ -371,10 +371,9 @@ const AppContent: React.FC = () => {
           style={{
             background: '#ffffff',
             borderRight: '1px solid #e5e7eb',
-            boxShadow: isMobile && !collapsed ? '4px 0 12px rgba(0, 0, 0, 0.15)' : '2px 0 8px rgba(0, 0, 0, 0.02)',
-            position: isMobile && !collapsed ? 'fixed' : 'relative'
+            boxShadow: isMobile && !collapsed ? '4px 0 12px rgba(0, 0, 0, 0.15)' : '2px 0 8px rgba(0, 0, 0, 0.02)'
           }}
-          breakpoint="md"
+          breakpoint="lg"
           onBreakpoint={(broken) => {
             setIsMobile(broken);
             if (broken) {

@@ -305,11 +305,8 @@ code {
   
   /* Layout optimizations */
   .ant-layout-sider {
-    position: fixed !important;
-    height: 100vh !important;
-    top: 0 !important;
-    left: 0 !important;
-    z-index: 1001 !important;
+    position: relative !important;
+    height: auto !important;
   }
   
   .ant-layout-content {
