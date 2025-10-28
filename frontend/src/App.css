@@ -761,6 +761,20 @@ code {
 }
 
 /* Print Styles */
+/* Fix "gr" font weight issue */
+.ant-statistic-content {
+  font-weight: 600 !important;
+}
+
+.ant-statistic-suffix {
+  font-weight: 400 !important;
+  font-family: inherit !important;
+}
+
+.ant-statistic-suffix span {
+  font-weight: 400 !important;
+}
+
 @media print {
   .ant-layout-sider,
   .ant-btn,
