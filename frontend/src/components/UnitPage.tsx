@@ -480,6 +480,98 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             </Button>
           </Col>
         </Row>
+        
+        {/* Filtreler - Sadece satış ve output-only birimler için */}
+        {(isOutputOnlyUnit || unitId === 'satis') && (
+          <div style={{ 
+            marginTop: '20px',
+            paddingTop: '20px',
+            borderTop: '1px solid #e5e7eb'
+          }}>
+            <div style={{ 
+              width: '100%',
+              display: 'flex',
+              gap: '6px'
+            }}>
+              <button
+                onClick={() => setDateFilter('all')}
+                style={{ 
+                  fontSize: '12px', 
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: dateFilter === 'all' ? '1px solid #1890ff' : '1px solid #d9d9d9',
+                  background: dateFilter === 'all' ? '#1890ff' : '#fff',
+                  color: dateFilter === 'all' ? '#fff' : '#666',
+                  flex: 1,
+                  textAlign: 'center',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  fontWeight: dateFilter === 'all' ? '600' : '400'
+                }}
+              >
+                Tümü
+              </button>
+              <button
+                onClick={() => setDateFilter('week')}
+                style={{ 
+                  fontSize: '12px', 
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: dateFilter === 'week' ? '1px solid #1890ff' : '1px solid #d9d9d9',
+                  background: dateFilter === 'week' ? '#1890ff' : '#fff',
+                  color: dateFilter === 'week' ? '#fff' : '#666',
+                  flex: 1,
+                  textAlign: 'center',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  fontWeight: dateFilter === 'week' ? '600' : '400'
+                }}
+              >
+                Haftalık
+              </button>
+              <button
+                onClick={() => setDateFilter('month')}
+                style={{ 
+                  fontSize: '12px', 
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: dateFilter === 'month' ? '1px solid #1890ff' : '1px solid #d9d9d9',
+                  background: dateFilter === 'month' ? '#1890ff' : '#fff',
+                  color: dateFilter === 'month' ? '#fff' : '#666',
+                  flex: 1,
+                  textAlign: 'center',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  fontWeight: dateFilter === 'month' ? '600' : '400'
+                }}
+              >
+                Aylık
+              </button>
+              <button
+                onClick={() => setDateFilter('year')}
+                style={{ 
+                  fontSize: '12px', 
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: dateFilter === 'year' ? '1px solid #1890ff' : '1px solid #d9d9d9',
+                  background: dateFilter === 'year' ? '#1890ff' : '#fff',
+                  color: dateFilter === 'year' ? '#fff' : '#666',
+                  flex: 1,
+                  textAlign: 'center',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  fontWeight: dateFilter === 'year' ? '600' : '400'
+                }}
+              >
+                Yıllık
+              </button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* İstatistikler - Tek Kart */}
@@ -525,86 +617,6 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   />
                 );
               })()}
-              {(isOutputOnlyUnit || unitId === 'satis') && (
-                <div style={{ 
-                  width: '100%',
-                  display: 'flex',
-                  gap: '4px'
-                }}>
-                  <button
-                    onClick={() => setDateFilter('all')}
-                    style={{ 
-                      fontSize: '11px', 
-                      padding: '4px 8px',
-                      borderRadius: '8px',
-                      border: dateFilter === 'all' ? '1px solid #1890ff' : '1px solid #e8e8e8',
-                      background: dateFilter === 'all' ? '#1890ff' : '#fafafa',
-                      color: dateFilter === 'all' ? '#fff' : '#666',
-                      flex: 1,
-                      textAlign: 'center',
-                      transition: 'all 0.2s ease',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
-                  >
-                    Tümü
-                  </button>
-                  <button
-                    onClick={() => setDateFilter('week')}
-                    style={{ 
-                      fontSize: '11px', 
-                      padding: '4px 8px',
-                      borderRadius: '8px',
-                      border: dateFilter === 'week' ? '1px solid #1890ff' : '1px solid #e8e8e8',
-                      background: dateFilter === 'week' ? '#1890ff' : '#fafafa',
-                      color: dateFilter === 'week' ? '#fff' : '#666',
-                      flex: 1,
-                      textAlign: 'center',
-                      transition: 'all 0.2s ease',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
-                  >
-                    Haftalık
-                  </button>
-                  <button
-                    onClick={() => setDateFilter('month')}
-                    style={{ 
-                      fontSize: '11px', 
-                      padding: '4px 8px',
-                      borderRadius: '8px',
-                      border: dateFilter === 'month' ? '1px solid #1890ff' : '1px solid #e8e8e8',
-                      background: dateFilter === 'month' ? '#1890ff' : '#fafafa',
-                      color: dateFilter === 'month' ? '#fff' : '#666',
-                      flex: 1,
-                      textAlign: 'center',
-                      transition: 'all 0.2s ease',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
-                  >
-                    Aylık
-                  </button>
-                  <button
-                    onClick={() => setDateFilter('year')}
-                    style={{ 
-                      fontSize: '11px', 
-                      padding: '4px 8px',
-                      borderRadius: '8px',
-                      border: dateFilter === 'year' ? '1px solid #1890ff' : '1px solid #e8e8e8',
-                      background: dateFilter === 'year' ? '#1890ff' : '#fafafa',
-                      color: dateFilter === 'year' ? '#fff' : '#666',
-                      flex: 1,
-                      textAlign: 'center',
-                      transition: 'all 0.2s ease',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
-                  >
-                    Yıllık
-                  </button>
-                </div>
-              )}
             </Space>
           </Col>
           
