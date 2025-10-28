@@ -337,10 +337,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     
     // Giriş transferlerini işle
     incomingTransfers.forEach(transfer => {
-      if (transfer.cinsi) {
+      if (transfer.cinsi && transfer.amount > 0) {
         const existing = cinsiMap.get(transfer.cinsi) || { stock: 0, has: 0, fire: 0 };
-        existing.stock += transfer.amount;
-        existing.has += transfer.amount * (transfer.karat === '24K' ? 1 : 
+        const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(transfer.amount) || 0;
+        existing.stock += safeAmount;
+        existing.has += safeAmount * (transfer.karat === '24K' ? 1 : 
                                         transfer.karat === '22K' ? 0.9167 :
                                         transfer.karat === '18K' ? 0.75 : 0.5833);
         cinsiMap.set(transfer.cinsi, existing);
@@ -349,10 +350,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     
     // Çıkış transferlerini işle
     outgoingTransfers.forEach(transfer => {
-      if (transfer.cinsi) {
+      if (transfer.cinsi && transfer.amount > 0) {
         const existing = cinsiMap.get(transfer.cinsi) || { stock: 0, has: 0, fire: 0 };
-        existing.stock -= transfer.amount;
-        existing.has -= transfer.amount * (transfer.karat === '24K' ? 1 : 
+        const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(transfer.amount) || 0;
+        existing.stock -= safeAmount;
+        existing.has -= safeAmount * (transfer.karat === '24K' ? 1 : 
                                          transfer.karat === '22K' ? 0.9167 :
                                          transfer.karat === '18K' ? 0.75 : 0.5833);
         cinsiMap.set(transfer.cinsi, existing);
@@ -391,15 +393,21 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       });
     }
     
-    return Array.from(cinsiMap.entries())
-      .filter(([_, data]) => data.stock > 0 || data.fire > 0)
+    // Pozitif stok veya fire değerine sahip cinsileri göster
+    const result = Array.from(cinsiMap.entries())
       .map(([cinsi, data]) => ({
         key: cinsi,
         cinsi,
-        stock: data.stock,
-        has: data.has,
-        fire: data.fire
-      }));
+        stock: Math.max(0, data.stock),
+        has: Math.max(0, data.has),
+        fire: Math.max(0, data.fire)
+      }))
+      .filter(item => item.stock > 0 || item.fire > 0);
+    
+    // Sıfır stoklar için de cinsi bilgisi varsa göster (debug için)
+    console.log('Cinsi Data:', result, 'Unit:', unitId, 'CinsiMap:', Array.from(cinsiMap.entries()));
+    
+    return result;
   }, [unit, transfers, unitId, hasFire, isProcessingUnit, isInputUnit]);
 
   if (!unit) {
