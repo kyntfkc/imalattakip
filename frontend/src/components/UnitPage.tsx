@@ -505,7 +505,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                        isOutputOnlyUnit ? totalInput : 
                        hasFire ? totalInput + totalOutput : 
                        isProcessingUnit ? totalInput + totalOutput : 
-                       isInputUnit ? totalInput + totalOutput : unit.totalStock}
+                       isInputUnit ? totalInput + totalOutput : (unit?.totalStock || 0)}
                 suffix="gr"
                 valueStyle={{ 
                   color: '#1f2937', 
@@ -629,9 +629,9 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                 <Col span={12}>
                   <Statistic
                     title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
-                    value={unitId === 'satis' ? unit.hasEquivalent : 
+                    value={unitId === 'satis' ? (unit?.hasEquivalent || 0) : 
                            isOutputOnlyUnit ? filteredHasEquivalent : 
-                           isProcessingUnit ? 0 : unit.hasEquivalent}
+                           isProcessingUnit ? 0 : (unit?.hasEquivalent || 0)}
                     suffix="gr"
                     valueStyle={{ 
                       color: '#059669',
@@ -646,9 +646,9 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             ) : (
               <Statistic
                 title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
-                value={unitId === 'satis' ? unit.hasEquivalent : 
+                value={unitId === 'satis' ? (unit?.hasEquivalent || 0) : 
                        isOutputOnlyUnit ? filteredHasEquivalent : 
-                       isProcessingUnit ? 0 : unit.hasEquivalent}
+                       isProcessingUnit ? 0 : (unit?.hasEquivalent || 0)}
                 suffix="gr"
                 valueStyle={{ 
                   color: '#059669',
