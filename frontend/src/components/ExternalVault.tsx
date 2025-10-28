@@ -148,9 +148,6 @@ const ExternalVault: React.FC = () => {
       quickAddForm.resetFields();
       setQuickAddDrawerVisible(false);
       
-      // Ana form'da yeni eklenen firmayı seç
-      form.setFieldsValue({ companyId: newCompany.id });
-      
     } catch (error) {
       message.error('Firma eklenirken hata oluştu!');
     }
