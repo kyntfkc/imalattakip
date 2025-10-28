@@ -20,6 +20,29 @@ code {
 }
 
 /* Responsive Design Improvements */
+
+/* Tablet and Desktop */
+@media (min-width: 1024px) {
+  .ant-card {
+    padding: 24px;
+  }
+  
+  .ant-statistic-title {
+    font-size: 14px;
+  }
+  
+  .ant-statistic-content {
+    font-size: 32px;
+  }
+}
+
+/* Mobile and Tablet */
+@media (max-width: 1023px) {
+  .ant-card {
+    padding: 16px;
+  }
+}
+
 @media (max-width: 768px) {
   .ant-layout-sider {
     position: fixed !important;
@@ -36,7 +59,7 @@ code {
   }
   
   .ant-statistic-title {
-    font-size: 14px;
+    font-size: 13px;
   }
   
   .ant-statistic-content {
@@ -337,6 +360,7 @@ code {
 }
 
 @media (max-width: 480px) {
+  /* Extra Small Mobile */
   .ant-card {
     margin-bottom: 8px;
   }
@@ -347,6 +371,31 @@ code {
   
   .ant-space-item {
     margin-bottom: 8px;
+  }
+  
+  .ant-btn {
+    font-size: 13px !important;
+    height: 32px !important;
+    padding: 0 12px !important;
+  }
+  
+  .ant-input,
+  .ant-select,
+  .ant-input-number {
+    font-size: 14px !important;
+    height: 36px !important;
+  }
+  
+  .ant-card-body {
+    padding: 12px !important;
+  }
+  
+  .ant-statistic-title {
+    font-size: 11px !important;
+  }
+  
+  .ant-statistic-content {
+    font-size: 18px !important;
   }
 }
 
@@ -370,6 +419,17 @@ code {
   
   .transfer-modal-responsive {
     width: 900px !important;
+  }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .login-card .ant-card-body {
+    padding: 32px !important;
+  }
+  
+  .transfer-modal-responsive {
+    width: 700px !important;
   }
 }
 
@@ -423,6 +483,71 @@ code {
   
   .ant-statistic-content {
     font-size: 20px !important;
+  }
+  
+  /* Typography mobil */
+  .ant-typography {
+    font-size: 14px !important;
+  }
+  
+  .ant-typography h1 {
+    font-size: 24px !important;
+  }
+  
+  .ant-typography h2 {
+    font-size: 20px !important;
+  }
+  
+  .ant-typography h3 {
+    font-size: 18px !important;
+  }
+  
+  .ant-typography h4 {
+    font-size: 16px !important;
+  }
+  
+  /* Space responsive */
+  .ant-space {
+    gap: 8px !important;
+  }
+  
+  /* Row responsive */
+  .ant-row {
+    margin-left: -8px;
+    margin-right: -8px;
+  }
+  
+  .ant-col {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  
+  /* Button responsive */
+  .ant-btn {
+    font-size: 14px !important;
+    height: 36px !important;
+  }
+  
+  .ant-btn-large {
+    font-size: 15px !important;
+    height: 42px !important;
+  }
+  
+  /* Form responsive */
+  .ant-form-item-label {
+    font-size: 13px !important;
+  }
+  
+  .ant-input,
+  .ant-select,
+  .ant-input-number {
+    font-size: 14px !important;
+  }
+  
+  /* Tag responsive */
+  .ant-tag {
+    font-size: 12px !important;
+    padding: 2px 8px !important;
   }
 }
 
