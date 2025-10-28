@@ -361,51 +361,49 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       }
     });
     
-    // Fire hesaplama (sadece fire birimleri için)
+    // Fire ve stok hesaplama - birim tipine göre
     if (hasFire) {
+      // Lazer Kesim, Cila, Tezgah gibi fire birimleri
       cinsiMap.forEach((data, cinsi) => {
-        // Fire birimlerinde fire = giriş - çıkış
-        // data.stock zaten giriş - çıkış olarak hesaplandı
-        data.fire = data.stock; // Fire = net değişim
+        data.fire = Math.max(0, data.stock); // Fire = stok (negatif olabilir)
         data.stock = 0; // Fire birimlerinde stok 0
       });
     } else if (isProcessingUnit) {
-      // İşlem birimleri: Tezgah, Cila
-      // Bu birimlerde stok tutulmaz, sadece geçici işlem yapılır
+      // Tezgah, Cila - işlem birimleri (stok tutulmaz)
       cinsiMap.forEach((data, cinsi) => {
-        // Fire = giriş - çıkış (işlem sırasında kaybolan miktar)
-        data.fire = data.stock; // Fire = net değişim
-        data.stock = 0; // İşlem birimlerinde stok tutulmaz
+        data.fire = Math.max(0, data.stock);
+        data.stock = 0;
       });
     } else if (isInputUnit) {
-      // Dışarıdan gelen mamülleri sisteme sokan birimler: Döküm, Tedarik
-      // Bu birimlerde stok tutulmaz, sadece giriş-çıkış dengesi tutulur
+      // Döküm, Tedarik - stok tutulur ama fire yok
       cinsiMap.forEach((data, cinsi) => {
-        data.fire = 0; // Fire hesaplanmaz
-        // data.stock zaten giriş - çıkış olarak hesaplandı
+        data.fire = 0;
+        data.stock = Math.max(0, data.stock);
       });
-    } else if (isSemiFinishedUnit) {
-      // Yarı mamul birimi: Ana kasadan ayrı hesaplanır
-      // Fire hesaplanmaz, sadece stok takibi
+    } else if (isSemiFinishedUnit || isOutputOnlyUnit) {
+      // Yarı Mamul, Satış - normal stok takibi
       cinsiMap.forEach((data, cinsi) => {
-        data.fire = 0; // Yarı mamul biriminde fire yok
-        // data.stock zaten giriş - çıkış olarak hesaplandı
+        data.fire = 0;
+        data.stock = Math.max(0, data.stock);
+      });
+    } else {
+      // Ana Kasa, Dış Kasa - normal stok takibi
+      cinsiMap.forEach((data, cinsi) => {
+        data.fire = 0;
+        data.stock = Math.max(0, data.stock);
       });
     }
     
-    // Pozitif stok veya fire değerine sahip cinsileri göster
+    // Sonuçları filtrele ve düzenle
     const result = Array.from(cinsiMap.entries())
       .map(([cinsi, data]) => ({
         key: cinsi,
         cinsi,
-        stock: Math.max(0, data.stock),
-        has: Math.max(0, data.has),
-        fire: Math.max(0, data.fire)
+        stock: Number(data.stock.toFixed(3)),
+        has: Number(data.has.toFixed(3)),
+        fire: Number(data.fire.toFixed(3))
       }))
       .filter(item => item.stock > 0 || item.fire > 0);
-    
-    // Sıfır stoklar için de cinsi bilgisi varsa göster (debug için)
-    console.log('Cinsi Data:', result, 'Unit:', unitId, 'CinsiMap:', Array.from(cinsiMap.entries()));
     
     return result;
   }, [unit, transfers, unitId, hasFire, isProcessingUnit, isInputUnit]);
