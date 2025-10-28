@@ -104,13 +104,25 @@ const AppContent: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Mobile detection
+  // Mobile detection with proper breakpoints
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 992);
+    const checkMobile = () => {
+      const width = window.innerWidth;
+      // Mobile: < 768px
+      // Tablet: 768px - 991px  
+      // Desktop: >= 992px
+      setIsMobile(width < 768);
+      
+      // Auto-collapse sidebar on mobile
+      if (width < 768 && !collapsed) {
+        setCollapsed(true);
+      }
+    };
+    
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [collapsed]);
 
   // Loading durumunda spinner göster
   if (isLoading) {
@@ -359,9 +371,10 @@ const AppContent: React.FC = () => {
           style={{
             background: '#ffffff',
             borderRight: '1px solid #e5e7eb',
-            boxShadow: isMobile && !collapsed ? '4px 0 12px rgba(0, 0, 0, 0.15)' : '2px 0 8px rgba(0, 0, 0, 0.02)'
+            boxShadow: isMobile && !collapsed ? '4px 0 12px rgba(0, 0, 0, 0.15)' : '2px 0 8px rgba(0, 0, 0, 0.02)',
+            position: isMobile && !collapsed ? 'fixed' : 'relative'
           }}
-          breakpoint="lg"
+          breakpoint="md"
           onBreakpoint={(broken) => {
             setIsMobile(broken);
             if (broken) {
@@ -436,7 +449,13 @@ const AppContent: React.FC = () => {
             mode="inline"
             selectedKeys={[selectedMenu]}
             items={menuItems}
-            onClick={({ key }) => setSelectedMenu(key)}
+            onClick={({ key }) => {
+              setSelectedMenu(key);
+              // Auto-collapse menu on mobile after selection
+              if (isMobile) {
+                setCollapsed(true);
+              }
+            }}
             style={{
               border: 'none',
               background: '#ffffff',

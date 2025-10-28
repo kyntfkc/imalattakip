@@ -229,21 +229,25 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
       open={open}
       onCancel={handleClose}
       footer={null}
-      width="90%"
-      style={{ top: '20px' }}
+      width={window.innerWidth < 768 ? '95%' : window.innerWidth < 1024 ? '85%' : '90%'}
+      style={{ 
+        top: window.innerWidth < 768 ? '10px' : '20px',
+        paddingBottom: 0
+      }}
       className="transfer-modal-responsive"
       styles={{
         body: {
-          padding: '24px',
+          padding: window.innerWidth < 768 ? '16px' : '24px',
           background: '#f8fafc'
         }
       }}
+      centered={window.innerWidth >= 768}
     >
       {!showPreview ? (
         <div style={{
           background: 'white',
-          borderRadius: '16px',
-          padding: '32px',
+          borderRadius: window.innerWidth < 768 ? '12px' : '16px',
+          padding: window.innerWidth < 768 ? '20px' : '32px',
           border: '1px solid #e5e7eb',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}
@@ -253,8 +257,9 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
             form={form}
             layout="vertical"
             onFinish={handlePreview}
+            size={window.innerWidth < 768 ? 'middle' : 'large'}
           >
-          <Row gutter={16}>
+          <Row gutter={window.innerWidth < 768 ? 12 : 16}>
             <Col xs={24} sm={12}>
               <Form.Item
                 label="Kaynak Birim"
@@ -532,15 +537,27 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
           </Row>
 
           <Form.Item>
-            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-              <Button onClick={handleClose} size="large">
+            <Space 
+              style={{ 
+                width: '100%', 
+                justifyContent: window.innerWidth < 768 ? 'space-between' : 'flex-end',
+                flexWrap: window.innerWidth < 768 ? 'wrap' : 'nowrap'
+              }}
+            >
+              <Button 
+                onClick={handleClose} 
+                size={window.innerWidth < 768 ? 'middle' : 'large'}
+                block={window.innerWidth < 768}
+                style={{ marginBottom: window.innerWidth < 768 ? '8px' : 0 }}
+              >
                 İptal
               </Button>
               <Button 
                 type="primary" 
                 htmlType="submit"
                 icon={<CalculatorOutlined />}
-                size="large"
+                size={window.innerWidth < 768 ? 'middle' : 'large'}
+                block={window.innerWidth < 768}
               >
                 Önizleme
               </Button>
