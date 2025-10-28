@@ -406,7 +406,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       .filter(item => item.stock > 0 || item.fire > 0);
     
     return result;
-  }, [unit, transfers, unitId, hasFire, isProcessingUnit, isInputUnit]);
+  }, [unit, transfers, unitId, hasFire, isProcessingUnit, isInputUnit, isSemiFinishedUnit, isOutputOnlyUnit]);
 
   if (!unit) {
     return (
