@@ -294,6 +294,17 @@ code {
     left: 0 !important;
     top: 0 !important;
     z-index: 999 !important;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  /* Prevent content shift when sidebar opens */
+  .ant-layout {
+    transition: none !important;
+  }
+  
+  /* Smooth menu overlay */
+  .ant-layout-content {
+    transition: opacity 0.2s ease !important;
   }
 }
 

@@ -83,12 +83,10 @@ const AppContent: React.FC = () => {
 
   // Mobilde menü açıkken body scroll'u engelle
   useEffect(() => {
-    if (isMobile) {
-      if (!collapsed) {
-        document.body.classList.add('menu-open');
-      } else {
-        document.body.classList.remove('menu-open');
-      }
+    if (isMobile && !collapsed) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
     }
     
     return () => {
@@ -496,8 +494,8 @@ const AppContent: React.FC = () => {
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'rgba(0, 0, 0, 0.45)',
-              zIndex: 999,
+              background: 'rgba(0, 0, 0, 0.35)',
+              zIndex: 998,
             }}
             onClick={() => setCollapsed(true)}
           />
@@ -505,15 +503,17 @@ const AppContent: React.FC = () => {
         
         <Layout>
           <Header style={{ 
-            background: colors.background.main,
+            background: '#ffffff',
             padding: isMobile ? '0 12px' : '0 32px',
             boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: `1px solid ${colors.neutral[200]}`,
+            borderBottom: '1px solid #e5e7eb',
             height: isMobile ? '56px' : '72px',
-            zIndex: 100
+            zIndex: 100,
+            position: 'sticky',
+            top: 0
           }}>
             <Space size={8} align="center">
               {isMobile && (
