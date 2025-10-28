@@ -91,6 +91,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
   const addCompany = async (company: Omit<Company, 'id' | 'createdAt'>) => {
     try {
       // Backend'e gönder
+      console.log('Frontend\'den API\'ye gönderilen veri:', company);
       const response = await apiService.createCompany({
         name: company.name,
         type: company.type,
@@ -98,6 +99,8 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
         address: company.address,
         notes: company.notes
       });
+      
+      console.log('Backend\'den dönen response:', response);
       
       // Backend'den dönen veriyi frontend formatına çevir
       const newCompany: Company = {
@@ -113,13 +116,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
       setCompanies(prev => [...prev, newCompany]);
     } catch (error) {
       console.error('Firma eklenemedi:', error);
-      // Backend hatası durumunda localStorage'a ekle
-      const newCompany: Company = {
-        ...company,
-        id: `C${Date.now()}`,
-        createdAt: new Date().toISOString()
-      };
-      setCompanies(prev => [...prev, newCompany]);
+      throw error; // Hata fırlat ki kullanıcı bilgilendirilebilsin
     }
   };
 
