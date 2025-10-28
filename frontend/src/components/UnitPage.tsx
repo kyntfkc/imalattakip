@@ -493,32 +493,33 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             }}
           >
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <Statistic
-                title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>
-                  {unitId === 'satis' ? 'Toplam Satış' : 
-                   isOutputOnlyUnit ? 'Toplam Giriş' : 
-                   hasFire ? 'Toplam İşlem' : 
-                   isProcessingUnit ? 'Toplam İşlem' : 
-                   isInputUnit ? 'Toplam İşlem' : 'Toplam Stok'}
-                </Text>}
-                value={unitId === 'satis' ? totalInput : 
-                       isOutputOnlyUnit ? totalInput : 
-                       hasFire ? totalInput + totalOutput : 
-                       isProcessingUnit ? totalInput + totalOutput : 
-                       isInputUnit ? totalInput + totalOutput : (unit?.totalStock || 0)}
-                suffix="gr"
-                valueStyle={{ 
-                  color: '#1f2937', 
-                  fontSize: '28px',
-                  fontWeight: 700
-                }}
-                formatter={(value) => {
-                  if (typeof value !== 'number') return value;
-                  const formatted = value.toFixed(2);
-                  return formatted.replace(/^0+(?=\d)/, '');
-                }}
-                prefix={<GoldOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
-              />
+              {(() => {
+                const calculatedValue = unitId === 'satis' ? totalInput : 
+                                       isOutputOnlyUnit ? totalInput : 
+                                       hasFire ? totalInput + totalOutput : 
+                                       isProcessingUnit ? totalInput + totalOutput : 
+                                       isInputUnit ? totalInput + totalOutput : (unit?.totalStock || 0);
+                const formattedValue = calculatedValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                return (
+                  <Statistic
+                    title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>
+                      {unitId === 'satis' ? 'Toplam Satış' : 
+                       isOutputOnlyUnit ? 'Toplam Giriş' : 
+                       hasFire ? 'Toplam İşlem' : 
+                       isProcessingUnit ? 'Toplam İşlem' : 
+                       isInputUnit ? 'Toplam İşlem' : 'Toplam Stok'}
+                    </Text>}
+                    value={formattedValue}
+                    suffix="gr"
+                    valueStyle={{ 
+                      color: '#1f2937', 
+                      fontSize: '28px',
+                      fontWeight: 700
+                    }}
+                    prefix={<GoldOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
+                  />
+                );
+              })()}
               {(isOutputOnlyUnit || unitId === 'satis') && (
                 <div style={{ 
                   width: '100%',
@@ -617,63 +618,66 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             {(hasFire || isProcessingUnit) ? (
               <Row gutter={16}>
                 <Col span={12}>
-                  <Statistic
-                    title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Fire Miktarı</Text>}
-                    value={Number((typeof unit.totalFire === 'number' ? unit.totalFire : parseFloat(unit.totalFire) || 0).toFixed(2))}
-                    suffix="gr"
-                    valueStyle={{ 
-                      color: unit.totalFire > 0 ? '#dc2626' : '#059669',
-                      fontSize: '24px',
-                      fontWeight: 700
-                    }}
-                    formatter={(value) => {
-                  if (typeof value !== 'number') return value;
-                  const formatted = value.toFixed(2);
-                  return formatted.replace(/^0+(?=\d)/, '');
-                }}
-                    prefix={<HistoryOutlined style={{ fontSize: '16px', color: '#64748b' }} />}
-                  />
+                  {(() => {
+                    const fireValue = (typeof unit.totalFire === 'number' ? unit.totalFire : parseFloat(unit.totalFire) || 0);
+                    const formattedFire = fireValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                    return (
+                      <Statistic
+                        title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Fire Miktarı</Text>}
+                        value={formattedFire}
+                        suffix="gr"
+                        valueStyle={{ 
+                          color: unit.totalFire > 0 ? '#dc2626' : '#059669',
+                          fontSize: '24px',
+                          fontWeight: 700
+                        }}
+                        prefix={<HistoryOutlined style={{ fontSize: '16px', color: '#64748b' }} />}
+                      />
+                    );
+                  })()}
                 </Col>
                 <Col span={12}>
-                  <Statistic
-                    title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
-                    value={unitId === 'satis' ? (unit?.hasEquivalent || 0) : 
-                           isOutputOnlyUnit ? filteredHasEquivalent : 
-                           isProcessingUnit ? 0 : (unit?.hasEquivalent || 0)}
-                    suffix="gr"
-                    valueStyle={{ 
-                      color: '#059669',
-                      fontSize: '24px',
-                      fontWeight: 700
-                    }}
-                    formatter={(value) => {
-                  if (typeof value !== 'number') return value;
-                  const formatted = value.toFixed(2);
-                  return formatted.replace(/^0+(?=\d)/, '');
-                }}
-                    prefix={<CrownOutlined style={{ fontSize: '16px', color: '#64748b' }} />}
-                  />
+                  {(() => {
+                    const hasValue = unitId === 'satis' ? (unit?.hasEquivalent || 0) : 
+                                   isOutputOnlyUnit ? filteredHasEquivalent : 
+                                   isProcessingUnit ? 0 : (unit?.hasEquivalent || 0);
+                    const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                    return (
+                      <Statistic
+                        title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
+                        value={formattedHas}
+                        suffix="gr"
+                        valueStyle={{ 
+                          color: '#059669',
+                          fontSize: '24px',
+                          fontWeight: 700
+                        }}
+                        prefix={<CrownOutlined style={{ fontSize: '16px', color: '#64748b' }} />}
+                      />
+                    );
+                  })()}
                 </Col>
               </Row>
             ) : (
-              <Statistic
-                title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
-                value={unitId === 'satis' ? (unit?.hasEquivalent || 0) : 
-                       isOutputOnlyUnit ? filteredHasEquivalent : 
-                       isProcessingUnit ? 0 : (unit?.hasEquivalent || 0)}
-                suffix="gr"
-                valueStyle={{ 
-                  color: '#059669',
-                  fontSize: '28px',
-                  fontWeight: 700
-                }}
-                formatter={(value) => {
-                  if (typeof value !== 'number') return value;
-                  const formatted = value.toFixed(2);
-                  return formatted.replace(/^0+(?=\d)/, '');
-                }}
-                prefix={<CrownOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
-              />
+              (() => {
+                const hasValue = unitId === 'satis' ? (unit?.hasEquivalent || 0) : 
+                               isOutputOnlyUnit ? filteredHasEquivalent : 
+                               isProcessingUnit ? 0 : (unit?.hasEquivalent || 0);
+                const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                return (
+                  <Statistic
+                    title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
+                    value={formattedHas}
+                    suffix="gr"
+                    valueStyle={{ 
+                      color: '#059669',
+                      fontSize: '28px',
+                      fontWeight: 700
+                    }}
+                    prefix={<CrownOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
+                  />
+                );
+              })()
             )}
           </Card>
         </Col>
