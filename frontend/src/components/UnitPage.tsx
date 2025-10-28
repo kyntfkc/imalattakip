@@ -501,7 +501,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                    isProcessingUnit ? 'Toplam İşlem' : 
                    isInputUnit ? 'Toplam İşlem' : 'Toplam Stok'}
                 </Text>}
-                value={unitId === 'satis' ? unit.totalStock : 
+                value={unitId === 'satis' ? totalInput : 
                        isOutputOnlyUnit ? totalInput : 
                        hasFire ? totalInput + totalOutput : 
                        isProcessingUnit ? totalInput + totalOutput : 

@@ -142,9 +142,8 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
       const response = await apiService.updateCompany(parseInt(id), {
         name: updatedData.name || '',
         type: updatedData.type || 'company',
-        contact: updatedData.contact,
-        address: updatedData.address,
-        notes: updatedData.notes
+        contact: updatedData.contact || '',
+        notes: updatedData.notes || ''
       });
       
       // Backend'den dönen veriyi frontend formatına çevir
@@ -153,7 +152,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
         name: response.name,
         type: response.type,
         contact: response.contact,
-        address: response.address,
+        address: '',
         notes: response.notes,
         createdAt: response.created_at
       };
