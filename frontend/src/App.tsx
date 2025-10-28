@@ -548,11 +548,11 @@ const AppContent: React.FC = () => {
                 margin: 0, 
                 color: '#1f2937',
                 fontWeight: 700,
-                fontSize: isMobile ? '18px' : '24px',
+                fontSize: isMobile ? '16px' : '24px',
                 lineHeight: 1,
                 whiteSpace: 'nowrap'
               }}>
-                {isMobile ? 'İmalat' : 'İmalat Takip'}
+                İmalat Takip
               </Title>
             </div>
             
@@ -658,20 +658,23 @@ const AppContent: React.FC = () => {
                   type="primary" 
                   icon={<SwapOutlined />} 
                   onClick={() => setTransferModalOpen(true)}
-                  size="large"
-                  shape="circle"
                   style={{
-                    borderRadius: '50%',
+                    borderRadius: '10px',
                     height: '40px',
-                    width: '40px',
-                    minWidth: '40px',
-                    padding: 0,
+                    width: '120px',
+                    minWidth: '120px',
+                    padding: '0 16px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
+                    gap: '6px',
+                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)',
+                    fontSize: '13px',
+                    fontWeight: 600
                   }}
-                />
+                >
+                  Transfer
+                </Button>
               )}
             </div>
           </Header>
