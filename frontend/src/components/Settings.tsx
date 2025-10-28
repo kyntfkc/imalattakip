@@ -19,25 +19,33 @@ const Settings: React.FC = () => {
   const { isBackendOnline, isChecking } = useBackendStatus();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('system');
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+
+  // Mobile detection
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const refreshBackendStatus = () => {
     window.location.reload();
   };
 
   return (
-    <div>
+    <div style={{ padding: '0' }}>
       {/* Kompakt Header */}
       <div style={{ 
-        marginBottom: 20,
-        padding: '16px 20px',
+        marginBottom: isMobile ? 16 : 20,
+        padding: isMobile ? '12px 16px' : '16px 20px',
         background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        borderRadius: '12px',
+        borderRadius: isMobile ? '12px' : '12px',
         border: '1px solid #e5e7eb'
       }}>
-        <Space align="center" size={16}>
+        <Space align="center" size={isMobile ? 12 : 16}>
           <div style={{
-            width: '40px',
-            height: '40px',
+            width: isMobile ? '36px' : '40px',
+            height: isMobile ? '36px' : '40px',
             borderRadius: '10px',
             background: '#ffffff',
             display: 'flex',
@@ -46,11 +54,11 @@ const Settings: React.FC = () => {
             border: '1px solid #d1d5db',
             boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
           }}>
-            <SettingOutlined style={{ fontSize: '20px', color: '#64748b' }} />
+            <SettingOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />
           </div>
           <div>
-            <Title level={3} style={{ margin: 0, color: '#1f2937', fontSize: '20px' }}>Ayarlar</Title>
-            <Text type="secondary" style={{ fontSize: '14px' }}>Sistem ve kullanıcı ayarları</Text>
+            <Title level={3} style={{ margin: 0, color: '#1f2937', fontSize: isMobile ? '18px' : '20px' }}>Ayarlar</Title>
+            {!isMobile && <Text type="secondary" style={{ fontSize: '14px' }}>Sistem ve kullanıcı ayarları</Text>}
           </div>
         </Space>
       </div>
@@ -58,36 +66,35 @@ const Settings: React.FC = () => {
       {/* Backend Status - Kompakt */}
       <Card 
         style={{ 
-          marginBottom: 20,
+          marginBottom: isMobile ? 16 : 20,
           borderRadius: '12px',
           border: '1px solid #e5e7eb',
           boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
         }}
-        styles={{ body: { padding: '16px' } }}
+        styles={{ body: { padding: isMobile ? '12px' : '16px' } }}
       >
-        <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
-          <Space align="center" size={12}>
+        <Space align="center" style={{ width: '100%', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+          <Space align="center" size={8}>
             <Badge 
               status={isBackendOnline ? 'success' : 'error'} 
               text={
                 <Text style={{ 
                   color: isBackendOnline ? '#059669' : '#dc2626',
                   fontWeight: '500',
-                  fontSize: '14px'
+                  fontSize: isMobile ? '13px' : '14px'
                 }}>
-                  {isBackendOnline ? 'Backend Aktif' : 'Backend Offline'}
+                  {isBackendOnline ? (isMobile ? 'Aktif' : 'Backend Aktif') : (isMobile ? 'Offline' : 'Backend Offline')}
                 </Text>
               }
             />
-            {isChecking && <Text type="secondary" style={{ fontSize: '12px' }}>Kontrol ediliyor...</Text>}
           </Space>
           <Button 
-            size="small" 
+            size={isMobile ? 'small' : 'small'}
             icon={<ReloadOutlined />} 
             onClick={refreshBackendStatus}
-            style={{ borderRadius: '6px' }}
+            style={{ borderRadius: '6px', fontSize: isMobile ? '12px' : '13px' }}
           >
-            Yenile
+            {isMobile ? '' : 'Yenile'}
           </Button>
         </Space>
         
@@ -109,12 +116,14 @@ const Settings: React.FC = () => {
           border: '1px solid #e5e7eb',
           boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
         }}
-        styles={{ body: { padding: '20px' } }}
+        styles={{ body: { padding: isMobile ? '12px' : '20px' } }}
       >
         <Tabs 
           activeKey={activeTab} 
           onChange={setActiveTab}
           style={{ marginBottom: 0 }}
+          size={isMobile ? 'small' : 'middle'}
+          type={isMobile ? 'line' : 'line'}
           items={[
             {
               key: 'system',
