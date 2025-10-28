@@ -90,12 +90,11 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
 
   const addCompany = async (company: Omit<Company, 'id' | 'createdAt'>) => {
     try {
-      // Undefined değerleri boş string'e çevir
+      // Undefined değerleri boş string'e çevir (address kaldırıldı)
       const cleanCompany = {
         name: company.name || '',
         type: company.type,
         contact: company.contact || '',
-        address: company.address || '',
         notes: company.notes || ''
       };
       

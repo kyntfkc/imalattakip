@@ -246,7 +246,6 @@ class ApiService {
     name: string;
     type: 'company' | 'person';
     contact?: string;
-    address?: string;
     notes?: string;
   }) {
     return this.request<any>('/companies', {
@@ -259,7 +258,6 @@ class ApiService {
     name: string;
     type: 'company' | 'person';
     contact?: string;
-    address?: string;
     notes?: string;
   }) {
     return this.request<any>(`/companies/${id}`, {
