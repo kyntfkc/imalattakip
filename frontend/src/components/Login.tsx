@@ -56,7 +56,7 @@ const Login: React.FC = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '20px'
+      padding: window.innerWidth < 768 ? '16px' : '20px'
     }}>
       <Card
         style={{
@@ -66,7 +66,7 @@ const Login: React.FC = () => {
           boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
           border: 'none'
         }}
-        bodyStyle={{ padding: '40px' }}
+        bodyStyle={{ padding: window.innerWidth < 768 ? '24px' : '40px' }}
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{

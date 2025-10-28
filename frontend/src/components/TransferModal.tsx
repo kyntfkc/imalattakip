@@ -229,13 +229,13 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
       open={open}
       onCancel={handleClose}
       footer={null}
-      width={900}
+      width={window.innerWidth < 768 ? window.innerWidth - 32 : 900}
       style={{
-        top: '20px'
+        top: window.innerWidth < 768 ? '10px' : '20px'
       }}
       styles={{
         body: {
-          padding: '24px',
+          padding: window.innerWidth < 768 ? '16px' : '24px',
           background: '#f8fafc'
         }
       }}
@@ -244,7 +244,7 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
         <div style={{
           background: 'white',
           borderRadius: '16px',
-          padding: '32px',
+          padding: window.innerWidth < 768 ? '16px' : '32px',
           border: '1px solid #e5e7eb',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}>
@@ -268,7 +268,8 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                   onChange={(value) => setSelectedFromUnit(value)}
                   style={{
                     border: '2px solid #d1d5db',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
+                    fontSize: window.innerWidth < 768 ? '14px' : '16px'
                   }}
                 >
                   {units.map(unit => (

@@ -337,6 +337,15 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <>
       <Layout style={{ minHeight: '100vh' }}>
@@ -345,10 +354,19 @@ const AppContent: React.FC = () => {
           collapsed={collapsed} 
           onCollapse={setCollapsed}
           width={240}
+          collapsedWidth={isMobile ? 0 : 80}
+          trigger={null}
           style={{
             background: '#ffffff',
             borderRight: '1px solid #e5e7eb',
-            boxShadow: '2px 0 8px rgba(0, 0, 0, 0.02)'
+            boxShadow: isMobile && !collapsed ? '4px 0 12px rgba(0, 0, 0, 0.15)' : '2px 0 8px rgba(0, 0, 0, 0.02)'
+          }}
+          breakpoint="md"
+          onBreakpoint={(broken) => {
+            setIsMobile(broken);
+            if (broken) {
+              setCollapsed(true);
+            }
           }}
         >
           <div style={{ 
@@ -429,39 +447,73 @@ const AppContent: React.FC = () => {
           />
         </Sider>
         
+        {isMobile && !collapsed && (
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.45)',
+              zIndex: 999,
+            }}
+            onClick={() => setCollapsed(true)}
+          />
+        )}
+        
         <Layout>
           <Header style={{ 
             background: colors.background.main,
-            padding: '0 32px',
+            padding: isMobile ? '0 16px' : '0 32px',
             boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: `1px solid ${colors.neutral[200]}`
+            borderBottom: `1px solid ${colors.neutral[200]}`,
+            height: isMobile ? '60px' : '72px',
+            zIndex: 100
           }}>
-            <Title level={2} style={{ 
-              margin: 0, 
-              color: '#1f2937',
-              fontWeight: 700,
-              fontSize: '24px'
-            }}>
-              İmalat Takip Sistemi
-            </Title>
             <Space>
-              <Button 
-                type="primary" 
-                icon={<SwapOutlined />} 
-                onClick={() => setTransferModalOpen(true)}
-                size="large"
-                style={{
-                  borderRadius: '12px',
-                  height: '44px',
-                  padding: '0 24px',
-                  fontWeight: 600
-                }}
-              >
-                Yeni Transfer
-              </Button>
+              {isMobile && (
+                <Button
+                  type="text"
+                  onClick={() => setCollapsed(!collapsed)}
+                  style={{
+                    fontSize: '20px',
+                    padding: '0 8px',
+                    height: '40px'
+                  }}
+                >
+                  ☰
+                </Button>
+              )}
+              <Title level={2} style={{ 
+                margin: 0, 
+                color: '#1f2937',
+                fontWeight: 700,
+                fontSize: isMobile ? '18px' : '24px'
+              }}>
+                İmalat Takip
+              </Title>
+            </Space>
+            <Space size={isMobile ? 8 : 16}>
+              {!isMobile && (
+                <Button 
+                  type="primary" 
+                  icon={<SwapOutlined />} 
+                  onClick={() => setTransferModalOpen(true)}
+                  size="large"
+                  style={{
+                    borderRadius: '12px',
+                    height: '44px',
+                    padding: '0 24px',
+                    fontWeight: 600
+                  }}
+                >
+                  Yeni Transfer
+                </Button>
+              )}
               
               <Dropdown
                 menu={{
@@ -486,43 +538,80 @@ const AppContent: React.FC = () => {
                 placement="bottomRight"
                 arrow
               >
-                <Button
-                  type="text"
-                  style={{
-                    height: '44px',
-                    padding: '0 16px',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    background: '#f8fafc',
-                    border: '1px solid #e5e7eb',
-                    color: '#64748b'
-                  }}
-                >
-                  <Avatar 
-                    size="small" 
-                    icon={<UserOutlined />}
+                {isMobile ? (
+                  <Button
+                    type="text"
                     style={{
-                      background: '#64748b',
-                      color: 'white'
+                      height: '40px',
+                      padding: '0 8px',
+                      borderRadius: '12px'
                     }}
-                  />
-                  <span style={{ color: '#64748b', fontWeight: '500' }}>
-                    {user?.name}
-                  </span>
-                </Button>
+                  >
+                    <Avatar 
+                      size="default" 
+                      icon={<UserOutlined />}
+                      style={{
+                        background: '#64748b',
+                        color: 'white'
+                      }}
+                    />
+                  </Button>
+                ) : (
+                  <Button
+                    type="text"
+                    style={{
+                      height: '44px',
+                      padding: '0 16px',
+                      borderRadius: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      background: '#f8fafc',
+                      border: '1px solid #e5e7eb',
+                      color: '#64748b'
+                    }}
+                  >
+                    <Avatar 
+                      size="small" 
+                      icon={<UserOutlined />}
+                      style={{
+                        background: '#64748b',
+                        color: 'white'
+                      }}
+                    />
+                    <span style={{ color: '#64748b', fontWeight: '500' }}>
+                      {user?.name}
+                    </span>
+                  </Button>
+                )}
               </Dropdown>
+              
+              {isMobile && (
+                <Button 
+                  type="primary" 
+                  icon={<SwapOutlined />} 
+                  onClick={() => setTransferModalOpen(true)}
+                  size="large"
+                  shape="circle"
+                  style={{
+                    borderRadius: '50%',
+                    height: '44px',
+                    width: '44px',
+                    fontWeight: 600
+                  }}
+                />
+              )}
             </Space>
           </Header>
           
           <Content style={{ 
-            margin: '24px 24px', 
+            margin: isMobile ? '12px' : '24px 24px', 
             padding: 0, 
             background: colors.background.alt,
-            minHeight: 'calc(100vh - 112px)'
+            minHeight: 'calc(100vh - 112px)',
+            width: '100%'
           }}>
-            <div className="fade-in" style={{ padding: '24px' }}>
+            <div className="fade-in" style={{ padding: isMobile ? '8px' : '24px' }}>
               {renderContent()}
             </div>
           </Content>
@@ -531,19 +620,19 @@ const AppContent: React.FC = () => {
           {!isChecking && (
             <div style={{
               position: 'fixed',
-              bottom: '20px',
-              right: '20px',
+              bottom: isMobile ? '10px' : '20px',
+              right: isMobile ? '10px' : '20px',
               zIndex: 1000,
               display: 'flex',
               alignItems: 'center',
-              padding: '8px 16px',
+              padding: isMobile ? '6px 12px' : '8px 16px',
               borderRadius: '24px',
-              fontSize: '13px',
+              fontSize: isMobile ? '11px' : '13px',
               fontWeight: '600',
               backgroundColor: isBackendOnline ? '#dcfce7' : '#fee2e2',
               color: isBackendOnline ? '#166534' : '#991b1b',
               border: `2px solid ${isBackendOnline ? '#22c55e' : '#ef4444'}`,
-              minWidth: '140px',
+              minWidth: isMobile ? '100px' : '140px',
               justifyContent: 'center',
               boxShadow: isBackendOnline 
                 ? '0 4px 12px rgba(34, 197, 94, 0.3)' 
@@ -552,17 +641,17 @@ const AppContent: React.FC = () => {
               transition: 'all 0.3s ease'
             }}>
               <div style={{
-                width: '8px',
-                height: '8px',
+                width: isMobile ? '6px' : '8px',
+                height: isMobile ? '6px' : '8px',
                 borderRadius: '50%',
                 backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444',
-                marginRight: '8px',
+                marginRight: '6px',
                 animation: isBackendOnline ? 'pulse 2s infinite' : 'none',
                 boxShadow: isBackendOnline 
                   ? '0 0 12px rgba(34, 197, 94, 0.8)' 
                   : '0 0 12px rgba(239, 68, 68, 0.8)'
               }} />
-              {isBackendOnline ? 'Backend Aktif' : 'Backend Kapalı'}
+              {isMobile ? (isBackendOnline ? 'Aktif' : 'Kapalı') : (isBackendOnline ? 'Backend Aktif' : 'Backend Kapalı')}
             </div>
           )}
         </Layout>

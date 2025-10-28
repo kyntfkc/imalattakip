@@ -1,4 +1,20 @@
-# Getting Started with Create React App
+# İmalat Takip Sistemi - Mobile First Design
+
+Bu proje İndigo İmalat Takip Sistemi için mobil uyumlu (responsive) bir uygulamadır.
+
+## Özellikler
+
+- 📱 **Tam Mobil Uyumluluk**: Tüm ekran boyutlarında sorunsuz çalışır
+- 💻 **Desktop Optimizasyonu**: Masaüstü deneyimi için optimize edilmiş
+- 🎨 **Modern UI/UX**: Ant Design bileşenleriyle modern arayüz
+- ⚡ **Hızlı & Performanslı**: React + TypeScript ile optimize edilmiş
+- 🔒 **Güvenli**: Oturum yönetimi ve güvenli API iletişimi
+
+## Responsive Breakpoints
+
+- Mobile: < 768px
+- Tablet: 768px - 1024px
+- Desktop: > 1024px
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
