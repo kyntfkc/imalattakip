@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy, useEffect } from 'react';
+import React, { useState, Suspense, lazy, useEffect, useRef } from 'react';
 import { Layout, Menu, Card, Row, Col, Typography, Space, Button, Dropdown, Avatar } from 'antd';
 import type { MenuProps } from 'antd';
 import {
@@ -73,7 +73,13 @@ const AppContent: React.FC = () => {
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const collapsedRef = useRef(collapsed);
+
+  // collapsed değiştiğinde ref'i güncelle
+  useEffect(() => {
+    collapsedRef.current = collapsed;
+  }, [collapsed]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -104,25 +110,27 @@ const AppContent: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Mobile detection with proper breakpoints
+  // Mobile detection - flicker önleme
   useEffect(() => {
     const checkMobile = () => {
       const width = window.innerWidth;
-      // Mobile: < 768px
-      // Tablet: 768px - 991px  
-      // Desktop: >= 992px
-      setIsMobile(width < 768);
+      const newIsMobile = width < 768;
       
-      // Auto-collapse sidebar on mobile
-      if (width < 768 && !collapsed) {
-        setCollapsed(true);
+      // Sadece state değiştiyse güncelle
+      if (newIsMobile !== isMobile) {
+        setIsMobile(newIsMobile);
+        
+        // Mobil ise ve menü açıksa kapat - ref kullanarak
+        if (newIsMobile && !collapsedRef.current) {
+          setCollapsed(true);
+        }
       }
     };
     
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, [collapsed]);
+  }, [isMobile, collapsedRef]);
 
   // Loading durumunda spinner göster
   if (isLoading) {
