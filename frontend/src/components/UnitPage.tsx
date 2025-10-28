@@ -482,19 +482,21 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         </Row>
       </Card>
 
-      {/* İstatistikler */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
-        <Col xs={24} sm={12} lg={hasFire ? 8 : 12}>
-          <Card 
-            className="card-hover"
-            style={{ 
-              borderRadius: '20px',
-              border: '1px solid #e5e7eb',
-              background: 'white',
-              overflow: 'hidden',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}
-          >
+      {/* İstatistikler - Tek Kart */}
+      <Card 
+        className="card-hover"
+        style={{ 
+          borderRadius: '20px',
+          border: '1px solid #e5e7eb',
+          background: 'white',
+          overflow: 'hidden',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          marginBottom: 20
+        }}
+      >
+        <Row gutter={16}>
+          {/* Sol Kısım - Toplam Satış/Stok/İşlem */}
+          <Col xs={24} sm={12}>
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
               {(() => {
                 const calculatedValue = unitId === 'satis' ? totalInput : 
@@ -604,63 +606,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                 </div>
               )}
             </Space>
-          </Card>
-        </Col>
-        {!isInputUnit && (
-          <Col xs={24} sm={12} lg={hasFire || isProcessingUnit ? 12 : 12}>
-          <Card 
-            className="card-hover"
-            style={{ 
-              borderRadius: '20px',
-              border: '1px solid #e5e7eb',
-              background: 'white',
-              overflow: 'hidden',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            {(hasFire || isProcessingUnit) ? (
-              <Row gutter={16}>
-                <Col span={12}>
-                  {(() => {
-                    const fireValue = (typeof unit.totalFire === 'number' ? unit.totalFire : parseFloat(unit.totalFire) || 0);
-                    const formattedFire = fireValue.toFixed(2).replace(/^0+(?=\d)/, '');
-                    return (
-                      <Statistic
-                        title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Fire Miktarı</Text>}
-                        value={formattedFire}
-                        suffix="gr"
-                        valueStyle={{ 
-                          color: unit.totalFire > 0 ? '#dc2626' : '#059669',
-                          fontSize: '24px',
-                          fontWeight: 700
-                        }}
-                        prefix={<HistoryOutlined style={{ fontSize: '16px', color: '#64748b' }} />}
-                      />
-                    );
-                  })()}
-                </Col>
-                <Col span={12}>
-                  {(() => {
-                    const hasValue = isOutputOnlyUnit ? filteredHasEquivalent :
-                                   isProcessingUnit ? 0 : (unit?.hasEquivalent || 0);
-                    const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
-                    return (
-                      <Statistic
-                        title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
-                        value={formattedHas}
-                        suffix="gr"
-                        valueStyle={{ 
-                          color: '#059669',
-                          fontSize: '24px',
-                          fontWeight: 700
-                        }}
-                        prefix={<CrownOutlined style={{ fontSize: '16px', color: '#64748b' }} />}
-                      />
-                    );
-                  })()}
-                </Col>
-              </Row>
-            ) : (
+          </Col>
+          
+          {/* Sağ Kısım - Has Karşılığı */}
+          {!isInputUnit && (
+            <Col xs={24} sm={12}>
               <Space direction="vertical" size="small" style={{ width: '100%' }}>
                 {(() => {
                   const hasValue = isOutputOnlyUnit ? filteredHasEquivalent : 
@@ -681,11 +631,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   );
                 })()}
               </Space>
-            )}
-          </Card>
-        </Col>
-        )}
-      </Row>
+            </Col>
+          )}
+        </Row>
+      </Card>
 
       {/* Cinsi Bazlı Stok Dağılımı - Sadece stok tutan birimler için */}
       {!isProcessingUnit && !isOutputOnlyUnit && !isInputUnit && (
