@@ -60,28 +60,33 @@ const Companies: React.FC = () => {
     message.success('Firma başarıyla silindi!');
   };
 
-  const handleSubmit = (values: any) => {
-    if (editingCompany) {
-      updateCompany(editingCompany.id, values);
-      addLog({
-        action: 'UPDATE',
-        entityType: 'COMPANY',
-        entityName: 'Firma',
-        details: `Firma bilgileri güncellendi: ${values.name}`
-      });
-      message.success('Firma başarıyla güncellendi!');
-    } else {
-      addCompany(values);
-      addLog({
-        action: 'CREATE',
-        entityType: 'COMPANY',
-        entityName: 'Firma',
-        details: `Yeni firma eklendi: ${values.name}`
-      });
-      message.success('Firma başarıyla eklendi!');
+  const handleSubmit = async (values: any) => {
+    try {
+      if (editingCompany) {
+        await updateCompany(editingCompany.id, values);
+        addLog({
+          action: 'UPDATE',
+          entityType: 'COMPANY',
+          entityName: 'Firma',
+          details: `Firma bilgileri güncellendi: ${values.name}`
+        });
+        message.success('Firma başarıyla güncellendi!');
+      } else {
+        await addCompany(values);
+        addLog({
+          action: 'CREATE',
+          entityType: 'COMPANY',
+          entityName: 'Firma',
+          details: `Yeni firma eklendi: ${values.name}`
+        });
+        message.success('Firma başarıyla eklendi!');
+      }
+      setModalVisible(false);
+      form.resetFields();
+    } catch (error) {
+      console.error('Firma işlemi hatası:', error);
+      message.error('Firma işlemi tamamlanırken hata oluştu!');
     }
-    setModalVisible(false);
-    form.resetFields();
   };
 
   const columns: ColumnsType<any> = [

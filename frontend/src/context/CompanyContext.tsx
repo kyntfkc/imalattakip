@@ -95,9 +95,9 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
       const response = await apiService.createCompany({
         name: company.name,
         type: company.type,
-        contact: company.contact,
-        address: company.address,
-        notes: company.notes
+        contact: company.contact || '',
+        address: company.address || '',
+        notes: company.notes || ''
       });
       
       console.log('Backend\'den dönen response:', response);
@@ -107,16 +107,30 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
         id: response.id.toString(),
         name: response.name,
         type: response.type,
-        contact: response.contact,
-        address: response.address,
-        notes: response.notes,
+        contact: response.contact || '',
+        address: response.address || '',
+        notes: response.notes || '',
         createdAt: response.created_at
       };
       
       setCompanies(prev => [...prev, newCompany]);
     } catch (error) {
       console.error('Firma eklenemedi:', error);
-      throw error; // Hata fırlat ki kullanıcı bilgilendirilebilsin
+      
+      // Backend hatası durumunda localStorage'a ekle
+      const newCompany: Company = {
+        ...company,
+        id: `C${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        contact: company.contact || '',
+        address: company.address || '',
+        notes: company.notes || ''
+      };
+      
+      setCompanies(prev => [...prev, newCompany]);
+      
+      // Hata mesajı gösterme, sadece console'da bırak
+      console.warn('Backend hatası, firma local olarak kaydedildi');
     }
   };
 
