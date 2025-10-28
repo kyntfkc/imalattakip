@@ -606,7 +606,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             </Space>
           </Card>
         </Col>
-        {!isOutputOnlyUnit && !isInputUnit && (
+        {!isInputUnit && (
           <Col xs={24} sm={12} lg={hasFire || isProcessingUnit ? 12 : 12}>
           <Card 
             className="card-hover"
@@ -641,8 +641,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                 </Col>
                 <Col span={12}>
                   {(() => {
-                    const hasValue = unitId === 'satis' ? (unit?.hasEquivalent || 0) : 
-                                   isOutputOnlyUnit ? filteredHasEquivalent : 
+                    const hasValue = isOutputOnlyUnit ? filteredHasEquivalent :
                                    isProcessingUnit ? 0 : (unit?.hasEquivalent || 0);
                     const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
                     return (
@@ -663,8 +662,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               </Row>
             ) : (
               (() => {
-                const hasValue = unitId === 'satis' ? (unit?.hasEquivalent || 0) : 
-                               isOutputOnlyUnit ? filteredHasEquivalent : 
+                const hasValue = isOutputOnlyUnit ? filteredHasEquivalent : 
                                isProcessingUnit ? 0 : (unit?.hasEquivalent || 0);
                 const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
                 return (
