@@ -62,7 +62,7 @@ interface ExternalTransaction {
 
 const ExternalVault: React.FC = () => {
   const { stockByKarat, totalStock, totalHas, addTransaction, transactions, deleteTransaction } = useExternalVault();
-  const { companies, createCompany } = useCompanies();
+  const { companies, addCompany } = useCompanies();
   const { addLog } = useLog();
   const [modalVisible, setModalVisible] = useState(false);
   const [transactionType, setTransactionType] = useState<'input' | 'output'>('input');
@@ -134,7 +134,7 @@ const ExternalVault: React.FC = () => {
   const handleQuickAddCompany = async (values: any) => {
     try {
       // API ile firma oluştur
-      const newCompany = await createCompany({
+      await addCompany({
         name: values.name,
         type: values.type,
         contact: values.contact || '',
