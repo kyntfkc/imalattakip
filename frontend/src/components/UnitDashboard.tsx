@@ -205,7 +205,7 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
                 fontSize: '22px', 
                 fontWeight: '700'
               }}>
-                {(typeof unit.totalStock === 'number' ? unit.totalStock : parseFloat(unit.totalStock) || 0).toFixed(2)} gr
+                {(typeof unit.totalStock === 'number' ? unit.totalStock : parseFloat(unit.totalStock) || 0).toFixed(2)} <span style={{ fontWeight: 400 }}>gr</span>
               </Text>
             </div>
             
@@ -223,7 +223,7 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
                 fontSize: '20px', 
                 fontWeight: '600'
               }}>
-                {(typeof unit.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit.hasEquivalent) || 0).toFixed(2)} gr
+                {(typeof unit.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit.hasEquivalent) || 0).toFixed(2)} <span style={{ fontWeight: 400 }}>gr</span>
               </Text>
             </div>
 
@@ -243,7 +243,7 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
                   padding: '2px 8px',
                   fontSize: '14px'
                 }}>
-                  {(typeof unit.totalFire === 'number' ? unit.totalFire : parseFloat(unit.totalFire) || 0).toFixed(2)} gr
+                  {(typeof unit.totalFire === 'number' ? unit.totalFire : parseFloat(unit.totalFire) || 0).toFixed(2)} <span style={{ fontWeight: 400 }}>gr</span>
                 </Tag>
               </div>
             )}
@@ -579,7 +579,7 @@ const UnitDashboard: React.FC = React.memo(() => {
                         display: 'block',
                         whiteSpace: 'nowrap'
                       }}>
-                        {(typeof totalStats.stock === 'number' ? totalStats.stock : parseFloat(totalStats.stock) || 0).toFixed(2)} <span style={{ fontSize: '24px', fontWeight: '600' }}>gr</span>
+                        {(typeof totalStats.stock === 'number' ? totalStats.stock : parseFloat(totalStats.stock) || 0).toFixed(2)} <span style={{ fontSize: '24px', fontWeight: '400' }}>gr</span>
                       </Text>
                     </div>
                   </div>
@@ -627,7 +627,7 @@ const UnitDashboard: React.FC = React.memo(() => {
                         display: 'block',
                         whiteSpace: 'nowrap'
                       }}>
-                        {(typeof totalStats.has === 'number' ? totalStats.has : parseFloat(totalStats.has) || 0).toFixed(2)} <span style={{ fontSize: '24px', fontWeight: '600' }}>gr</span>
+                        {(typeof totalStats.has === 'number' ? totalStats.has : parseFloat(totalStats.has) || 0).toFixed(2)} <span style={{ fontSize: '24px', fontWeight: '400' }}>gr</span>
                       </Text>
                     </div>
                   </div>
@@ -817,7 +817,7 @@ const UnitDashboard: React.FC = React.memo(() => {
                     const safeAmount = typeof amount === 'number' ? amount : parseFloat(amount) || 0;
                     return (
                       <Text strong style={{ color: isIncoming ? '#52c41a' : '#ff4d4f' }}>
-                        {isIncoming ? '+' : '-'}{safeAmount.toFixed(2)} gr
+                        {isIncoming ? '+' : '-'}{safeAmount.toFixed(2)} <span style={{ fontWeight: 400 }}>gr</span>
                       </Text>
                     );
                   }
