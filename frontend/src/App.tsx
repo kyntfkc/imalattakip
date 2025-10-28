@@ -87,6 +87,7 @@ const AppContent: React.FC = () => {
       // Ctrl/Cmd + 1-9: Menu navigation
       if ((event.ctrlKey || event.metaKey) && event.key >= '1' && event.key <= '9') {
         event.preventDefault();
+        const menuIndex = parseInt(event.key) - 1;
         const menuItems = ['dashboard', 'units', 'reports', 'external-vault', 'companies', 'settings', 'logs', 'user-management'];
         if (menuItems[menuIndex]) {
           setSelectedMenu(menuItems[menuIndex]);
