@@ -620,17 +620,23 @@ const AppContent: React.FC = () => {
                   <Button
                     type="text"
                     style={{
-                      height: '40px',
-                      padding: '0 8px',
-                      borderRadius: '12px'
+                      height: '44px',
+                      width: '44px',
+                      padding: 0,
+                      borderRadius: '12px',
+                      background: '#f8fafc',
+                      transition: 'all 0.2s ease'
                     }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#f8fafc'}
                   >
                     <Avatar 
                       size="default" 
                       icon={<UserOutlined />}
                       style={{
-                        background: '#64748b',
-                        color: 'white'
+                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        color: 'white',
+                        boxShadow: '0 2px 8px rgba(99, 102, 241, 0.25)'
                       }}
                     />
                   </Button>
@@ -638,26 +644,37 @@ const AppContent: React.FC = () => {
                   <Button
                     type="text"
                     style={{
-                      height: '44px',
+                      height: '48px',
                       padding: '0 16px',
                       borderRadius: '12px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 8,
+                      gap: 10,
                       background: '#f8fafc',
                       border: '1px solid #e5e7eb',
-                      color: '#64748b'
+                      color: '#64748b',
+                      transition: 'all 0.2s ease',
+                      fontWeight: 500
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#f1f5f9';
+                      e.currentTarget.style.borderColor = '#cbd5e1';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#f8fafc';
+                      e.currentTarget.style.borderColor = '#e5e7eb';
                     }}
                   >
                     <Avatar 
                       size="small" 
                       icon={<UserOutlined />}
                       style={{
-                        background: '#64748b',
-                        color: 'white'
+                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        color: 'white',
+                        boxShadow: '0 2px 6px rgba(99, 102, 241, 0.2)'
                       }}
                     />
-                    <span style={{ color: '#64748b', fontWeight: '500' }}>
+                    <span style={{ color: '#1f2937', fontWeight: '600', fontSize: '14px' }}>
                       {user?.name}
                     </span>
                   </Button>
