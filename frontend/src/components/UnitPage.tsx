@@ -106,7 +106,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     
     return filteredTransfers
       .filter(t => t.fromUnit === unitId)
-      .reduce((sum, t) => sum + t.amount, 0);
+      .reduce((sum, t) => {
+        const safeAmount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+        return sum + safeAmount;
+      }, 0);
   }, [filteredTransfers, unitId, isOutputOnlyUnit, hasFire, isProcessingUnit, isInputUnit, isSemiFinishedUnit]);
 
   // OUTPUT_ONLY_UNITS, PROCESSING_UNITS, INPUT_UNITS ve SEMI_FINISHED_UNITS için has karşılığı hesapla
