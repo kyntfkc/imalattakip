@@ -512,7 +512,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   fontSize: '28px',
                   fontWeight: 700
                 }}
-                formatter={(value) => typeof value === 'number' ? value.toFixed(2).replace(/^0+(?=\d)/, '') : value}
+                formatter={(value) => {
+                  if (typeof value !== 'number') return value;
+                  const formatted = value.toFixed(2);
+                  return formatted.replace(/^0+(?=\d)/, '');
+                }}
                 prefix={<GoldOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
               />
               {(isOutputOnlyUnit || unitId === 'satis') && (
@@ -622,7 +626,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                       fontSize: '24px',
                       fontWeight: 700
                     }}
-                    formatter={(value) => typeof value === 'number' ? value.toFixed(2).replace(/^0+(?=\d)/, '') : value}
+                    formatter={(value) => {
+                  if (typeof value !== 'number') return value;
+                  const formatted = value.toFixed(2);
+                  return formatted.replace(/^0+(?=\d)/, '');
+                }}
                     prefix={<HistoryOutlined style={{ fontSize: '16px', color: '#64748b' }} />}
                   />
                 </Col>
@@ -638,7 +646,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                       fontSize: '24px',
                       fontWeight: 700
                     }}
-                    formatter={(value) => typeof value === 'number' ? value.toFixed(2).replace(/^0+(?=\d)/, '') : value}
+                    formatter={(value) => {
+                  if (typeof value !== 'number') return value;
+                  const formatted = value.toFixed(2);
+                  return formatted.replace(/^0+(?=\d)/, '');
+                }}
                     prefix={<CrownOutlined style={{ fontSize: '16px', color: '#64748b' }} />}
                   />
                 </Col>
@@ -655,7 +667,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   fontSize: '28px',
                   fontWeight: 700
                 }}
-                formatter={(value) => typeof value === 'number' ? value.toFixed(2).replace(/^0+(?=\d)/, '') : value}
+                formatter={(value) => {
+                  if (typeof value !== 'number') return value;
+                  const formatted = value.toFixed(2);
+                  return formatted.replace(/^0+(?=\d)/, '');
+                }}
                 prefix={<CrownOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
               />
             )}
