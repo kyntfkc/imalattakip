@@ -430,8 +430,8 @@ const UnitDashboard: React.FC = React.memo(() => {
   // Toplam özet istatistikler
   const totalStats = useMemo(() => {
     const total = sortedUnits.reduce((acc, unit) => ({
-      stock: acc.stock + unit.totalStock,
-      has: acc.has + unit.hasEquivalent
+      stock: acc.stock + (unit?.totalStock || 0),
+      has: acc.has + (unit?.hasEquivalent || 0)
     }), { stock: 0, has: 0 });
     return total;
   }, [sortedUnits]);
