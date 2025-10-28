@@ -503,7 +503,9 @@ const AppContent: React.FC = () => {
         
         <Layout>
           <Header style={{ 
-            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+            background: isMobile 
+              ? 'rgba(255, 255, 255, 0.95)' 
+              : 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%)',
             padding: isMobile ? '0 0' : '0 32px',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)',
             display: 'flex',
@@ -516,9 +518,6 @@ const AppContent: React.FC = () => {
             top: 0,
             overflow: 'hidden',
             backdropFilter: 'blur(12px)',
-            background: isMobile 
-              ? 'rgba(255, 255, 255, 0.95)' 
-              : 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%)',
           }}>
             <Space size={isMobile ? 8 : 12} align="center" style={{ flex: '0 0 auto', paddingLeft: isMobile ? '16px' : 0 }}>
               {isMobile && (
