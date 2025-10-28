@@ -159,6 +159,12 @@ code {
     padding: 0 12px !important;
     height: 56px !important;
     line-height: 56px !important;
+    position: relative !important;
+  }
+  
+  .ant-layout-content {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
   }
   
   .ant-menu-item {

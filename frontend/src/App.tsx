@@ -631,14 +631,14 @@ const AppContent: React.FC = () => {
           </Header>
           
           <Content style={{ 
-            margin: isMobile ? '0' : '24px', 
+            margin: 0,
             padding: 0, 
             background: colors.background.alt,
-            minHeight: 'calc(100vh - 112px)',
+            minHeight: isMobile ? 'calc(100vh - 60px)' : 'calc(100vh - 72px)',
             width: '100%',
-            overflow: 'hidden'
+            overflow: 'auto'
           }}>
-            <div className="fade-in" style={{ padding: isMobile ? '12px' : '24px' }}>
+            <div className="fade-in" style={{ padding: isMobile ? '12px' : '24px', maxWidth: '100%' }}>
               {renderContent()}
             </div>
           </Content>
