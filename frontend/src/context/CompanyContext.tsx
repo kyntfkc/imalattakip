@@ -90,27 +90,29 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
 
   const addCompany = async (company: Omit<Company, 'id' | 'createdAt'>) => {
     try {
-      // Backend'e gönder
-      console.log('Frontend\'den API\'ye gönderilen veri:', company);
-      const response = await apiService.createCompany({
-        name: company.name,
+      // Undefined değerleri boş string'e çevir
+      const cleanCompany = {
+        name: company.name || '',
         type: company.type,
         contact: company.contact || '',
         address: company.address || '',
         notes: company.notes || ''
-      });
+      };
+      
+      console.log('Frontend\'den API\'ye gönderilen veri:', cleanCompany);
+      const response = await apiService.createCompany(cleanCompany);
       
       console.log('Backend\'den dönen response:', response);
       
       // Backend'den dönen veriyi frontend formatına çevir
       const newCompany: Company = {
         id: response.id.toString(),
-        name: response.name,
+        name: response.name || '',
         type: response.type,
         contact: response.contact || '',
         address: response.address || '',
         notes: response.notes || '',
-        createdAt: response.created_at
+        createdAt: response.created_at || new Date().toISOString()
       };
       
       setCompanies(prev => [...prev, newCompany]);
@@ -119,12 +121,13 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
       
       // Backend hatası durumunda localStorage'a ekle
       const newCompany: Company = {
-        ...company,
-        id: `C${Date.now()}`,
-        createdAt: new Date().toISOString(),
+        name: company.name || '',
+        type: company.type,
         contact: company.contact || '',
         address: company.address || '',
-        notes: company.notes || ''
+        notes: company.notes || '',
+        id: `C${Date.now()}`,
+        createdAt: new Date().toISOString()
       };
       
       setCompanies(prev => [...prev, newCompany]);
