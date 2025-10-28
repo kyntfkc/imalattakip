@@ -503,31 +503,43 @@ const AppContent: React.FC = () => {
         
         <Layout>
           <Header style={{ 
-            background: '#ffffff',
-            padding: isMobile ? '0 0' : '0 32px',
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+            padding: isMobile ? '0' : '0 32px',
+            boxShadow: '0 2px 8px 0 rgba(0, 0, 0, 0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             borderBottom: '1px solid #e5e7eb',
-            height: isMobile ? '56px' : '72px',
+            height: isMobile ? '64px' : '72px',
             zIndex: 100,
             position: 'sticky',
             top: 0,
-            overflow: 'hidden'
+            overflow: 'hidden',
+            backdropFilter: 'blur(10px)'
           }}>
-            <Space size={8} align="center" style={{ flex: '0 0 auto', paddingLeft: isMobile ? '12px' : 0 }}>
+            <Space size={12} align="center" style={{ flex: '0 0 auto', paddingLeft: isMobile ? '12px' : 0 }}>
               {isMobile && (
                 <Button
                   type="text"
                   onClick={() => setCollapsed(!collapsed)}
                   style={{
-                    fontSize: '24px',
-                    padding: 0,
-                    height: '56px',
-                    width: '48px',
-                    minWidth: '48px',
-                    marginLeft: isMobile ? 0 : '-12px'
+                    fontSize: '22px',
+                    padding: '0 8px',
+                    height: '40px',
+                    width: '44px',
+                    minWidth: '44px',
+                    background: '#f8fafc',
+                    borderRadius: '10px',
+                    border: '1px solid #e5e7eb',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f1f5f9';
+                    e.currentTarget.style.borderColor = '#cbd5e1';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#f8fafc';
+                    e.currentTarget.style.borderColor = '#e5e7eb';
                   }}
                 >
                   ☰
@@ -535,11 +547,14 @@ const AppContent: React.FC = () => {
               )}
               <Title level={2} style={{ 
                 margin: 0, 
-                color: '#1f2937',
-                fontWeight: 700,
-                fontSize: isMobile ? '18px' : '24px',
+                background: 'linear-gradient(135deg, #1f2937 0%, #64748b 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontWeight: 800,
+                fontSize: isMobile ? '20px' : '26px',
                 lineHeight: 1,
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                letterSpacing: '-0.5px'
               }}>
                 {isMobile ? 'İmalat' : 'İmalat Takip'}
               </Title>
@@ -560,9 +575,21 @@ const AppContent: React.FC = () => {
                   size="large"
                   style={{
                     borderRadius: '12px',
-                    height: '44px',
-                    padding: '0 24px',
-                    fontWeight: 600
+                    height: '48px',
+                    padding: '0 28px',
+                    fontWeight: 600,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.25)',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.35)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.25)';
                   }}
                 >
                   Yeni Transfer
@@ -597,15 +624,18 @@ const AppContent: React.FC = () => {
                     type="text"
                     style={{
                       height: '40px',
-                      padding: '0 8px',
-                      borderRadius: '12px'
+                      width: '40px',
+                      padding: 0,
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      border: 'none'
                     }}
                   >
                     <Avatar 
-                      size="default" 
+                      size={32}
                       icon={<UserOutlined />}
                       style={{
-                        background: '#64748b',
+                        background: 'transparent',
                         color: 'white'
                       }}
                     />
@@ -614,26 +644,42 @@ const AppContent: React.FC = () => {
                   <Button
                     type="text"
                     style={{
-                      height: '44px',
+                      height: '48px',
                       padding: '0 16px',
                       borderRadius: '12px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 8,
-                      background: '#f8fafc',
+                      gap: 10,
+                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
                       border: '1px solid #e5e7eb',
-                      color: '#64748b'
+                      color: '#1f2937',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)';
+                      e.currentTarget.style.borderColor = '#cbd5e1';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)';
+                      e.currentTarget.style.borderColor = '#e5e7eb';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
                     }}
                   >
                     <Avatar 
-                      size="small" 
+                      size={32}
                       icon={<UserOutlined />}
                       style={{
-                        background: '#64748b',
-                        color: 'white'
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        border: '2px solid white',
+                        boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)'
                       }}
                     />
-                    <span style={{ color: '#64748b', fontWeight: '500' }}>
+                    <span style={{ color: '#1f2937', fontWeight: '600', fontSize: '14px' }}>
                       {user?.name}
                     </span>
                   </Button>
@@ -649,13 +695,25 @@ const AppContent: React.FC = () => {
                   shape="circle"
                   style={{
                     borderRadius: '50%',
-                    height: '40px',
-                    width: '40px',
-                    minWidth: '40px',
+                    height: '44px',
+                    width: '44px',
+                    minWidth: '44px',
                     padding: 0,
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.35)',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.1)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.35)';
                   }}
                 />
               )}
