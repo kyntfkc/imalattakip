@@ -504,7 +504,7 @@ const AppContent: React.FC = () => {
         <Layout>
           <Header style={{ 
             background: '#ffffff',
-            padding: isMobile ? '0 12px' : '0 32px',
+            padding: isMobile ? '0 0' : '0 32px',
             boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
             display: 'flex',
             alignItems: 'center',
@@ -513,9 +513,10 @@ const AppContent: React.FC = () => {
             height: isMobile ? '56px' : '72px',
             zIndex: 100,
             position: 'sticky',
-            top: 0
+            top: 0,
+            overflow: 'hidden'
           }}>
-            <Space size={8} align="center">
+            <Space size={8} align="center" style={{ flex: '0 0 auto', paddingLeft: isMobile ? '12px' : 0 }}>
               {isMobile && (
                 <Button
                   type="text"
@@ -524,9 +525,9 @@ const AppContent: React.FC = () => {
                     fontSize: '24px',
                     padding: 0,
                     height: '56px',
-                    width: '56px',
-                    minWidth: '56px',
-                    marginLeft: '-12px'
+                    width: '48px',
+                    minWidth: '48px',
+                    marginLeft: isMobile ? 0 : '-12px'
                   }}
                 >
                   ☰
@@ -543,7 +544,14 @@ const AppContent: React.FC = () => {
                 {isMobile ? 'İmalat' : 'İmalat Takip'}
               </Title>
             </Space>
-            <Space size={isMobile ? 8 : 16}>
+            <Space 
+              size={isMobile ? 8 : 16} 
+              style={{ 
+                flex: '0 0 auto', 
+                paddingRight: isMobile ? '12px' : 0,
+                minWidth: 0
+              }}
+            >
               {!isMobile && (
                 <Button 
                   type="primary" 
@@ -641,9 +649,13 @@ const AppContent: React.FC = () => {
                   shape="circle"
                   style={{
                     borderRadius: '50%',
-                    height: '44px',
-                    width: '44px',
-                    fontWeight: 600
+                    height: '40px',
+                    width: '40px',
+                    minWidth: '40px',
+                    padding: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 />
               )}
