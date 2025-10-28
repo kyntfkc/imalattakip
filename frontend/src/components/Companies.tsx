@@ -349,7 +349,11 @@ const Companies: React.FC = () => {
             <Form.Item
               name="name"
               label="Firma/Kişi Adı"
-              rules={[{ required: true, message: 'Firma adı giriniz!' }]}
+              rules={[
+                { required: true, message: 'Firma adı giriniz!' },
+                { min: 2, message: 'En az 2 karakter olmalı!' },
+                { max: 100, message: 'En fazla 100 karakter!' }
+              ]}
             >
               <Input
                 placeholder="Firma veya kişi adı"
@@ -372,6 +376,9 @@ const Companies: React.FC = () => {
             <Form.Item
               name="contact"
               label="İletişim Bilgisi"
+              rules={[
+                { max: 200, message: 'En fazla 200 karakter!' }
+              ]}
             >
               <Input
                 placeholder="Telefon, email veya adres"
@@ -382,11 +389,16 @@ const Companies: React.FC = () => {
             <Form.Item
               name="notes"
               label="Notlar"
+              rules={[
+                { max: 500, message: 'En fazla 500 karakter!' }
+              ]}
             >
               <Input.TextArea
                 rows={3}
                 placeholder="Firma hakkında notlar..."
                 style={{ borderRadius: '8px' }}
+                maxLength={500}
+                showCount
               />
             </Form.Item>
 
