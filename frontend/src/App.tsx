@@ -73,6 +73,7 @@ const AppContent: React.FC = () => {
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -86,7 +87,6 @@ const AppContent: React.FC = () => {
       // Ctrl/Cmd + 1-9: Menu navigation
       if ((event.ctrlKey || event.metaKey) && event.key >= '1' && event.key <= '9') {
         event.preventDefault();
-        const menuIndex = parseInt(event.key) - 1;
         const menuItems = ['dashboard', 'units', 'reports', 'external-vault', 'companies', 'settings', 'logs', 'user-management'];
         if (menuItems[menuIndex]) {
           setSelectedMenu(menuItems[menuIndex]);
@@ -101,6 +101,14 @@ const AppContent: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Loading durumunda spinner göster
@@ -336,15 +344,6 @@ const AppContent: React.FC = () => {
         return <UnitDashboard />;
     }
   };
-
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   return (
     <>
