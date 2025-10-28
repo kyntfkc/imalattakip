@@ -85,14 +85,14 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (isMobile) {
       if (!collapsed) {
-        document.body.style.overflow = 'hidden';
+        document.body.classList.add('menu-open');
       } else {
-        document.body.style.overflow = 'auto';
+        document.body.classList.remove('menu-open');
       }
     }
     
     return () => {
-      document.body.style.overflow = 'auto';
+      document.body.classList.remove('menu-open');
     };
   }, [collapsed, isMobile]);
 
@@ -513,20 +513,20 @@ const AppContent: React.FC = () => {
             justifyContent: 'space-between',
             borderBottom: `1px solid ${colors.neutral[200]}`,
             height: isMobile ? '56px' : '72px',
-            zIndex: 100,
-            position: 'sticky',
-            top: 0
+            zIndex: 100
           }}>
-            <Space size={isMobile ? 8 : 16}>
+            <Space size={8} align="center">
               {isMobile && (
                 <Button
                   type="text"
                   onClick={() => setCollapsed(!collapsed)}
                   style={{
-                    fontSize: '20px',
-                    padding: '0 4px',
-                    height: '40px',
-                    minWidth: '40px'
+                    fontSize: '24px',
+                    padding: 0,
+                    height: '56px',
+                    width: '56px',
+                    minWidth: '56px',
+                    marginLeft: '-12px'
                   }}
                 >
                   ☰
@@ -536,8 +536,9 @@ const AppContent: React.FC = () => {
                 margin: 0, 
                 color: '#1f2937',
                 fontWeight: 700,
-                fontSize: isMobile ? '16px' : '24px',
-                lineHeight: 1.2
+                fontSize: isMobile ? '18px' : '24px',
+                lineHeight: 1,
+                whiteSpace: 'nowrap'
               }}>
                 {isMobile ? 'İmalat' : 'İmalat Takip'}
               </Title>
