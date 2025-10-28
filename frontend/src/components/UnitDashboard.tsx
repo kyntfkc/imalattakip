@@ -203,9 +203,9 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
               <Text style={{ 
                 color: '#1f2937', 
                 fontSize: '22px', 
-                fontWeight: '700'
+                fontWeight: '600'
               }}>
-                {(typeof unit.totalStock === 'number' ? unit.totalStock : parseFloat(unit.totalStock) || 0).toFixed(2)} <span style={{ fontWeight: 400 }}>gr</span>
+                {(typeof unit.totalStock === 'number' ? unit.totalStock : parseFloat(unit.totalStock) || 0).toFixed(2)} gr
               </Text>
             </div>
             
@@ -223,7 +223,7 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
                 fontSize: '20px', 
                 fontWeight: '600'
               }}>
-                {(typeof unit.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit.hasEquivalent) || 0).toFixed(2)} <span style={{ fontWeight: 400 }}>gr</span>
+                {(typeof unit.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit.hasEquivalent) || 0).toFixed(2)} gr
               </Text>
             </div>
 
@@ -243,7 +243,7 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
                   padding: '2px 8px',
                   fontSize: '14px'
                 }}>
-                  {(typeof unit.totalFire === 'number' ? unit.totalFire : parseFloat(unit.totalFire) || 0).toFixed(2)} <span style={{ fontWeight: 400 }}>gr</span>
+                  {(typeof unit.totalFire === 'number' ? unit.totalFire : parseFloat(unit.totalFire) || 0).toFixed(2)} gr
                 </Tag>
               </div>
             )}
@@ -575,11 +575,11 @@ const UnitDashboard: React.FC = React.memo(() => {
                       <Text style={{ 
                         color: '#1f2937', 
                         fontSize: '36px', 
-                        fontWeight: '700',
+                        fontWeight: '600',
                         display: 'block',
                         whiteSpace: 'nowrap'
                       }}>
-                        {(typeof totalStats.stock === 'number' ? totalStats.stock : parseFloat(totalStats.stock) || 0).toFixed(2)} <span style={{ fontSize: '24px', fontWeight: '400' }}>gr</span>
+                        {(typeof totalStats.stock === 'number' ? totalStats.stock : parseFloat(totalStats.stock) || 0).toFixed(2)} gr
                       </Text>
                     </div>
                   </div>
@@ -623,11 +623,11 @@ const UnitDashboard: React.FC = React.memo(() => {
                       <Text style={{ 
                         color: '#1f2937', 
                         fontSize: '36px', 
-                        fontWeight: '700',
+                        fontWeight: '600',
                         display: 'block',
                         whiteSpace: 'nowrap'
                       }}>
-                        {(typeof totalStats.has === 'number' ? totalStats.has : parseFloat(totalStats.has) || 0).toFixed(2)} <span style={{ fontSize: '24px', fontWeight: '400' }}>gr</span>
+                        {(typeof totalStats.has === 'number' ? totalStats.has : parseFloat(totalStats.has) || 0).toFixed(2)} gr
                       </Text>
                     </div>
                   </div>
@@ -816,8 +816,11 @@ const UnitDashboard: React.FC = React.memo(() => {
                     const isIncoming = record.toUnit === selectedUnit.unitId;
                     const safeAmount = typeof amount === 'number' ? amount : parseFloat(amount) || 0;
                     return (
-                      <Text strong style={{ color: isIncoming ? '#52c41a' : '#ff4d4f' }}>
-                        {isIncoming ? '+' : '-'}{safeAmount.toFixed(2)} <span style={{ fontWeight: 400 }}>gr</span>
+                      <Text style={{ 
+                        color: isIncoming ? '#52c41a' : '#ff4d4f',
+                        fontWeight: 600
+                      }}>
+                        {isIncoming ? '+' : '-'}{safeAmount.toFixed(2)} gr
                       </Text>
                     );
                   }
