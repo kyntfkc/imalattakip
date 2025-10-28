@@ -565,6 +565,74 @@ const AppContent: React.FC = () => {
               paddingRight: isMobile ? '12px' : '32px',
               gap: isMobile ? '8px' : '12px'
             }}>
+              {isMobile && (
+                <>
+                  <Dropdown
+                    menu={{
+                      items: [
+                        {
+                          key: 'profile',
+                          icon: <UserOutlined />,
+                          label: `${user?.username} (${user?.role === 'admin' ? 'Yönetici' : 'Kullanıcı'})`,
+                          disabled: true
+                        },
+                        {
+                          type: 'divider'
+                        },
+                        {
+                          key: 'logout',
+                          icon: <LogoutOutlined />,
+                          label: 'Çıkış Yap',
+                          onClick: logout
+                        }
+                      ]
+                    }}
+                    placement="bottomRight"
+                    arrow
+                  >
+                    <Button
+                      type="text"
+                      style={{
+                        height: '40px',
+                        padding: '0 8px',
+                        borderRadius: '12px'
+                      }}
+                    >
+                      <Avatar 
+                        size="default" 
+                        icon={<UserOutlined />}
+                        style={{
+                          background: '#64748b',
+                          color: 'white'
+                        }}
+                      />
+                    </Button>
+                  </Dropdown>
+                  
+                  <Button 
+                    type="primary" 
+                    icon={<SwapOutlined />} 
+                    onClick={() => setTransferModalOpen(true)}
+                    style={{
+                      borderRadius: '10px',
+                      height: '40px',
+                      width: '120px',
+                      minWidth: '120px',
+                      padding: '0 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)',
+                      fontSize: '13px',
+                      fontWeight: 600
+                    }}
+                  >
+                    Transfer
+                  </Button>
+                </>
+              )}
+              
               {!isMobile && (
                 <Button 
                   type="primary" 
@@ -582,48 +650,30 @@ const AppContent: React.FC = () => {
                 </Button>
               )}
               
-              <Dropdown
-                menu={{
-                  items: [
-                    {
-                      key: 'profile',
-                      icon: <UserOutlined />,
-                      label: `${user?.username} (${user?.role === 'admin' ? 'Yönetici' : 'Kullanıcı'})`,
-                      disabled: true
-                    },
-                    {
-                      type: 'divider'
-                    },
-                    {
-                      key: 'logout',
-                      icon: <LogoutOutlined />,
-                      label: 'Çıkış Yap',
-                      onClick: logout
-                    }
-                  ]
-                }}
-                placement="bottomRight"
-                arrow
-              >
-                {isMobile ? (
-                  <Button
-                    type="text"
-                    style={{
-                      height: '40px',
-                      padding: '0 8px',
-                      borderRadius: '12px'
-                    }}
-                  >
-                    <Avatar 
-                      size="default" 
-                      icon={<UserOutlined />}
-                      style={{
-                        background: '#64748b',
-                        color: 'white'
-                      }}
-                    />
-                  </Button>
-                ) : (
+              {!isMobile && (
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        key: 'profile',
+                        icon: <UserOutlined />,
+                        label: `${user?.username} (${user?.role === 'admin' ? 'Yönetici' : 'Kullanıcı'})`,
+                        disabled: true
+                      },
+                      {
+                        type: 'divider'
+                      },
+                      {
+                        key: 'logout',
+                        icon: <LogoutOutlined />,
+                        label: 'Çıkış Yap',
+                        onClick: logout
+                      }
+                    ]
+                  }}
+                  placement="bottomRight"
+                  arrow
+                >
                   <Button
                     type="text"
                     style={{
@@ -650,31 +700,7 @@ const AppContent: React.FC = () => {
                       {user?.name}
                     </span>
                   </Button>
-                )}
-              </Dropdown>
-              
-              {isMobile && (
-                <Button 
-                  type="primary" 
-                  icon={<SwapOutlined />} 
-                  onClick={() => setTransferModalOpen(true)}
-                  style={{
-                    borderRadius: '10px',
-                    height: '40px',
-                    width: '120px',
-                    minWidth: '120px',
-                    padding: '0 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)',
-                    fontSize: '13px',
-                    fontWeight: 600
-                  }}
-                >
-                  Transfer
-                </Button>
+                </Dropdown>
               )}
             </div>
           </Header>
