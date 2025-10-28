@@ -56,8 +56,10 @@ const Login: React.FC = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: window.innerWidth < 768 ? '16px' : '20px'
-    }}>
+      padding: '20px'
+    }}
+    className="login-container"
+    >
       <Card
         style={{
           width: '100%',
@@ -66,7 +68,7 @@ const Login: React.FC = () => {
           boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
           border: 'none'
         }}
-        bodyStyle={{ padding: window.innerWidth < 768 ? '24px' : '40px' }}
+        className="login-card"
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{

@@ -229,13 +229,12 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
       open={open}
       onCancel={handleClose}
       footer={null}
-      width={window.innerWidth < 768 ? window.innerWidth - 32 : 900}
-      style={{
-        top: window.innerWidth < 768 ? '10px' : '20px'
-      }}
+      width="90%"
+      style={{ top: '20px' }}
+      className="transfer-modal-responsive"
       styles={{
         body: {
-          padding: window.innerWidth < 768 ? '16px' : '24px',
+          padding: '24px',
           background: '#f8fafc'
         }
       }}
@@ -244,10 +243,12 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
         <div style={{
           background: 'white',
           borderRadius: '16px',
-          padding: window.innerWidth < 768 ? '16px' : '32px',
+          padding: '32px',
           border: '1px solid #e5e7eb',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-        }}>
+        }}
+        className="transfer-form-container"
+        >
           <Form
             form={form}
             layout="vertical"
@@ -268,9 +269,9 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                   onChange={(value) => setSelectedFromUnit(value)}
                   style={{
                     border: '2px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: window.innerWidth < 768 ? '14px' : '16px'
+                    borderRadius: '8px'
                   }}
+                  className="transfer-select"
                 >
                   {units.map(unit => (
                     <Option key={unit.value} value={unit.value}>
