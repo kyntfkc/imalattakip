@@ -81,6 +81,21 @@ const AppContent: React.FC = () => {
     collapsedRef.current = collapsed;
   }, [collapsed]);
 
+  // Mobilde menü açıkken body scroll'u engelle
+  useEffect(() => {
+    if (isMobile) {
+      if (!collapsed) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = 'auto';
+      }
+    }
+    
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [collapsed, isMobile]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -491,24 +506,27 @@ const AppContent: React.FC = () => {
         <Layout>
           <Header style={{ 
             background: colors.background.main,
-            padding: isMobile ? '0 16px' : '0 32px',
+            padding: isMobile ? '0 12px' : '0 32px',
             boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             borderBottom: `1px solid ${colors.neutral[200]}`,
-            height: isMobile ? '60px' : '72px',
-            zIndex: 100
+            height: isMobile ? '56px' : '72px',
+            zIndex: 100,
+            position: 'sticky',
+            top: 0
           }}>
-            <Space>
+            <Space size={isMobile ? 8 : 16}>
               {isMobile && (
                 <Button
                   type="text"
                   onClick={() => setCollapsed(!collapsed)}
                   style={{
                     fontSize: '20px',
-                    padding: '0 8px',
-                    height: '40px'
+                    padding: '0 4px',
+                    height: '40px',
+                    minWidth: '40px'
                   }}
                 >
                   ☰
@@ -518,9 +536,10 @@ const AppContent: React.FC = () => {
                 margin: 0, 
                 color: '#1f2937',
                 fontWeight: 700,
-                fontSize: isMobile ? '18px' : '24px'
+                fontSize: isMobile ? '16px' : '24px',
+                lineHeight: 1.2
               }}>
-                İmalat Takip
+                {isMobile ? 'İmalat' : 'İmalat Takip'}
               </Title>
             </Space>
             <Space size={isMobile ? 8 : 16}>
