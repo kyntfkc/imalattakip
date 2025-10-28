@@ -661,24 +661,26 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                 </Col>
               </Row>
             ) : (
-              (() => {
-                const hasValue = isOutputOnlyUnit ? filteredHasEquivalent : 
-                               isProcessingUnit ? 0 : (unit?.hasEquivalent || 0);
-                const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
-                return (
-                  <Statistic
-                    title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
-                    value={formattedHas}
-                    suffix="gr"
-                    valueStyle={{ 
-                      color: '#059669',
-                      fontSize: '28px',
-                      fontWeight: 700
-                    }}
-                    prefix={<CrownOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
-                  />
-                );
-              })()
+              <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                {(() => {
+                  const hasValue = isOutputOnlyUnit ? filteredHasEquivalent : 
+                                 isProcessingUnit ? 0 : (unit?.hasEquivalent || 0);
+                  const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                  return (
+                    <Statistic
+                      title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
+                      value={formattedHas}
+                      suffix="gr"
+                      valueStyle={{ 
+                        color: '#059669',
+                        fontSize: '28px',
+                        fontWeight: 700
+                      }}
+                      prefix={<CrownOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
+                    />
+                  );
+                })()}
+              </Space>
             )}
           </Card>
         </Col>
