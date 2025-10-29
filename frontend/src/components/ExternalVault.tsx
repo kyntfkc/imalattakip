@@ -444,27 +444,72 @@ const ExternalVault: React.FC = () => {
               { required: true, message: 'Miktar giriniz!' },
               { type: 'number', min: 0.01, message: 'Miktar 0.01\'den büyük olmalı!' }
             ]}
+            getValueFromEvent={(value) => {
+              if (typeof value === 'string') {
+                return parseNumberFromInput(value);
+              }
+              return value;
+            }}
+            normalize={(value) => {
+              if (typeof value === 'string') {
+                return parseNumberFromInput(value);
+              }
+              return value;
+            }}
           >
             <Input
               placeholder="0,00"
               size="large"
               style={{ width: '100%' }}
+              onKeyDown={(e) => {
+                // Virgül, nokta, sayı ve kontrol tuşlarına izin ver
+                const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
+                const key = e.key;
+                const isNumber = /^\d$/.test(key);
+                const isComma = key === ',';
+                const isDot = key === '.';
+                const isControl = allowedKeys.includes(key);
+                
+                if (isNumber || isComma || isDot || isControl || (e.ctrlKey || e.metaKey)) {
+                  return; // İzin ver
+                }
+                e.preventDefault(); // Diğer karakterleri engelle
+              }}
               onChange={(e) => {
-                const value = e.target.value;
-                // Sadece sayı, virgül ve nokta karakterlerine izin ver
-                if (/^[\d,.]*$/.test(value)) {
-                  // Form'a parse edilmiş değeri gönder
-                  const numericValue = parseNumberFromInput(value);
-                  if (!isNaN(numericValue)) {
-                    form.setFieldsValue({ amount: numericValue });
-                  }
+                let value = e.target.value;
+                // Boş değere izin ver
+                if (value === '') {
+                  form.setFieldsValue({ amount: undefined });
+                  return;
+                }
+                // Geçersiz karakterleri filtrele - sadece sayı, virgül ve nokta bırak
+                value = value.replace(/[^\d,.]/g, '');
+                
+                // Çift ondalık ayırıcı varsa, sadece birini tut (virgül tercih edilir)
+                const parts = value.split(/[,.]/);
+                if (parts.length > 2) {
+                  value = parts[0] + ',' + parts.slice(1).join('');
+                }
+                
+                // Input'un değerini güncelle
+                e.target.value = value;
+                
+                // Parse edip form'a gönder
+                const numericValue = parseNumberFromInput(value);
+                if (!isNaN(numericValue) && numericValue >= 0) {
+                  form.setFieldsValue({ amount: numericValue });
                 }
               }}
               onBlur={(e) => {
                 const value = e.target.value;
                 if (value && !isNaN(parseNumberFromInput(value))) {
-                  const formattedValue = formatNumberForDisplay(parseNumberFromInput(value));
-                  e.target.value = formattedValue;
+                  const numericValue = parseNumberFromInput(value);
+                  const formattedValue = formatNumberForDisplay(numericValue);
+                  form.setFieldsValue({ amount: numericValue });
+                  // Input'un görünür değerini formatla
+                  setTimeout(() => {
+                    e.target.value = formattedValue;
+                  }, 0);
                 }
               }}
             />
