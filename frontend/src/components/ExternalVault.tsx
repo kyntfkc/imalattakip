@@ -156,11 +156,16 @@ const ExternalVault: React.FC = () => {
   const handleSubmit = (values: any) => {
     const selectedCompany = companies.find(c => c.id === values.companyId);
     
+    // Amount'u parse et (string ise number'a çevir)
+    const amount = typeof values.amount === 'string' 
+      ? parseNumberFromInput(values.amount) 
+      : values.amount;
+    
     // Transaction ekle
     addTransaction({
       type: transactionType,
       karat: values.karat,
-      amount: values.amount,
+      amount: amount,
       companyId: values.companyId,
       companyName: selectedCompany?.name,
       notes: values.notes
@@ -170,13 +175,13 @@ const ExternalVault: React.FC = () => {
     addLog({
       action: 'CREATE',
       entityType: 'EXTERNAL_VAULT',
-      entityName: `${values.karat === '24K' ? 'Has Altın' : values.karat.replace('K', ' Ayar')} - ${values.amount} gr`,
+      entityName: `${values.karat === '24K' ? 'Has Altın' : values.karat.replace('K', ' Ayar')} - ${amount} gr`,
       details: `Dış Kasa ${transactionType === 'input' ? 'Giriş' : 'Çıkış'}${selectedCompany ? ` - Firma: ${selectedCompany.name}` : ''}`
     });
     
     const successMessage = transactionType === 'input' 
-      ? `✅ Giriş işlemi kaydedildi! ${values.amount}gr ${values.karat}` 
-      : `✅ Çıkış işlemi kaydedildi! ${values.amount}gr ${values.karat} - ${selectedCompany?.name}`;
+      ? `✅ Giriş işlemi kaydedildi! ${amount}gr ${values.karat}` 
+      : `✅ Çıkış işlemi kaydedildi! ${amount}gr ${values.karat} - ${selectedCompany?.name}`;
     
     message.success(successMessage);
     
@@ -442,19 +447,26 @@ const ExternalVault: React.FC = () => {
             name="amount"
             rules={[
               { required: true, message: 'Miktar giriniz!' },
-              { type: 'number', min: 0.01, message: 'Miktar 0.01\'den büyük olmalı!' }
+              {
+                validator: (_, value) => {
+                  if (!value && value !== 0 && value !== '') {
+                    return Promise.reject(new Error('Miktar giriniz!'));
+                  }
+                  if (value === '' || value === undefined) {
+                    return Promise.reject(new Error('Miktar giriniz!'));
+                  }
+                  const numValue = typeof value === 'string' ? parseNumberFromInput(value) : value;
+                  if (isNaN(numValue) || numValue < 0.01) {
+                    return Promise.reject(new Error('Miktar 0.01\'den büyük olmalı!'));
+                  }
+                  return Promise.resolve();
+                }
+              }
             ]}
-            getValueFromEvent={(value) => {
-              if (typeof value === 'string') {
-                return parseNumberFromInput(value);
-              }
-              return value;
-            }}
-            normalize={(value) => {
-              if (typeof value === 'string') {
-                return parseNumberFromInput(value);
-              }
-              return value;
+            getValueFromEvent={(e) => {
+              const value = e.target?.value || e;
+              // String olarak tut, virgülü koru
+              return typeof value === 'string' ? value : String(value);
             }}
           >
             <Input
@@ -477,11 +489,13 @@ const ExternalVault: React.FC = () => {
               }}
               onChange={(e) => {
                 let value = e.target.value;
+                
                 // Boş değere izin ver
                 if (value === '') {
-                  form.setFieldsValue({ amount: undefined });
+                  form.setFieldsValue({ amount: '' });
                   return;
                 }
+                
                 // Geçersiz karakterleri filtrele - sadece sayı, virgül ve nokta bırak
                 value = value.replace(/[^\d,.]/g, '');
                 
@@ -491,14 +505,8 @@ const ExternalVault: React.FC = () => {
                   value = parts[0] + ',' + parts.slice(1).join('');
                 }
                 
-                // Input'un değerini güncelle
-                e.target.value = value;
-                
-                // Parse edip form'a gönder
-                const numericValue = parseNumberFromInput(value);
-                if (!isNaN(numericValue) && numericValue >= 0) {
-                  form.setFieldsValue({ amount: numericValue });
-                }
+                // Form'a string olarak gönder (virgülü koru)
+                form.setFieldsValue({ amount: value });
               }}
               onBlur={(e) => {
                 const value = e.target.value;
