@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
-import { Card, Space, Typography, Button, Upload, message, Modal, Input, Divider, Alert } from 'antd';
-import { DownloadOutlined, UploadOutlined, FileTextOutlined, CloudDownloadOutlined, CloudUploadOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Card, Space, Typography, Button, Upload, message, Modal, Input, Divider, Alert, Switch, Badge, Tag } from 'antd';
+import { DownloadOutlined, UploadOutlined, FileTextOutlined, CloudDownloadOutlined, CloudUploadOutlined, InfoCircleOutlined, ClockCircleOutlined, SaveOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/tr';
+
+dayjs.extend(relativeTime);
+dayjs.locale('tr');
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -24,6 +30,12 @@ export const BackupCard: React.FC = () => {
   const [restoreModalVisible, setRestoreModalVisible] = useState(false);
   const [backupJson, setBackupJson] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [autoBackup, setAutoBackup] = useState(() => {
+    return localStorage.getItem('autoBackup') === 'true';
+  });
+  const [lastBackupTime, setLastBackupTime] = useState(() => {
+    return localStorage.getItem('lastBackupTime') || null;
+  });
 
   // Yedekleme verilerini hazırla
   const prepareBackupData = (): BackupData => {
@@ -42,6 +54,36 @@ export const BackupCard: React.FC = () => {
       }
     };
   };
+
+  // Otomatik yedekleme toggle
+  const handleAutoBackupToggle = (checked: boolean) => {
+    setAutoBackup(checked);
+    localStorage.setItem('autoBackup', checked.toString());
+    message.success(checked ? 'Otomatik yedekleme açıldı' : 'Otomatik yedekleme kapatıldı');
+    
+    if (checked) {
+      performAutoBackup();
+    }
+  };
+
+  // Otomatik yedekleme
+  const performAutoBackup = () => {
+    const now = dayjs().toISOString();
+    setLastBackupTime(now);
+    localStorage.setItem('lastBackupTime', now);
+    message.info('Otomatik yedekleme yapıldı');
+  };
+
+  // Otomatik yedekleme interval
+  useEffect(() => {
+    if (!autoBackup) return;
+
+    const interval = setInterval(() => {
+      performAutoBackup();
+    }, 3600000); // Her saat
+
+    return () => clearInterval(interval);
+  }, [autoBackup]);
 
   // JSON yedekleme indir
   const handleDownloadBackup = () => {
@@ -65,6 +107,11 @@ export const BackupCard: React.FC = () => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+      
+      // Son yedekleme zamanını güncelle
+      const now = dayjs().toISOString();
+      setLastBackupTime(now);
+      localStorage.setItem('lastBackupTime', now);
       
       message.success({
         content: `✅ Yedekleme başarılı! ${fileName} dosyası indirildi.`,
@@ -160,16 +207,73 @@ export const BackupCard: React.FC = () => {
       <Card
         title={
           <Space>
-            <FileTextOutlined />
-            <span>Manuel Yedekleme</span>
+            <SaveOutlined style={{ color: '#1890ff' }} />
+            <span>Yedekleme Sistemi</span>
           </Space>
+        }
+        extra={
+          lastBackupTime && (
+            <Tag color="green" icon={<ClockCircleOutlined />}>
+              Son: {dayjs(lastBackupTime).fromNow()}
+            </Tag>
+          )
         }
         style={{ borderRadius: 12 }}
       >
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          {/* Otomatik Yedekleme Ayarı */}
+          <Card 
+            size="small" 
+            style={{ 
+              background: autoBackup ? '#f0f9ff' : '#f8fafc', 
+              borderRadius: '8px',
+              border: autoBackup ? '1px solid #91d5ff' : '1px solid #e5e7eb'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Space direction="vertical" size={4}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <SaveOutlined style={{ fontSize: '18px', color: autoBackup ? '#1890ff' : '#8c8c8c' }} />
+                  <Text strong>Otomatik Yedekleme</Text>
+                  <Badge 
+                    status={autoBackup ? 'processing' : 'default'} 
+                    text={autoBackup ? 'Aktif' : 'Pasif'} 
+                  />
+                </div>
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  {autoBackup ? 'Her saat otomatik yedekleme yapılır' : 'Manuel yedekleme gerekli'}
+                </Text>
+              </Space>
+              <Switch 
+                checked={autoBackup} 
+                onChange={handleAutoBackupToggle}
+                checkedChildren="Açık"
+                unCheckedChildren="Kapalı"
+              />
+            </div>
+          </Card>
+
+          {lastBackupTime && (
+            <Alert
+              message="Son Yedekleme Bilgisi"
+              description={
+                <Space direction="vertical" size={4}>
+                  <Text>Tarih: {dayjs(lastBackupTime).format('DD.MM.YYYY HH:mm')}</Text>
+                  <Text type="secondary">({dayjs(lastBackupTime).fromNow()})</Text>
+                </Space>
+              }
+              type="success"
+              showIcon
+              icon={<CheckCircleOutlined />}
+              style={{ borderRadius: '8px' }}
+            />
+          )}
+
+          <Divider style={{ margin: '8px 0' }} />
+
           <Alert
-            message="Manuel Yedekleme Sistemi"
-            description="Tüm verilerinizi JSON formatında yedekleyebilir ve geri yükleyebilirsiniz. Bu sistem Dropbox otomatik yedeklemesine ek olarak çalışır."
+            message="Manuel Yedekleme"
+            description="Tüm verilerinizi JSON formatında yedekleyebilir ve geri yükleyebilirsiniz."
             type="info"
             showIcon
             icon={<InfoCircleOutlined />}

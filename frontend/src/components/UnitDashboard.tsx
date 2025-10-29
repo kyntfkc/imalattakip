@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Card, Row, Col, Statistic, Typography, Space, Tag, Button, Modal, Table, Divider, Popconfirm, message, Skeleton, Spin } from 'antd';
+import { Card, Row, Col, Statistic, Typography, Space, Tag, Button, Modal, Table, Divider, Popconfirm, message, Skeleton, Spin, Timeline, Badge, Tooltip } from 'antd';
 import { 
   GoldOutlined, 
   ToolOutlined, 
@@ -12,8 +12,21 @@ import {
   DeleteOutlined,
   EditOutlined,
   DragOutlined,
-  ShoppingCartOutlined
+  ShoppingCartOutlined,
+  FireOutlined,
+  DashboardOutlined,
+  ClockCircleOutlined,
+  PlusCircleOutlined,
+  BarChartOutlined,
+  SettingOutlined,
+  SyncOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons';
+import dayjs from 'dayjs';
+import isToday from 'dayjs/plugin/isToday';
+
+dayjs.extend(isToday);
+
 import {
   DndContext,
   closestCenter,
@@ -637,6 +650,236 @@ const UnitDashboard: React.FC = React.memo(() => {
           </Space>
         </div>
       </div>
+
+      {/* Gelişmiş KPI Kartları */}
+      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            bordered={false}
+            style={{
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+            }}
+          >
+            <Space direction="vertical" size={8}>
+              <SwapOutlined style={{ fontSize: '32px', opacity: 0.9 }} />
+              <Text style={{ color: 'white', fontSize: '14px', opacity: 0.9 }}>Toplam Transfer</Text>
+              <Title level={2} style={{ color: 'white', margin: 0 }}>
+                {transfers.length}
+              </Title>
+            </Space>
+          </Card>
+        </Col>
+
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            bordered={false}
+            style={{
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+              color: 'white',
+              boxShadow: '0 4px 12px rgba(245, 87, 108, 0.3)'
+            }}
+          >
+            <Space direction="vertical" size={8}>
+              <ClockCircleOutlined style={{ fontSize: '32px', opacity: 0.9 }} />
+              <Text style={{ color: 'white', fontSize: '14px', opacity: 0.9 }}>Bugünkü İşlem</Text>
+              <Title level={2} style={{ color: 'white', margin: 0 }}>
+                {transfers.filter(t => dayjs(t.date).isToday()).length}
+              </Title>
+            </Space>
+          </Card>
+        </Col>
+
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            bordered={false}
+            style={{
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+              color: 'white',
+              boxShadow: '0 4px 12px rgba(79, 172, 254, 0.3)'
+            }}
+          >
+            <Space direction="vertical" size={8}>
+              <FireOutlined style={{ fontSize: '32px', opacity: 0.9 }} />
+              <Text style={{ color: 'white', fontSize: '14px', opacity: 0.9 }}>Toplam Fire</Text>
+              <Title level={2} style={{ color: 'white', margin: 0 }}>
+                {sortedUnits.reduce((acc, u) => acc + (u.totalFire || 0), 0).toFixed(2)} gr
+              </Title>
+            </Space>
+          </Card>
+        </Col>
+
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            bordered={false}
+            style={{
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+              color: 'white',
+              boxShadow: '0 4px 12px rgba(67, 233, 123, 0.3)'
+            }}
+          >
+            <Space direction="vertical" size={8}>
+              <DashboardOutlined style={{ fontSize: '32px', opacity: 0.9 }} />
+              <Text style={{ color: 'white', fontSize: '14px', opacity: 0.9 }}>Aktif Birim</Text>
+              <Title level={2} style={{ color: 'white', margin: 0 }}>
+                {sortedUnits.length}
+              </Title>
+            </Space>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Son Aktiviteler ve Hızlı Erişim */}
+      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+        {/* Son Aktiviteler */}
+        <Col xs={24} lg={16}>
+          <Card
+            title={
+              <Space>
+                <HistoryOutlined style={{ color: '#1890ff' }} />
+                <span>Son Aktiviteler</span>
+              </Space>
+            }
+            bordered={false}
+            style={{
+              borderRadius: '16px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+            }}
+            bodyStyle={{ maxHeight: '400px', overflowY: 'auto' }}
+          >
+            {transfers.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                <HistoryOutlined style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: 16 }} />
+                <div>
+                  <Text type="secondary">Henüz işlem yok</Text>
+                </div>
+              </div>
+            ) : (
+              <Timeline
+                items={transfers
+                  .slice()
+                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .slice(0, 10)
+                  .map((transfer) => {
+                    const fromUnitColor = unitColors[transfer.fromUnit as keyof typeof unitColors];
+                    const toUnitColor = unitColors[transfer.toUnit as keyof typeof unitColors];
+                    const fromColor = fromUnitColor?.primary || '#1890ff';
+                    const toColor = toUnitColor?.primary || '#52c41a';
+                    
+                    return {
+                      color: 'blue',
+                      dot: <ClockCircleOutlined style={{ fontSize: '16px' }} />,
+                      children: (
+                        <div style={{ marginBottom: '12px' }}>
+                          <div style={{ marginBottom: '8px' }}>
+                            <Space size={8}>
+                              <Tag color="blue" style={{ margin: 0, borderRadius: '6px', fontWeight: 500, background: fromColor, borderColor: fromColor }}>
+                                {transfer.fromUnit}
+                              </Tag>
+                              <ArrowRightOutlined style={{ color: '#8c8c8c', fontSize: '12px' }} />
+                              <Tag color="green" style={{ margin: 0, borderRadius: '6px', fontWeight: 500, background: toColor, borderColor: toColor }}>
+                                {transfer.toUnit}
+                              </Tag>
+                            </Space>
+                          </div>
+                          <div>
+                            <Text strong style={{ fontSize: '15px', color: '#1f2937' }}>
+                              {transfer.amount} gr
+                            </Text>
+                            <Text type="secondary" style={{ marginLeft: '8px', fontSize: '13px' }}>
+                              {transfer.karat === '24K' ? 'Has Altın' : transfer.karat.replace('K', ' Ayar')}
+                            </Text>
+                          </div>
+                          <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                            {dayjs(transfer.date).format('DD.MM.YYYY HH:mm')}
+                          </Text>
+                          {transfer.cinsi && (
+                            <Tag color="blue" style={{ marginTop: '4px', fontSize: '11px' }}>
+                              {transfer.cinsi}
+                            </Tag>
+                          )}
+                        </div>
+                      )
+                    };
+                  })}
+              />
+            )}
+          </Card>
+        </Col>
+
+        {/* Hızlı Erişim Widget'ları */}
+        <Col xs={24} lg={8}>
+          <Space direction="vertical" size={16} style={{ width: '100%' }}>
+            {/* Yeni Transfer */}
+            <Card
+              hoverable
+              bordered={false}
+              style={{
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+              }}
+              onClick={() => setTransferModalOpen(true)}
+              bodyStyle={{ padding: '24px' }}
+            >
+              <Space direction="vertical" size={8}>
+                <PlusCircleOutlined style={{ fontSize: '36px', opacity: 0.9 }} />
+                <Title level={4} style={{ color: 'white', margin: 0 }}>
+                  Yeni Transfer
+                </Title>
+                <Text style={{ color: 'white', opacity: 0.9, fontSize: '13px' }}>
+                  Birimler arası transfer işlemi başlat
+                </Text>
+              </Space>
+            </Card>
+
+            {/* Veri Durumu */}
+            <Card
+              bordered={false}
+              style={{
+                borderRadius: '16px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+              }}
+              bodyStyle={{ padding: '20px' }}
+            >
+              <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Space>
+                    <SyncOutlined spin style={{ color: '#52c41a', fontSize: '18px' }} />
+                    <Text strong>Veri Durumu</Text>
+                  </Space>
+                  <Badge status="success" text="Aktif" />
+                </div>
+                <Divider style={{ margin: 0 }} />
+                <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text type="secondary" style={{ fontSize: '13px' }}>Son Güncelleme</Text>
+                    <Text style={{ fontSize: '13px' }}>{dayjs().format('HH:mm')}</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text type="secondary" style={{ fontSize: '13px' }}>Toplam Kayıt</Text>
+                    <Text style={{ fontSize: '13px' }}>{transfers.length}</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text type="secondary" style={{ fontSize: '13px' }}>Durum</Text>
+                    <Space size={4}>
+                      <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '14px' }} />
+                      <Text style={{ fontSize: '13px', color: '#52c41a' }}>Senkronize</Text>
+                    </Space>
+                  </div>
+                </Space>
+              </Space>
+            </Card>
+          </Space>
+        </Col>
+      </Row>
 
       <DndContext
         sensors={sensors}
