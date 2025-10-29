@@ -27,6 +27,7 @@ import { LogProvider } from './context/LogContext';
 import { useBackendStatus } from './hooks/useBackendStatus';
 import Login from './components/Login';
 import TransferModal from './components/TransferModal';
+import DataSyncIndicator from './components/DataSyncIndicator';
 import UnitDashboard from './components/UnitDashboard';
 import { UnitType } from './types';
 import { colors, commonStyles } from './styles/theme';
@@ -565,6 +566,7 @@ const AppContent: React.FC = () => {
               paddingRight: isMobile ? '12px' : '32px',
               gap: isMobile ? '8px' : '12px'
             }}>
+              {!isMobile && <DataSyncIndicator isMobile={false} />}
               {isMobile && (
                 <>
                   <Dropdown
@@ -608,6 +610,8 @@ const AppContent: React.FC = () => {
                       />
                     </Button>
                   </Dropdown>
+                  
+                  <DataSyncIndicator isMobile={true} />
                   
                   <Button 
                     type="primary" 
