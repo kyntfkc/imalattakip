@@ -484,92 +484,111 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         {/* Filtreler - Sadece satış ve output-only birimler için */}
         {(isOutputOnlyUnit || unitId === 'satis') && (
           <div style={{ 
-            marginTop: '20px',
-            paddingTop: '20px',
+            marginTop: '24px',
+            paddingTop: '24px',
             borderTop: '1px solid #e5e7eb'
           }}>
-            <div style={{ 
-              width: '100%',
+            <div style={{
               display: 'flex',
-              gap: '6px'
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '12px'
             }}>
-              <button
-                onClick={() => setDateFilter('all')}
+              <Text style={{ 
+                fontSize: '14px', 
+                fontWeight: '600',
+                color: '#475569'
+              }}>
+                Filtre
+              </Text>
+              <Text style={{ 
+                fontSize: '12px', 
+                color: '#94a3b8'
+              }}>
+                {filteredTransfers.length} işlem
+              </Text>
+            </div>
+            <Radio.Group 
+              value={dateFilter} 
+              onChange={(e) => setDateFilter(e.target.value)}
+              optionType="button"
+              buttonStyle="solid"
+              size="large"
+              style={{
+                width: '100%',
+                display: 'flex',
+                gap: '8px'
+              }}
+            >
+              <Radio.Button 
+                value="all" 
                 style={{ 
-                  fontSize: '12px', 
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  border: dateFilter === 'all' ? '1px solid #1890ff' : '1px solid #d9d9d9',
-                  background: dateFilter === 'all' ? '#1890ff' : '#fff',
-                  color: dateFilter === 'all' ? '#fff' : '#666',
                   flex: 1,
-                  textAlign: 'center',
-                  transition: 'all 0.2s ease',
-                  cursor: 'pointer',
-                  outline: 'none',
-                  fontWeight: dateFilter === 'all' ? '600' : '400'
+                  borderRadius: '12px',
+                  border: '1px solid #e5e7eb',
+                  fontWeight: 500,
+                  fontSize: '14px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 Tümü
-              </button>
-              <button
-                onClick={() => setDateFilter('week')}
+              </Radio.Button>
+              <Radio.Button 
+                value="week" 
                 style={{ 
-                  fontSize: '12px', 
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  border: dateFilter === 'week' ? '1px solid #1890ff' : '1px solid #d9d9d9',
-                  background: dateFilter === 'week' ? '#1890ff' : '#fff',
-                  color: dateFilter === 'week' ? '#fff' : '#666',
                   flex: 1,
-                  textAlign: 'center',
-                  transition: 'all 0.2s ease',
-                  cursor: 'pointer',
-                  outline: 'none',
-                  fontWeight: dateFilter === 'week' ? '600' : '400'
+                  borderRadius: '12px',
+                  border: '1px solid #e5e7eb',
+                  fontWeight: 500,
+                  fontSize: '14px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
                 }}
               >
-                Haftalık
-              </button>
-              <button
-                onClick={() => setDateFilter('month')}
+                Son Hafta
+              </Radio.Button>
+              <Radio.Button 
+                value="month" 
                 style={{ 
-                  fontSize: '12px', 
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  border: dateFilter === 'month' ? '1px solid #1890ff' : '1px solid #d9d9d9',
-                  background: dateFilter === 'month' ? '#1890ff' : '#fff',
-                  color: dateFilter === 'month' ? '#fff' : '#666',
                   flex: 1,
-                  textAlign: 'center',
-                  transition: 'all 0.2s ease',
-                  cursor: 'pointer',
-                  outline: 'none',
-                  fontWeight: dateFilter === 'month' ? '600' : '400'
+                  borderRadius: '12px',
+                  border: '1px solid #e5e7eb',
+                  fontWeight: 500,
+                  fontSize: '14px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
                 }}
               >
-                Aylık
-              </button>
-              <button
-                onClick={() => setDateFilter('year')}
+                Son Ay
+              </Radio.Button>
+              <Radio.Button 
+                value="year" 
                 style={{ 
-                  fontSize: '12px', 
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  border: dateFilter === 'year' ? '1px solid #1890ff' : '1px solid #d9d9d9',
-                  background: dateFilter === 'year' ? '#1890ff' : '#fff',
-                  color: dateFilter === 'year' ? '#fff' : '#666',
                   flex: 1,
-                  textAlign: 'center',
-                  transition: 'all 0.2s ease',
-                  cursor: 'pointer',
-                  outline: 'none',
-                  fontWeight: dateFilter === 'year' ? '600' : '400'
+                  borderRadius: '12px',
+                  border: '1px solid #e5e7eb',
+                  fontWeight: 500,
+                  fontSize: '14px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
                 }}
               >
-                Yıllık
-              </button>
-            </div>
+                Son Yıl
+              </Radio.Button>
+            </Radio.Group>
           </div>
         )}
       </Card>

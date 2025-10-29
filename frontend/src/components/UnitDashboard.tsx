@@ -205,11 +205,7 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
                 fontSize: '22px', 
                 fontWeight: '600'
               }}>
-                {(() => {
-                  const val = ((typeof unit?.totalStock === 'number' ? unit.totalStock : parseFloat(unit?.totalStock) || 0) || 0);
-                  const formatted = val.toFixed(2);
-                  return (formatted === '0.00' ? '0.00' : formatted.replace(/^0+(?=\d)/, '')) + ' gr';
-                })()}
+                {((typeof unit?.totalStock === 'number' ? unit.totalStock : parseFloat(unit?.totalStock) || 0) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
               </Text>
             </div>
             
@@ -227,11 +223,7 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
                 fontSize: '20px', 
                 fontWeight: '600'
               }}>
-                {(() => {
-                  const val = ((typeof unit?.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit?.hasEquivalent) || 0) || 0);
-                  const formatted = val.toFixed(2);
-                  return (formatted === '0.00' ? '0.00' : formatted.replace(/^0+(?=\d)/, '')) + ' gr';
-                })()}
+                {((typeof unit?.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit?.hasEquivalent) || 0) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
               </Text>
             </div>
 
@@ -251,11 +243,7 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
                   padding: '2px 8px',
                   fontSize: '14px'
                 }}>
-                  {(() => {
-                    const val = ((typeof unit?.totalFire === 'number' ? unit.totalFire : parseFloat(unit?.totalFire) || 0) || 0);
-                    const formatted = val.toFixed(2);
-                    return (formatted === '0.00' ? '0.00' : formatted.replace(/^0+(?=\d)/, '')) + ' gr';
-                  })()}
+                  {((typeof unit?.totalFire === 'number' ? unit.totalFire : parseFloat(unit?.totalFire) || 0) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
                 </Tag>
               </div>
             )}
@@ -591,11 +579,7 @@ const UnitDashboard: React.FC = React.memo(() => {
                         display: 'block',
                         whiteSpace: 'nowrap'
                       }}>
-                        {(() => {
-                          const val = (typeof totalStats.stock === 'number' ? totalStats.stock : parseFloat(totalStats.stock) || 0);
-                          const formatted = val.toFixed(2);
-                          return (formatted === '0.00' ? '0.00' : formatted.replace(/^0+(?=\d)/, '')) + ' gr';
-                        })()}
+                        {(typeof totalStats.stock === 'number' ? totalStats.stock : parseFloat(totalStats.stock) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
                       </Text>
                     </div>
                   </div>
@@ -643,11 +627,7 @@ const UnitDashboard: React.FC = React.memo(() => {
                         display: 'block',
                         whiteSpace: 'nowrap'
                       }}>
-                        {(() => {
-                          const val = (typeof totalStats.has === 'number' ? totalStats.has : parseFloat(totalStats.has) || 0);
-                          const formatted = val.toFixed(2);
-                          return (formatted === '0.00' ? '0.00' : formatted.replace(/^0+(?=\d)/, '')) + ' gr';
-                        })()}
+                        {(typeof totalStats.has === 'number' ? totalStats.has : parseFloat(totalStats.has) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
                       </Text>
                     </div>
                   </div>
