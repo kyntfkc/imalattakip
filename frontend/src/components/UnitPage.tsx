@@ -577,6 +577,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                 }
               ]}
               size="large"
+              className="time-filter-segmented"
               style={{
                 width: '100%',
                 background: '#f8fafc',
