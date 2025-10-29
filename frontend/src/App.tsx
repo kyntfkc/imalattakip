@@ -721,45 +721,6 @@ const AppContent: React.FC = () => {
               {renderContent()}
             </div>
           </Content>
-          
-          {/* Backend Durumu - Sağ Alt */}
-          {!isChecking && (
-            <div style={{
-              position: 'fixed',
-              bottom: isMobile ? '10px' : '20px',
-              right: isMobile ? '10px' : '20px',
-              zIndex: 1000,
-              display: 'flex',
-              alignItems: 'center',
-              padding: isMobile ? '6px 12px' : '8px 16px',
-              borderRadius: '24px',
-              fontSize: isMobile ? '11px' : '13px',
-              fontWeight: '600',
-              backgroundColor: isBackendOnline ? '#dcfce7' : '#fee2e2',
-              color: isBackendOnline ? '#166534' : '#991b1b',
-              border: `2px solid ${isBackendOnline ? '#22c55e' : '#ef4444'}`,
-              minWidth: isMobile ? '100px' : '140px',
-              justifyContent: 'center',
-              boxShadow: isBackendOnline 
-                ? '0 4px 12px rgba(34, 197, 94, 0.3)' 
-                : '0 4px 12px rgba(239, 68, 68, 0.3)',
-              backdropFilter: 'blur(10px)',
-              transition: 'all 0.3s ease'
-            }}>
-              <div style={{
-                width: isMobile ? '6px' : '8px',
-                height: isMobile ? '6px' : '8px',
-                borderRadius: '50%',
-                backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444',
-                marginRight: '6px',
-                animation: isBackendOnline ? 'pulse 2s infinite' : 'none',
-                boxShadow: isBackendOnline 
-                  ? '0 0 12px rgba(34, 197, 94, 0.8)' 
-                  : '0 0 12px rgba(239, 68, 68, 0.8)'
-              }} />
-              {isMobile ? (isBackendOnline ? 'Aktif' : 'Kapalı') : (isBackendOnline ? 'Backend Aktif' : 'Backend Kapalı')}
-            </div>
-          )}
         </Layout>
       </Layout>
       

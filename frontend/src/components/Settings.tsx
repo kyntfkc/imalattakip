@@ -64,26 +64,13 @@ const Settings: React.FC = () => {
                     </Title>
                     {!isChecking && (
                       <div style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        padding: '4px 10px',
-                        borderRadius: 999,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        backgroundColor: isBackendOnline ? '#dcfce7' : '#fee2e2',
-                        color: isBackendOnline ? '#166534' : '#991b1b',
-                        border: `1px solid ${isBackendOnline ? '#22c55e' : '#ef4444'}`
-                      }}>
-                        <span style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: '50%',
-                          backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444',
-                          boxShadow: isBackendOnline ? '0 0 8px rgba(34,197,94,0.6)' : '0 0 8px rgba(239,68,68,0.6)'
-                        }} />
-                        <span>{isBackendOnline ? 'Backend Aktif' : 'Backend Kapalı'}</span>
-                      </div>
+                        width: 12,
+                        height: 12,
+                        borderRadius: '50%',
+                        backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444',
+                        boxShadow: isBackendOnline ? '0 0 8px rgba(34,197,94,0.6)' : '0 0 8px rgba(239,68,68,0.6)',
+                        border: `2px solid ${isBackendOnline ? '#dcfce7' : '#fee2e2'}`
+                      }} />
                     )}
                   </Space>
                   <Text style={{ color: '#6b7280', fontSize: '16px', fontWeight: '400' }}>
