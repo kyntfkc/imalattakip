@@ -36,6 +36,7 @@ import { UnitType, UNIT_NAMES, FIRE_UNITS, OUTPUT_ONLY_UNITS, SEMI_FINISHED_UNIT
 import type { ColumnsType } from 'antd/es/table';
 import TransferModal from './TransferModal';
 import { unitColors, commonStyles } from '../styles/theme';
+import { useBackendStatus } from '../hooks/useBackendStatus';
 
 const { Title, Text } = Typography;
 
@@ -49,6 +50,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const { cinsiOptions } = useCinsiSettings();
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState<'all' | 'week' | 'month' | 'year'>('week');
+  const { isBackendOnline, isChecking } = useBackendStatus();
 
   const unit = unitSummaries.find(u => u.unitId === unitId);
   const unitName = UNIT_NAMES[unitId];
@@ -455,12 +457,39 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                 {getUnitIcon('#64748b')}
               </div>
               <div>
-                <Title level={2} style={{ margin: 0, color: '#1f2937', fontSize: '28px', fontWeight: '700' }}>
-                  {unitName}
-                </Title>
-                <Text style={{ color: '#6b7280', fontSize: '16px', fontWeight: '400' }}>
-                  Birim Detay Sayfası
-                </Text>
+                <Space direction="vertical" size={4} style={{ alignItems: 'flex-start' }}>
+                  <Space size={10} align="center">
+                    <Title level={2} style={{ margin: 0, color: '#1f2937', fontSize: '28px', fontWeight: '700' }}>
+                      {unitName}
+                    </Title>
+                    {!isChecking && (
+                      <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '4px 10px',
+                        borderRadius: 999,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        backgroundColor: isBackendOnline ? '#dcfce7' : '#fee2e2',
+                        color: isBackendOnline ? '#166534' : '#991b1b',
+                        border: `1px solid ${isBackendOnline ? '#22c55e' : '#ef4444'}`
+                      }}>
+                        <span style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444',
+                          boxShadow: isBackendOnline ? '0 0 8px rgba(34,197,94,0.6)' : '0 0 8px rgba(239,68,68,0.6)'
+                        }} />
+                        <span>{isBackendOnline ? 'Backend Aktif' : 'Backend Kapalı'}</span>
+                      </div>
+                    )}
+                  </Space>
+                  <Text style={{ color: '#6b7280', fontSize: '16px', fontWeight: '400' }}>
+                    Birim Detay Sayfası
+                  </Text>
+                </Space>
               </div>
             </Space>
           </Col>
