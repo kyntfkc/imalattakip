@@ -47,10 +47,27 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import { useTransfers } from '../context/TransferContext';
 import { useExternalVault } from '../context/ExternalVaultContext';
+import { commonStyles } from '../styles/theme';
 import dayjs, { Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
+import '../styles/animations.css';
 
 dayjs.extend(isBetween);
+
+// Güvenli sayı dönüştürme fonksiyonu
+const safeNumber = (value: any): number => {
+  if (typeof value === 'number') {
+    return isNaN(value) ? 0 : value;
+  }
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? 0 : parsed;
+};
+
+// Güvenli toFixed fonksiyonu
+const safeToFixed = (value: any, decimals: number = 2): string => {
+  const num = safeNumber(value);
+  return num.toFixed(decimals).replace(/^0+(?=\d)/, '');
+};
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -130,9 +147,9 @@ const Reports: React.FC = () => {
       return {
         key: String(index + 1),
         unit: unit.unitName,
-        totalStock: unit.totalStock,
-        fireAmount: unit.totalFire,
-        hasEquivalent: unit.hasEquivalent,
+        totalStock: safeNumber(unit.totalStock),
+        fireAmount: safeNumber(unit.totalFire),
+        hasEquivalent: safeNumber(unit.hasEquivalent),
         lastUpdate: lastTransfer 
           ? dayjs(lastTransfer.date).format('DD.MM.YYYY HH:mm')
           : '-'
@@ -144,9 +161,9 @@ const Reports: React.FC = () => {
     data.push({
       key: String(data.length + 1),
       unit: 'Dış Kasa',
-      totalStock: externalVaultStock,
+      totalStock: safeNumber(externalVaultStock),
       fireAmount: 0,
-      hasEquivalent: externalVaultHas,
+      hasEquivalent: safeNumber(externalVaultHas),
       lastUpdate: externalVaultTransfers.length > 0 
         ? dayjs(externalVaultTransfers[externalVaultTransfers.length - 1].date).format('DD.MM.YYYY HH:mm')
         : '-'
@@ -184,8 +201,8 @@ const Reports: React.FC = () => {
     unitSummaries.forEach(unit => {
       Object.entries(unit.stockByKarat).forEach(([karat, stock]) => {
         if (karatTotals[karat]) {
-          karatTotals[karat].stock += stock.currentStock;
-          karatTotals[karat].has += stock.hasEquivalent;
+          karatTotals[karat].stock += safeNumber(stock.currentStock);
+          karatTotals[karat].has += safeNumber(stock.hasEquivalent);
         }
       });
     });
@@ -224,38 +241,47 @@ const Reports: React.FC = () => {
       title: 'Toplam Stok (gr)',
       dataIndex: 'totalStock',
       key: 'totalStock',
-      render: (value: number) => (
-        <Tooltip title={`${value.toFixed(3)} gram`}>
-          <Text strong style={{ color: '#1890ff', fontSize: '16px' }}>
-            {value.toFixed(2)}
-          </Text>
-        </Tooltip>
-      ),
+      render: (value: number) => {
+        const safeValue = safeNumber(value);
+        return (
+          <Tooltip title={`${safeToFixed(safeValue, 3)} gram`}>
+            <Text strong style={{ color: '#1890ff', fontSize: '16px' }}>
+              {safeToFixed(safeValue, 2)}
+            </Text>
+          </Tooltip>
+        );
+      },
       sorter: (a, b) => a.totalStock - b.totalStock
     },
     {
       title: 'Fire Miktarı (gr)',
       dataIndex: 'fireAmount',
       key: 'fireAmount',
-      render: (value: number) => (
-        <Tag 
-          color={value === 0 ? 'success' : value > 10 ? 'error' : 'warning'}
-          style={{ fontSize: '14px', padding: '4px 12px' }}
-        >
-          <FireOutlined /> {value.toFixed(2)}
-        </Tag>
-      ),
+      render: (value: number) => {
+        const safeValue = safeNumber(value);
+        return (
+          <Tag 
+            color={safeValue === 0 ? 'success' : safeValue > 10 ? 'error' : 'warning'}
+            style={{ fontSize: '14px', padding: '4px 12px' }}
+          >
+            <FireOutlined /> {safeToFixed(safeValue, 2)}
+          </Tag>
+        );
+      },
       sorter: (a, b) => a.fireAmount - b.fireAmount
     },
     {
       title: 'Has Karşılığı (gr)',
       dataIndex: 'hasEquivalent',
       key: 'hasEquivalent',
-      render: (value: number) => (
-        <Text style={{ color: '#52c41a', fontSize: '16px' }}>
-          <GoldOutlined /> {value.toFixed(2)}
-        </Text>
-      ),
+      render: (value: number) => {
+        const safeValue = safeNumber(value);
+        return (
+          <Text style={{ color: '#52c41a', fontSize: '16px' }}>
+            <GoldOutlined /> {safeToFixed(safeValue, 2)}
+          </Text>
+        );
+      },
       sorter: (a, b) => a.hasEquivalent - b.hasEquivalent
     },
     {
@@ -288,49 +314,58 @@ const Reports: React.FC = () => {
       title: 'Toplam Stok (gr)',
       dataIndex: 'totalStock',
       key: 'totalStock',
-      render: (value: number) => (
-        <Text strong style={{ fontSize: '16px', color: '#1890ff' }}>
-          {value.toFixed(2)}
-        </Text>
-      ),
+      render: (value: number) => {
+        const safeValue = safeNumber(value);
+        return (
+          <Text strong style={{ fontSize: '16px', color: '#1890ff' }}>
+            {safeToFixed(safeValue, 2)}
+          </Text>
+        );
+      },
       sorter: (a, b) => a.totalStock - b.totalStock
     },
     {
       title: 'Has Karşılığı (gr)',
       dataIndex: 'hasEquivalent',
       key: 'hasEquivalent',
-      render: (value: number) => (
-        <Text style={{ fontSize: '16px', color: '#52c41a' }}>
-          {value.toFixed(2)}
-        </Text>
-      ),
+      render: (value: number) => {
+        const safeValue = safeNumber(value);
+        return (
+          <Text style={{ fontSize: '16px', color: '#52c41a' }}>
+            {safeToFixed(safeValue, 2)}
+          </Text>
+        );
+      },
       sorter: (a, b) => a.hasEquivalent - b.hasEquivalent
     },
     {
       title: 'Dağılım (%)',
       dataIndex: 'percentage',
       key: 'percentage',
-      render: (value: number) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Progress 
-            percent={value} 
-            size="small" 
-            strokeColor={value > 50 ? '#52c41a' : value > 25 ? '#1890ff' : '#faad14'}
-            showInfo={false}
-            style={{ flex: 1 }}
-          />
-          <Text strong style={{ minWidth: '50px', textAlign: 'right' }}>
-            {value.toFixed(1)}%
-          </Text>
-        </div>
-      ),
+      render: (value: number) => {
+        const safeValue = safeNumber(value);
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Progress 
+              percent={safeValue} 
+              size="small" 
+              strokeColor={safeValue > 50 ? '#52c41a' : safeValue > 25 ? '#1890ff' : '#faad14'}
+              showInfo={false}
+              style={{ flex: 1 }}
+            />
+            <Text strong style={{ minWidth: '50px', textAlign: 'right' }}>
+              {safeToFixed(safeValue, 1)}%
+            </Text>
+          </div>
+        );
+      },
       sorter: (a, b) => a.percentage - b.percentage
     }
   ];
 
-  const totalStock = reportData.reduce((sum, item) => sum + item.totalStock, 0);
-  const totalFire = reportData.reduce((sum, item) => sum + item.fireAmount, 0);
-  const totalHas = reportData.reduce((sum, item) => sum + item.hasEquivalent, 0);
+  const totalStock = reportData.reduce((sum, item) => sum + safeNumber(item.totalStock), 0);
+  const totalFire = reportData.reduce((sum, item) => sum + safeNumber(item.fireAmount), 0);
+  const totalHas = reportData.reduce((sum, item) => sum + safeNumber(item.hasEquivalent), 0);
 
   const handleResetFilters = () => {
     setDateFilter('all');
@@ -372,31 +407,68 @@ const Reports: React.FC = () => {
 
   return (
     <div className="fade-in" style={{ padding: '0 8px' }}>
-      {/* Modern Header */}
+      {/* Modern Hero Section */}
       <div style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        borderRadius: '16px',
-        padding: '32px',
-        marginBottom: '24px',
-        color: 'white',
-        boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)'
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        borderRadius: '20px',
+        padding: '40px 32px',
+        marginBottom: '32px',
+        color: '#1f2937',
+        position: 'relative',
+        overflow: 'hidden',
+        border: '1px solid #e5e7eb'
       }}>
-        <Space direction="vertical" size={12}>
-          <Title level={2} style={{ margin: 0, color: 'white', fontSize: '28px', fontWeight: '700' }}>
-            <BarChartOutlined style={{ marginRight: '12px' }} />
-            Raporlar & Analiz
-          </Title>
-          <Text style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '16px', fontWeight: '400' }}>
-            Detaylı stok analizi, fire raporları ve ayar bazlı dağılım grafikleri
-          </Text>
-        </Space>
+        {/* Decorative Elements */}
+        <div style={{
+          position: 'absolute',
+          top: '-30px',
+          right: '-30px',
+          width: '120px',
+          height: '120px',
+          background: 'rgba(148, 163, 184, 0.1)',
+          borderRadius: '50%',
+          opacity: 0.5
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '-20px',
+          left: '-20px',
+          width: '80px',
+          height: '80px',
+          background: 'rgba(148, 163, 184, 0.08)',
+          borderRadius: '50%',
+          opacity: 0.4
+        }} />
+        
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <Space direction="vertical" size={20}>
+            <div>
+              <Title level={1} style={{ 
+                margin: 0, 
+                color: '#1f2937', 
+                fontSize: '36px',
+                fontWeight: '700'
+              }}>
+                <BarChartOutlined style={{ marginRight: '12px' }} />
+                Raporlar & Analiz
+              </Title>
+              <Text style={{ 
+                color: '#6b7280', 
+                fontSize: '18px',
+                fontWeight: '400'
+              }}>
+                Detaylı stok analizi, fire raporları ve ayar bazlı dağılım grafikleri
+              </Text>
+            </div>
+          </Space>
+        </div>
       </div>
 
       {/* Gelişmiş Filtreler */}
       <Card 
         style={{ 
           marginBottom: 24, 
-          borderRadius: '16px', 
+          borderRadius: commonStyles.borderRadiusLarge, 
           border: '1px solid #e5e7eb', 
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' 
         }}
@@ -572,82 +644,142 @@ const Reports: React.FC = () => {
         <Col xs={24} sm={8}>
           <Card 
             style={{ 
-              borderRadius: '16px', 
+              borderRadius: commonStyles.borderRadiusLarge, 
               border: '1px solid #e5e7eb',
-              background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
+              background: 'white',
+              boxShadow: commonStyles.cardShadow,
+              height: '100%'
             }}
-            bodyStyle={{ padding: '24px' }}
+            styles={{ body: { padding: '28px' } }}
           >
-            <Statistic
-              title={
-                <Space>
-                  <GoldOutlined style={{ color: '#1890ff' }} />
-                  <span style={{ color: '#374151', fontSize: '14px', fontWeight: '600' }}>Toplam Stok</span>
-                </Space>
-              }
-              value={Number(totalStock.toFixed(2))}
-              suffix="gr"
-              valueStyle={{ color: '#1890ff', fontSize: '24px', fontWeight: '700' }}
-              prefix={<RiseOutlined />}
-            />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              Tüm birimlerdeki toplam altın miktarı
-            </Text>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', width: '100%' }}>
+              <div style={{
+                background: '#f8fafc',
+                borderRadius: commonStyles.borderRadiusLarge,
+                padding: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '64px',
+                height: '64px'
+              }}>
+                <GoldOutlined style={{ fontSize: '28px', color: '#64748b' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <Text style={{ 
+                  color: '#64748b', 
+                  fontSize: '18px', 
+                  fontWeight: '500',
+                  display: 'block',
+                  marginBottom: '8px'
+                }}>
+                  Toplam Stok
+                </Text>
+                <Text style={{ 
+                  color: '#1f2937', 
+                  fontSize: '36px', 
+                  fontWeight: '600',
+                  display: 'block',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {safeToFixed(totalStock, 2)} gr
+                </Text>
+              </div>
+            </div>
           </Card>
         </Col>
         <Col xs={24} sm={8}>
           <Card 
             style={{ 
-              borderRadius: '16px', 
+              borderRadius: commonStyles.borderRadiusLarge, 
               border: '1px solid #e5e7eb',
-              background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
+              background: 'white',
+              boxShadow: commonStyles.cardShadow,
+              height: '100%'
             }}
-            bodyStyle={{ padding: '24px' }}
+            styles={{ body: { padding: '28px' } }}
           >
-            <Statistic
-              title={
-                <Space>
-                  <FireOutlined style={{ color: '#ef4444' }} />
-                  <span style={{ color: '#374151', fontSize: '14px', fontWeight: '600' }}>Toplam Fire</span>
-                </Space>
-              }
-              value={Number(totalFire.toFixed(2))}
-              suffix="gr"
-              valueStyle={{ color: '#ef4444', fontSize: '24px', fontWeight: '700' }}
-              prefix={<FallOutlined />}
-            />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              İşlem sırasında oluşan fire miktarı
-            </Text>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', width: '100%' }}>
+              <div style={{
+                background: '#f8fafc',
+                borderRadius: commonStyles.borderRadiusLarge,
+                padding: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '64px',
+                height: '64px'
+              }}>
+                <FireOutlined style={{ fontSize: '28px', color: '#64748b' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <Text style={{ 
+                  color: '#64748b', 
+                  fontSize: '18px', 
+                  fontWeight: '500',
+                  display: 'block',
+                  marginBottom: '8px'
+                }}>
+                  Toplam Fire
+                </Text>
+                <Text style={{ 
+                  color: '#1f2937', 
+                  fontSize: '36px', 
+                  fontWeight: '600',
+                  display: 'block',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {safeToFixed(totalFire, 2)} gr
+                </Text>
+              </div>
+            </div>
           </Card>
         </Col>
         <Col xs={24} sm={8}>
           <Card 
             style={{ 
-              borderRadius: '16px', 
+              borderRadius: commonStyles.borderRadiusLarge, 
               border: '1px solid #e5e7eb',
-              background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
+              background: 'white',
+              boxShadow: commonStyles.cardShadow,
+              height: '100%'
             }}
-            bodyStyle={{ padding: '24px' }}
+            styles={{ body: { padding: '28px' } }}
           >
-            <Statistic
-              title={
-                <Space>
-                  <BankOutlined style={{ color: '#22c55e' }} />
-                  <span style={{ color: '#374151', fontSize: '14px', fontWeight: '600' }}>Toplam Has</span>
-                </Space>
-              }
-              value={Number(totalHas.toFixed(2))}
-              suffix="gr"
-              valueStyle={{ color: '#22c55e', fontSize: '24px', fontWeight: '700' }}
-              prefix={<RiseOutlined />}
-            />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              Has altın karşılığı toplam miktar
-            </Text>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', width: '100%' }}>
+              <div style={{
+                background: '#f8fafc',
+                borderRadius: commonStyles.borderRadiusLarge,
+                padding: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '64px',
+                height: '64px'
+              }}>
+                <BankOutlined style={{ fontSize: '28px', color: '#64748b' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <Text style={{ 
+                  color: '#64748b', 
+                  fontSize: '18px', 
+                  fontWeight: '500',
+                  display: 'block',
+                  marginBottom: '8px'
+                }}>
+                  Toplam Has
+                </Text>
+                <Text style={{ 
+                  color: '#1f2937', 
+                  fontSize: '36px', 
+                  fontWeight: '600',
+                  display: 'block',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {safeToFixed(totalHas, 2)} gr
+                </Text>
+              </div>
+            </div>
           </Card>
         </Col>
       </Row>
@@ -655,11 +787,11 @@ const Reports: React.FC = () => {
       {/* Gelişmiş Tabbed Raporlar */}
       <Card 
         style={{ 
-          borderRadius: '16px', 
+          borderRadius: commonStyles.borderRadiusLarge, 
           border: '1px solid #e5e7eb',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
+          boxShadow: commonStyles.cardShadow
         }}
-        bodyStyle={{ padding: '24px' }}
+        styles={{ body: { padding: '24px' } }}
       >
         <Tabs 
           defaultActiveKey="units"
@@ -674,14 +806,18 @@ const Reports: React.FC = () => {
                 </Space>
               ),
               children: (
-                <Table
-                  columns={columns}
-                  dataSource={reportData}
-                  pagination={false}
-                  scroll={{ x: 800 }}
-                  size="large"
-                  style={{ borderRadius: '8px' }}
-                />
+                reportData.length > 0 ? (
+                  <Table
+                    columns={columns}
+                    dataSource={reportData}
+                    pagination={false}
+                    scroll={{ x: 800 }}
+                    size="large"
+                    style={{ borderRadius: '8px' }}
+                  />
+                ) : (
+                  <Empty description="Rapor verisi bulunamadı" />
+                )
               )
             },
             {
@@ -693,13 +829,17 @@ const Reports: React.FC = () => {
                 </Space>
               ),
               children: (
-                <Table
-                  columns={karatColumns}
-                  dataSource={karatData}
-                  pagination={false}
-                  size="large"
-                  style={{ borderRadius: '8px' }}
-                />
+                karatData.length > 0 ? (
+                  <Table
+                    columns={karatColumns}
+                    dataSource={karatData}
+                    pagination={false}
+                    size="large"
+                    style={{ borderRadius: '8px' }}
+                  />
+                ) : (
+                  <Empty description="Ayar bazlı veri bulunamadı" />
+                )
               )
             }
           ]}
