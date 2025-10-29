@@ -483,8 +483,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           </Col>
         </Row>
         
-        {/* Filtreler - Sadece satış ve output-only birimler için */}
-        {(isOutputOnlyUnit || unitId === 'satis') && (
+        {/* Filtreler - Satış, output-only ve input birimler için */}
+        {(isOutputOnlyUnit || unitId === 'satis' || isInputUnit) && (
           <div style={{ 
             marginTop: '24px',
             paddingTop: '24px',
@@ -741,7 +741,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         {unitTransfers.length > 0 ? (
           <Table
             columns={columns}
-            dataSource={isOutputOnlyUnit ? filteredTransfers : unitTransfers}
+            dataSource={(isOutputOnlyUnit || isInputUnit || unitId === 'satis') ? filteredTransfers : unitTransfers}
             rowKey="id"
             pagination={{
               pageSize: 20,
