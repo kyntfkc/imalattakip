@@ -31,9 +31,14 @@ export const calculateUnitStocks = (transfers: Transfer[]): Map<string, UnitStoc
   // Cache key based on transfers length and last transfer date
   const cacheKey = `${transfers.length}-${transfers[transfers.length - 1]?.date || 'empty'}`;
   
-  if (calculationCache.has(cacheKey)) {
-    return calculationCache.get(cacheKey);
-  }
+  // Cache'i geçici olarak devre dışı bırak (hesaplama hatası düzeltmesi için)
+  // TODO: Cache'i tekrar etkinleştir
+  // if (calculationCache.has(cacheKey)) {
+  //   return calculationCache.get(cacheKey);
+  // }
+  
+  // Eski cache'i temizle
+  calculationCache.clear();
 
   const stocks = new Map<string, UnitStock>();
 
@@ -60,6 +65,11 @@ export const calculateUnitStocks = (transfers: Transfer[]): Map<string, UnitStoc
     if (OUTPUT_ONLY_UNITS.includes(transfer.fromUnit)) {
       fromStock.totalOutput += transfer.amount;
       fromStock.currentStock = fromStock.totalOutput; // Mevcut stok = toplam çıkış
+    } else if (INPUT_UNITS.includes(transfer.fromUnit)) {
+      // INPUT_UNITS birimleri (Tedarik, Döküm): Dışarıdan malzeme alır
+      // Çıkış yapıldığında, o birime giriş olarak da kaydet (dışarıdan alımı temsil eder)
+      fromStock.totalInput += transfer.amount;
+      fromStock.totalOutput += transfer.amount;
     } else {
       fromStock.totalOutput += transfer.amount;
     }
