@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Space, Typography, Button, Upload, message, Modal, Input, Divider, Alert, Switch, Badge, Tag } from 'antd';
-import { DownloadOutlined, UploadOutlined, FileTextOutlined, CloudDownloadOutlined, CloudUploadOutlined, InfoCircleOutlined, ClockCircleOutlined, SaveOutlined } from '@ant-design/icons';
+import { DownloadOutlined, UploadOutlined, FileTextOutlined, CloudDownloadOutlined, CloudUploadOutlined, InfoCircleOutlined, ClockCircleOutlined, SaveOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/tr';

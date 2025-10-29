@@ -22,11 +22,6 @@ import {
   SyncOutlined,
   CheckCircleOutlined
 } from '@ant-design/icons';
-import dayjs from 'dayjs';
-import isToday from 'dayjs/plugin/isToday';
-
-dayjs.extend(isToday);
-
 import {
   DndContext,
   closestCenter,
@@ -44,6 +39,8 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import dayjs from 'dayjs';
+import isToday from 'dayjs/plugin/isToday';
 import { useTransfers } from '../context/TransferContext';
 import { useExternalVault } from '../context/ExternalVaultContext';
 import { useDashboardSettings } from '../context/DashboardSettingsContext';
@@ -53,6 +50,8 @@ import type { ColumnsType } from 'antd/es/table';
 import TransferModal from './TransferModal';
 import { unitColors, commonStyles } from '../styles/theme';
 import '../styles/animations.css';
+
+dayjs.extend(isToday);
 
 const { Title, Text } = Typography;
 
