@@ -49,7 +49,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const { addLog } = useLog();
   const { cinsiOptions } = useCinsiSettings();
   const [transferModalOpen, setTransferModalOpen] = useState(false);
-  const [dateFilter, setDateFilter] = useState<'all' | 'week' | 'month' | 'year'>('week');
+  const [dateFilter, setDateFilter] = useState<'all' | 'week' | 'month' | 'year'>('all');
   const { isBackendOnline, isChecking } = useBackendStatus();
 
   const unit = unitSummaries.find(u => u.unitId === unitId);
@@ -123,10 +123,42 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const filteredHasEquivalent = useMemo(() => {
     if (!isOutputOnlyUnit && !isProcessingUnit && !isInputUnit && !isSemiFinishedUnit) return unit?.hasEquivalent || 0;
     
+    // Yarı mamül için: girişlerden çıkışları çıkar (mevcut stokun has karşılığı)
+    if (isSemiFinishedUnit) {
+      // Giriş ve çıkışları karat bazında topla
+      const stockByKarat = new Map<string, { input: number; output: number }>();
+      
+      filteredTransfers.forEach(t => {
+        if (t.toUnit === unitId || t.fromUnit === unitId) {
+          const key = t.karat;
+          if (!stockByKarat.has(key)) {
+            stockByKarat.set(key, { input: 0, output: 0 });
+          }
+          const stock = stockByKarat.get(key)!;
+          
+          if (t.toUnit === unitId) {
+            stock.input += typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+          }
+          if (t.fromUnit === unitId) {
+            stock.output += typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+          }
+        }
+      });
+      
+      // Her karat için mevcut stokun has karşılığını hesapla
+      return Array.from(stockByKarat.entries()).reduce((sum, [karat, stock]) => {
+        const currentStock = stock.input - stock.output;
+        const karatMultiplier = karat === '24K' ? 1 : 
+                               karat === '22K' ? 0.9167 :
+                               karat === '18K' ? 0.75 : 0.5833; // 14K
+        return sum + (Math.max(0, currentStock) * karatMultiplier);
+      }, 0);
+    }
+    
+    // Diğer birimler için çıkışlardan hesapla
     return filteredTransfers
       .filter(t => t.fromUnit === unitId)
       .reduce((sum, t) => {
-        // Karat'a göre has karşılığı hesapla
         const karatMultiplier = t.karat === '24K' ? 1 : 
                                t.karat === '22K' ? 0.9167 :
                                t.karat === '18K' ? 0.75 : 0.5833; // 14K
@@ -340,10 +372,13 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     // Transferlerden cinsi bilgilerini çıkar
     const cinsiMap = new Map<string, { stock: number; has: number; fire: number }>();
     
+    // Filtrelenmiş transferleri kullan (dateFilter varsa)
+    const transfersToUse = (isOutputOnlyUnit || isInputUnit || isSemiFinishedUnit) ? filteredTransfers : transfers;
+    
     // Bu birime gelen transferler
-    const incomingTransfers = transfers.filter(t => t.toUnit === unitId);
+    const incomingTransfers = transfersToUse.filter(t => t.toUnit === unitId);
     // Bu birimden çıkan transferler
-    const outgoingTransfers = transfers.filter(t => t.fromUnit === unitId);
+    const outgoingTransfers = transfersToUse.filter(t => t.fromUnit === unitId);
     
     // Giriş transferlerini işle
     incomingTransfers.forEach(transfer => {
@@ -416,7 +451,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       .filter(item => item.stock > 0 || item.fire > 0);
     
     return result;
-  }, [unit, transfers, unitId, hasFire, isProcessingUnit, isInputUnit, isSemiFinishedUnit, isOutputOnlyUnit]);
+  }, [unit, transfers, filteredTransfers, unitId, hasFire, isProcessingUnit, isInputUnit, isSemiFinishedUnit, isOutputOnlyUnit]);
 
   if (!unit) {
     return (
@@ -658,7 +693,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
               {(() => {
                 const hasValue = isOutputOnlyUnit ? filteredHasEquivalent : 
-                               isProcessingUnit ? 0 : (unit?.hasEquivalent || 0);
+                               isProcessingUnit ? 0 : 
+                               isSemiFinishedUnit ? filteredHasEquivalent : (unit?.hasEquivalent || 0);
                 const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
                 return (
                   <Statistic
