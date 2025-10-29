@@ -170,11 +170,14 @@ export const calculateUnitSummaries = (transfers: Transfer[]): UnitSummary[] => 
       fire: stock.fire,
       hasEquivalent: calculateHasEquivalent(stock.currentStock, stock.karat)
     };
+  });
 
-    // Toplamları güncelle
-    summary.totalStock += stock.currentStock;
-    summary.totalFire += stock.fire;
-    summary.hasEquivalent += calculateHasEquivalent(stock.currentStock, stock.karat);
+  // Tüm stock'lar işlendikten sonra, her birim için toplamları hesapla
+  summaryMap.forEach((summary) => {
+    // Tüm karatlar için toplamları hesapla
+    summary.totalStock = Object.values(summary.stockByKarat).reduce((sum, karat) => sum + karat.currentStock, 0);
+    summary.totalFire = Object.values(summary.stockByKarat).reduce((sum, karat) => sum + karat.fire, 0);
+    summary.hasEquivalent = Object.values(summary.stockByKarat).reduce((sum, karat) => sum + karat.hasEquivalent, 0);
   });
 
   return Array.from(summaryMap.values());
