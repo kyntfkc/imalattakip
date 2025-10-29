@@ -13,7 +13,7 @@ import {
   Popconfirm,
   message,
   Empty,
-  Radio
+  Segmented
 } from 'antd';
 import {
   GoldOutlined,
@@ -25,7 +25,9 @@ import {
   ArrowRightOutlined,
   HistoryOutlined,
   DeleteOutlined,
-  PlusOutlined
+  PlusOutlined,
+  FilterOutlined,
+  CalendarOutlined
 } from '@ant-design/icons';
 import { useTransfers } from '../context/TransferContext';
 import { useLog } from '../context/LogContext';
@@ -492,103 +494,98 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '12px'
+              marginBottom: '16px'
             }}>
-              <Text style={{ 
-                fontSize: '14px', 
-                fontWeight: '600',
-                color: '#475569'
-              }}>
-                Filtre
-              </Text>
-              <Text style={{ 
-                fontSize: '12px', 
-                color: '#94a3b8'
-              }}>
-                {filteredTransfers.length} işlem
-              </Text>
+              <Space size={8}>
+                <FilterOutlined style={{ fontSize: '16px', color: '#64748b' }} />
+                <Text style={{ 
+                  fontSize: '15px', 
+                  fontWeight: '600',
+                  color: '#1f2937'
+                }}>
+                  Zaman Filtresi
+                </Text>
+              </Space>
+              <Space size={12}>
+                <Tag 
+                  color="blue"
+                  style={{
+                    borderRadius: '12px',
+                    padding: '4px 12px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    margin: 0,
+                    border: 'none'
+                  }}
+                >
+                  <CalendarOutlined style={{ marginRight: '4px' }} />
+                  {filteredTransfers.length} işlem
+                </Tag>
+              </Space>
             </div>
-            <Radio.Group 
-              value={dateFilter} 
-              onChange={(e) => setDateFilter(e.target.value)}
-              optionType="button"
-              buttonStyle="solid"
+            <Segmented
+              value={dateFilter}
+              onChange={(value) => setDateFilter(value as typeof dateFilter)}
+              options={[
+                {
+                  label: (
+                    <span style={{ 
+                      padding: '0 8px',
+                      fontWeight: 500,
+                      fontSize: '14px'
+                    }}>
+                      Tümü
+                    </span>
+                  ),
+                  value: 'all'
+                },
+                {
+                  label: (
+                    <span style={{ 
+                      padding: '0 8px',
+                      fontWeight: 500,
+                      fontSize: '14px'
+                    }}>
+                      Son Hafta
+                    </span>
+                  ),
+                  value: 'week'
+                },
+                {
+                  label: (
+                    <span style={{ 
+                      padding: '0 8px',
+                      fontWeight: 500,
+                      fontSize: '14px'
+                    }}>
+                      Son Ay
+                    </span>
+                  ),
+                  value: 'month'
+                },
+                {
+                  label: (
+                    <span style={{ 
+                      padding: '0 8px',
+                      fontWeight: 500,
+                      fontSize: '14px'
+                    }}>
+                      Son Yıl
+                    </span>
+                  ),
+                  value: 'year'
+                }
+              ]}
               size="large"
               style={{
                 width: '100%',
-                display: 'flex',
-                gap: '8px'
+                background: '#f8fafc',
+                padding: '4px',
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb'
               }}
-            >
-              <Radio.Button 
-                value="all" 
-                style={{ 
-                  flex: 1,
-                  borderRadius: '12px',
-                  border: '1px solid #e5e7eb',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  height: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Tümü
-              </Radio.Button>
-              <Radio.Button 
-                value="week" 
-                style={{ 
-                  flex: 1,
-                  borderRadius: '12px',
-                  border: '1px solid #e5e7eb',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  height: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Son Hafta
-              </Radio.Button>
-              <Radio.Button 
-                value="month" 
-                style={{ 
-                  flex: 1,
-                  borderRadius: '12px',
-                  border: '1px solid #e5e7eb',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  height: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Son Ay
-              </Radio.Button>
-              <Radio.Button 
-                value="year" 
-                style={{ 
-                  flex: 1,
-                  borderRadius: '12px',
-                  border: '1px solid #e5e7eb',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  height: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Son Yıl
-              </Radio.Button>
-            </Radio.Group>
+              block
+            />
           </div>
         )}
       </Card>
