@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Row, Col, Typography, Space, Card, Button, Alert, Divider, Tabs, Badge } from 'antd';
-import { SettingOutlined, DatabaseOutlined, UserOutlined, ReloadOutlined, DashboardOutlined, TagsOutlined, BarChartOutlined, CloudDownloadOutlined } from '@ant-design/icons';
+import { Row, Col, Typography, Space, Card, Alert, Tabs } from 'antd';
+import { SettingOutlined, DatabaseOutlined, UserOutlined, DashboardOutlined, TagsOutlined, BarChartOutlined, CloudDownloadOutlined } from '@ant-design/icons';
 
 // Modüler bileşenler
 import { DashboardSettingsCard } from './settings/DashboardSettingsCard';
@@ -13,7 +13,6 @@ import { useBackendStatus } from '../hooks/useBackendStatus';
 import { useAuth } from '../context/AuthContext';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 
 const Settings: React.FC = () => {
   const { isBackendOnline, isChecking } = useBackendStatus();
@@ -28,84 +27,84 @@ const Settings: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const refreshBackendStatus = () => {
-    window.location.reload();
-  };
-
   return (
-    <div style={{ padding: '0' }}>
-      {/* Kompakt Header */}
-      <div style={{ 
-        marginBottom: isMobile ? 16 : 20,
-        padding: isMobile ? '12px 16px' : '16px 20px',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        borderRadius: isMobile ? '12px' : '12px',
-        border: '1px solid #e5e7eb'
-      }}>
-        <Space align="center" size={isMobile ? 12 : 16}>
-          <div style={{
-            width: isMobile ? '36px' : '40px',
-            height: isMobile ? '36px' : '40px',
-            borderRadius: '10px',
-            background: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '1px solid #d1d5db',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-          }}>
-            <SettingOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />
-          </div>
-          <div>
-            <Title level={3} style={{ margin: 0, color: '#1f2937', fontSize: isMobile ? '18px' : '20px' }}>Ayarlar</Title>
-            {!isMobile && <Text type="secondary" style={{ fontSize: '14px' }}>Sistem ve kullanıcı ayarları</Text>}
-          </div>
-        </Space>
-      </div>
-
-      {/* Backend Status - Kompakt */}
+    <div className="fade-in" style={{ padding: '0' }}>
+      {/* Professional Header */}
       <Card 
         style={{ 
-          marginBottom: isMobile ? 16 : 20,
-          borderRadius: '12px',
+          marginBottom: 24, 
+          borderRadius: '20px',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
           border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+          overflow: 'hidden'
         }}
-        styles={{ body: { padding: isMobile ? '12px' : '16px' } }}
+        styles={{ body: { padding: 32 } }}
       >
-        <Space align="center" style={{ width: '100%', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-          <Space align="center" size={8}>
-            <Badge 
-              status={isBackendOnline ? 'success' : 'error'} 
-              text={
-                <Text style={{ 
-                  color: isBackendOnline ? '#059669' : '#dc2626',
-                  fontWeight: '500',
-                  fontSize: isMobile ? '13px' : '14px'
-                }}>
-                  {isBackendOnline ? (isMobile ? 'Aktif' : 'Backend Aktif') : (isMobile ? 'Offline' : 'Backend Offline')}
-                </Text>
-              }
-            />
-          </Space>
-          <Button 
-            size={isMobile ? 'small' : 'small'}
-            icon={<ReloadOutlined />} 
-            onClick={refreshBackendStatus}
-            style={{ borderRadius: '6px', fontSize: isMobile ? '12px' : '13px' }}
-          >
-            {isMobile ? '' : 'Yenile'}
-          </Button>
-        </Space>
+        <Row align="middle" justify="space-between">
+          <Col>
+            <Space size={20} align="center">
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '16px',
+                background: '#f8fafc',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+              }}>
+                <SettingOutlined style={{ fontSize: '28px', color: '#64748b' }} />
+              </div>
+              <div>
+                <Space direction="vertical" size={4} style={{ alignItems: 'flex-start' }}>
+                  <Space size={10} align="center">
+                    <Title level={2} style={{ margin: 0, color: '#1f2937', fontSize: '28px', fontWeight: '700' }}>
+                      Ayarlar
+                    </Title>
+                    {!isChecking && (
+                      <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '4px 10px',
+                        borderRadius: 999,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        backgroundColor: isBackendOnline ? '#dcfce7' : '#fee2e2',
+                        color: isBackendOnline ? '#166534' : '#991b1b',
+                        border: `1px solid ${isBackendOnline ? '#22c55e' : '#ef4444'}`
+                      }}>
+                        <span style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444',
+                          boxShadow: isBackendOnline ? '0 0 8px rgba(34,197,94,0.6)' : '0 0 8px rgba(239,68,68,0.6)'
+                        }} />
+                        <span>{isBackendOnline ? 'Backend Aktif' : 'Backend Kapalı'}</span>
+                      </div>
+                    )}
+                  </Space>
+                  <Text style={{ color: '#6b7280', fontSize: '16px', fontWeight: '400' }}>
+                    Sistem ve kullanıcı ayarları
+                  </Text>
+                </Space>
+              </div>
+            </Space>
+          </Col>
+        </Row>
         
         {!isBackendOnline && (
-          <Alert
-            message="Backend Bağlantısı Yok"
-            description="Backend sunucusunu başlatmanız gerekiyor. Dropbox klasöründeki 'start-backend.bat' dosyasını çalıştırın."
-            type="error"
-            showIcon
-            style={{ marginTop: 12, borderRadius: '8px' }}
-          />
+          <div style={{ marginTop: 20 }}>
+            <Alert
+              message="Backend Bağlantısı Yok"
+              description="Backend sunucusunu başlatmanız gerekiyor. Dropbox klasöründeki 'start-backend.bat' dosyasını çalıştırın."
+              type="error"
+              showIcon
+              style={{ borderRadius: '12px' }}
+            />
+          </div>
         )}
       </Card>
 
