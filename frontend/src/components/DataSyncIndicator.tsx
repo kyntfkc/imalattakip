@@ -1,21 +1,16 @@
 import React, { useState } from 'react';
-import { Button, Dropdown, Tag, Space, Upload, Modal, Typography, Tooltip, message } from 'antd';
+import { Button, Dropdown, Tag, Space, Upload, Modal, Typography, Tooltip } from 'antd';
 import {
   CloudSyncOutlined,
   SaveOutlined,
   DownloadOutlined,
   UploadOutlined,
-  DeleteOutlined,
   CheckCircleOutlined,
   SyncOutlined,
   DatabaseOutlined,
   ExclamationCircleOutlined
 } from '@ant-design/icons';
 import { useDataSync } from '../hooks/useDataSync';
-import { useTransfers } from '../context/TransferContext';
-import { useExternalVault } from '../context/ExternalVaultContext';
-import { useCompanies } from '../context/CompanyContext';
-import { useLog } from '../context/LogContext';
 import type { MenuProps } from 'antd';
 
 const { Text } = Typography;
@@ -31,14 +26,8 @@ const DataSyncIndicator: React.FC<DataSyncIndicatorProps> = ({ isMobile = false 
     manualSave,
     exportBackup,
     importBackup,
-    clearAllData,
     toggleAutoSave
   } = useDataSync();
-  
-  const { clearAllTransfers } = useTransfers();
-  const { clearAllTransactions, clearAllStock } = useExternalVault();
-  const { clearAllCompanies } = useCompanies();
-  const { clearAllLogs } = useLog();
 
   const [uploading, setUploading] = useState(false);
 
@@ -82,42 +71,6 @@ const DataSyncIndicator: React.FC<DataSyncIndicatorProps> = ({ isMobile = false 
       }
     });
     return false; // Prevent auto upload
-  };
-
-  const handleClearData = () => {
-    confirm({
-      title: 'Tüm Verileri Sil',
-      icon: <ExclamationCircleOutlined />,
-      content: 'Tüm veriler kalıcı olarak silinecek. Bu işlem geri alınamaz! Devam etmek istiyor musunuz?',
-      okText: 'Evet, Sil',
-      cancelText: 'İptal',
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        try {
-          // Tüm context'leri temizle
-          await Promise.all([
-            clearAllTransfers().catch(err => console.error('Transfer temizleme hatası:', err)),
-            clearAllTransactions().catch(err => console.error('Dış kasa işlem temizleme hatası:', err)),
-            clearAllStock().catch(err => console.error('Dış kasa stok temizleme hatası:', err)),
-            clearAllCompanies().catch(err => console.error('Firma temizleme hatası:', err)),
-            clearAllLogs().catch(err => console.error('Log temizleme hatası:', err))
-          ]);
-          
-          // localStorage'ı temizle
-          clearAllData();
-          
-          message.success('Tüm veriler temizlendi');
-          
-          // Sayfayı yenile
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-        } catch (error) {
-          console.error('Veri temizleme hatası:', error);
-          message.error('Veriler temizlenirken bir hata oluştu');
-        }
-      }
-    });
   };
 
   const menuItems: MenuProps['items'] = [
@@ -196,16 +149,6 @@ const DataSyncIndicator: React.FC<DataSyncIndicatorProps> = ({ isMobile = false 
         </Upload>
       )
     },
-    {
-      type: 'divider'
-    },
-    {
-      key: 'clear',
-      icon: <DeleteOutlined />,
-      label: 'Tüm Verileri Sil',
-      danger: true,
-      onClick: handleClearData
-    }
   ];
 
   if (isMobile) {
