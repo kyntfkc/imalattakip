@@ -35,9 +35,9 @@ export const DataStatsCard: React.FC<DataStatsCardProps> = ({ className }) => {
 
   // Veri boyutunu hesapla (KB)
   const getDataSize = () => {
-    const allData = localStorage.getItem('transfers') + 
-                    localStorage.getItem('externalVaultTransactions') + 
-                    localStorage.getItem('companies');
+    const allData = (localStorage.getItem('transfers') || '') + 
+                    (localStorage.getItem('externalVaultTransactions') || '') + 
+                    (localStorage.getItem('companies') || '');
     return (new Blob([allData]).size / 1024).toFixed(2);
   };
 
