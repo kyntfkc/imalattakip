@@ -67,7 +67,21 @@ class ApiService {
         } else if (response.status === 404) {
           errorMessage = 'Endpoint bulunamadı!';
         } else if (response.status === 500) {
-          errorMessage = 'Sunucu hatası! Lütfen daha sonra tekrar deneyin.';
+          // 500 hatası için backend'den gelen detaylı mesajı kullan
+          const backendError = await response.json().catch(() => null);
+          if (backendError && backendError.error) {
+            errorMessage = `Sunucu hatası: ${backendError.error}`;
+          } else if (backendError && backendError.message) {
+            errorMessage = `Sunucu hatası: ${backendError.message}`;
+          } else {
+            errorMessage = 'Sunucu hatası! Lütfen backend log\'larını kontrol edin ve daha sonra tekrar deneyin.';
+          }
+          console.error('❌ Backend 500 error:', {
+            endpoint,
+            status: response.status,
+            error: backendError,
+            url: url
+          });
         } else if (response.status === 0 || response.status >= 500) {
           errorMessage = 'Sunucuya bağlanılamıyor! Lütfen internet bağlantınızı kontrol edin.';
         }
@@ -443,10 +457,20 @@ class ApiService {
     entityName?: string;
     details?: string;
   }) {
-    return this.request<any>('/logs', {
-      method: 'POST',
-      body: JSON.stringify(log),
-    });
+    console.log('📝 Creating log:', log);
+    try {
+      const response = await this.request<any>('/logs', {
+        method: 'POST',
+        body: JSON.stringify(log),
+      });
+      console.log('✅ Log created:', response);
+      return response;
+    } catch (error: any) {
+      console.error('❌ Failed to create log:', error);
+      // Log hatası kritik değil, sessizce devam et
+      // throw error; // Log hatası için throw etme
+      return null;
+    }
   }
 
   async deleteLog(id: number) {

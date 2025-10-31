@@ -201,7 +201,8 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
         type: transaction.type === 'input' ? 'deposit' : 'withdrawal',
         amount: transaction.amount,
         karat: parseInt(transaction.karat.replace('K', '')),
-        notes: transaction.notes
+        notes: transaction.notes,
+        company_id: transaction.companyId ? parseInt(transaction.companyId) : undefined
       });
       
       // Backend'den güncel veriyi yükle
@@ -212,19 +213,30 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
         karat: `${t.karat}K` as KaratType,
         amount: t.amount,
         notes: t.notes,
-        date: t.created_at
+        date: t.created_at,
+        companyId: t.company_id ? t.company_id.toString() : undefined,
+        companyName: t.company_name || t.companyName
       }));
       
       setTransactions(formattedTransactions);
-    } catch (error) {
-      console.error('Dış kasa işlemi eklenemedi:', error);
-      // Backend hatası durumunda localStorage'a ekle
+    } catch (error: any) {
+      console.error('❌ Dış kasa işlemi eklenemedi:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        transaction
+      });
+      
+      // Backend hatası durumunda localStorage'a ekle (fallback)
       const newTransaction: ExternalVaultTransaction = {
         ...transaction,
         id: `EV${Date.now()}`,
         date: new Date().toISOString()
       };
       setTransactions(prev => [...prev, newTransaction]);
+      
+      // Hatayı tekrar throw et ki UI'da gösterilebilsin
+      throw error;
     }
   };
 
