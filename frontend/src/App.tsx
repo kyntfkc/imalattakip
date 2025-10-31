@@ -15,7 +15,8 @@ import {
   LogoutOutlined,
   UserOutlined,
   ShoppingCartOutlined,
-  TeamOutlined
+  TeamOutlined,
+  CalculatorOutlined
 } from '@ant-design/icons';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TransferProvider } from './context/TransferContext';
@@ -42,6 +43,7 @@ const Companies = lazy(() => import('./components/Companies'));
 const Settings = lazy(() => import('./components/Settings'));
 const Logs = lazy(() => import('./components/Logs'));
 const UserManagement = lazy(() => import('./components/UserManagement'));
+const RequiredHas = lazy(() => import('./components/RequiredHas'));
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -240,6 +242,11 @@ const AppContent: React.FC = () => {
       type: 'divider' as const
     },
     {
+      key: 'required-has',
+      icon: <CalculatorOutlined />,
+      label: 'Gereken Has'
+    },
+    {
       key: 'reports',
       icon: <BarChartOutlined />,
       label: 'Raporlar'
@@ -349,6 +356,12 @@ const AppContent: React.FC = () => {
         return (
           <Suspense fallback={<LoadingFallback />}>
             <Companies />
+          </Suspense>
+        );
+      case 'required-has':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <RequiredHas />
           </Suspense>
         );
       case 'reports':
