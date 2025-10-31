@@ -50,17 +50,23 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
         const backendTransfers = await apiService.getTransfers();
         
         // Backend formatını frontend formatına çevir
-        const formattedTransfers: Transfer[] = backendTransfers.map((t: any) => ({
-          id: t.id.toString(),
-          fromUnit: t.from_unit,
-          toUnit: t.to_unit,
-          amount: t.amount,
-          karat: `${t.karat}K` as any,
-          notes: t.notes || '',
-          date: new Date(t.created_at).toISOString(),
-          user: t.user_name || 'Bilinmeyen',
-          cinsi: t.cinsi || undefined
-        }));
+        const formattedTransfers: Transfer[] = backendTransfers.map((t: any) => {
+          // Debug: Backend'den gelen cinsi değerini kontrol et
+          if (t.id) {
+            console.log(`Transfer ID ${t.id}: cinsi =`, t.cinsi, 'type:', typeof t.cinsi);
+          }
+          return {
+            id: t.id.toString(),
+            fromUnit: t.from_unit,
+            toUnit: t.to_unit,
+            amount: t.amount,
+            karat: `${t.karat}K` as any,
+            notes: t.notes || '',
+            date: new Date(t.created_at).toISOString(),
+            user: t.user_name || 'Bilinmeyen',
+            cinsi: (t.cinsi && t.cinsi.trim()) ? t.cinsi.trim() : undefined
+          };
+        });
         
         setTransfers(formattedTransfers);
         console.log('✅ Backend\'den transfer verileri yüklendi:', formattedTransfers.length, 'transfer');
