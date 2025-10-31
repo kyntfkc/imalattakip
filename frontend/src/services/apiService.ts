@@ -295,11 +295,20 @@ class ApiService {
     amount: number;
     karat: number;
     notes?: string;
+    company_id?: number;
   }) {
-    return this.request<{ message: string; transactionId: number }>('/external-vault/transactions', {
-      method: 'POST',
-      body: JSON.stringify(transaction),
-    });
+    console.log('💾 Creating external vault transaction:', transaction);
+    try {
+      const response = await this.request<{ message: string; transactionId: number }>('/external-vault/transactions', {
+        method: 'POST',
+        body: JSON.stringify(transaction),
+      });
+      console.log('✅ External vault transaction created:', response);
+      return response;
+    } catch (error: any) {
+      console.error('❌ Failed to create external vault transaction:', error);
+      throw error;
+    }
   }
 
   async deleteExternalVaultTransaction(id: number) {
