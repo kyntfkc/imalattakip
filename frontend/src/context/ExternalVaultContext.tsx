@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { KaratType, KARAT_HAS_RATIOS } from '../types';
 import { apiService } from '../services/apiService';
+import { useAuth } from './AuthContext';
 
 export interface ExternalVaultTransaction {
   id: string;
@@ -50,6 +51,7 @@ interface ExternalVaultProviderProps {
 }
 
 export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ children }) => {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [transactions, setTransactions] = useState<ExternalVaultTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -64,8 +66,13 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
   const [totalStock, setTotalStock] = useState(0);
   const [totalHas, setTotalHas] = useState(0);
 
-  // Backend'den verileri yükle
+  // Backend'den verileri yükle - sadece authenticated olduğunda
   useEffect(() => {
+    if (authLoading || !isAuthenticated) {
+      setIsLoading(authLoading);
+      return;
+    }
+
     const loadData = async () => {
       try {
         setIsLoading(true);
@@ -144,7 +151,7 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
     };
 
     loadData();
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   // Transaction değiştiğinde stokları güncelle
   useEffect(() => {
