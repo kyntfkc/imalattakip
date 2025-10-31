@@ -32,7 +32,7 @@ import {
 import { useTransfers } from '../context/TransferContext';
 import { useLog } from '../context/LogContext';
 import { useCinsiSettings, CinsiOption } from '../context/CinsiSettingsContext';
-import { UnitType, UNIT_NAMES, FIRE_UNITS, OUTPUT_ONLY_UNITS, SEMI_FINISHED_UNITS, PROCESSING_UNITS, INPUT_UNITS } from '../types';
+import { UnitType, UNIT_NAMES, FIRE_UNITS, OUTPUT_ONLY_UNITS, SEMI_FINISHED_UNITS, PROCESSING_UNITS, INPUT_UNITS, KARAT_HAS_RATIOS } from '../types';
 import type { ColumnsType } from 'antd/es/table';
 import TransferModal from './TransferModal';
 import { unitColors, commonStyles } from '../styles/theme';
@@ -148,9 +148,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       // Her karat için mevcut stokun has karşılığını hesapla
       return Array.from(stockByKarat.entries()).reduce((sum, [karat, stock]) => {
         const currentStock = stock.input - stock.output;
-        const karatMultiplier = karat === '24K' ? 1 : 
-                               karat === '22K' ? 0.9167 :
-                               karat === '18K' ? 0.75 : 0.5833; // 14K
+        const karatMultiplier = KARAT_HAS_RATIOS[karat as keyof typeof KARAT_HAS_RATIOS] || 0;
         return sum + (Math.max(0, currentStock) * karatMultiplier);
       }, 0);
     }
@@ -159,10 +157,9 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     return filteredTransfers
       .filter(t => t.fromUnit === unitId)
       .reduce((sum, t) => {
-        const karatMultiplier = t.karat === '24K' ? 1 : 
-                               t.karat === '22K' ? 0.9167 :
-                               t.karat === '18K' ? 0.75 : 0.5833; // 14K
-        return sum + (t.amount * karatMultiplier);
+        const safeAmount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+        const karatMultiplier = KARAT_HAS_RATIOS[t.karat] || 0;
+        return sum + (safeAmount * karatMultiplier);
       }, 0);
   }, [filteredTransfers, unitId, isOutputOnlyUnit, isProcessingUnit, isInputUnit, isSemiFinishedUnit, unit]);
 
@@ -370,7 +367,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     if (!unit) return [];
     
     // Transferlerden cinsi bilgilerini çıkar
-    const cinsiMap = new Map<string, { stock: number; has: number; fire: number }>();
+    const cinsiMap = new Map<string, { stock: number; has: number; fire: number; input: number; output: number }>();
     
     // Filtrelenmiş transferleri kullan (dateFilter varsa)
     const transfersToUse = (isOutputOnlyUnit || isInputUnit || isSemiFinishedUnit) ? filteredTransfers : transfers;
@@ -385,12 +382,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       if (transfer.amount > 0) {
         // Cinsi kontrolü: undefined, null, boş string veya sadece boşluk ise "Genel"
         const cinsi = (transfer.cinsi && transfer.cinsi.trim()) ? transfer.cinsi.trim() : 'Genel';
-        const existing = cinsiMap.get(cinsi) || { stock: 0, has: 0, fire: 0 };
+        const existing = cinsiMap.get(cinsi) || { stock: 0, has: 0, fire: 0, input: 0, output: 0 };
         const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
         existing.stock += safeAmount;
-        const karatRatio = transfer.karat === '24K' ? 1 : 
-                           transfer.karat === '22K' ? 0.9167 :
-                           transfer.karat === '18K' ? 0.75 : 0.5833;
+        existing.input += safeAmount;
+        const karatRatio = KARAT_HAS_RATIOS[transfer.karat] || 0;
         existing.has += safeAmount * karatRatio;
         cinsiMap.set(cinsi, existing);
       }
@@ -401,47 +397,49 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       if (transfer.amount > 0) {
         // Cinsi kontrolü: undefined, null, boş string veya sadece boşluk ise "Genel"
         const cinsi = (transfer.cinsi && transfer.cinsi.trim()) ? transfer.cinsi.trim() : 'Genel';
-        const existing = cinsiMap.get(cinsi) || { stock: 0, has: 0, fire: 0 };
+        const existing = cinsiMap.get(cinsi) || { stock: 0, has: 0, fire: 0, input: 0, output: 0 };
         const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
         existing.stock -= safeAmount;
-        const karatRatio = transfer.karat === '24K' ? 1 : 
-                           transfer.karat === '22K' ? 0.9167 :
-                           transfer.karat === '18K' ? 0.75 : 0.5833;
+        existing.output += safeAmount;
+        const karatRatio = KARAT_HAS_RATIOS[transfer.karat] || 0;
         existing.has -= safeAmount * karatRatio;
         cinsiMap.set(cinsi, existing);
       }
     });
     
     // Fire ve stok hesaplama - birim tipine göre
-    if (hasFire) {
-      // Lazer Kesim, Cila, Tezgah gibi fire birimleri
+    if (hasFire || isProcessingUnit) {
+      // Lazer Kesim, Tezgah, Cila gibi fire/işlem birimleri
+      // Fire = Toplam Giriş - Toplam Çıkış (işlem sırasında kaybolan miktar)
       cinsiMap.forEach((data, cinsi) => {
-        data.fire = Math.max(0, data.stock); // Fire = stok (negatif olabilir)
-        data.stock = 0; // Fire birimlerinde stok 0
-      });
-    } else if (isProcessingUnit) {
-      // Tezgah, Cila - işlem birimleri (stok tutulmaz)
-      cinsiMap.forEach((data, cinsi) => {
-        data.fire = Math.max(0, data.stock);
-        data.stock = 0;
+        data.fire = Math.max(0, data.input - data.output); // Fire = giriş - çıkış
+        data.stock = 0; // Fire/işlem birimlerinde stok 0
+        // Has hesaplaması: Stok 0 olduğu için has da 0 olmalı, ama fire'ın has karşılığı gösterilebilir
+        // Şu an has değeri korunuyor (fire birimlerinde fire gösterilir)
       });
     } else if (isInputUnit) {
       // Döküm, Tedarik - stok tutulur ama fire yok
       cinsiMap.forEach((data, cinsi) => {
         data.fire = 0;
         data.stock = Math.max(0, data.stock);
+        // Has değeri negatif olamaz (stok negatif olamaz)
+        data.has = Math.max(0, data.has);
       });
     } else if (isSemiFinishedUnit || isOutputOnlyUnit) {
       // Yarı Mamul, Satış - normal stok takibi
       cinsiMap.forEach((data, cinsi) => {
         data.fire = 0;
         data.stock = Math.max(0, data.stock);
+        // Has değeri negatif olamaz (stok negatif olamaz)
+        data.has = Math.max(0, data.has);
       });
     } else {
       // Ana Kasa, Dış Kasa - normal stok takibi
       cinsiMap.forEach((data, cinsi) => {
         data.fire = 0;
         data.stock = Math.max(0, data.stock);
+        // Has değeri negatif olamaz (stok negatif olamaz)
+        data.has = Math.max(0, data.has);
       });
     }
     

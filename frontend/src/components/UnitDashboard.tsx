@@ -323,7 +323,7 @@ const UnitDashboard: React.FC = React.memo(() => {
   }, [transfers, deleteTransfer, addLog]);
 
   // Dış Kasa için özel kart verisi - ExternalVaultContext'ten gerçek verileri kullan
-  const externalVaultUnit: UnitSummary = {
+  const externalVaultUnit = useMemo<UnitSummary>(() => ({
     unitId: 'dis-kasa',
     unitName: 'Dış Kasa',
     totalStock: externalVaultStock,
@@ -331,10 +331,10 @@ const UnitDashboard: React.FC = React.memo(() => {
     hasEquivalent: externalVaultHas,
     stockByKarat: externalVaultStockByKarat,
     lastUpdate: new Date().toISOString()
-  };
+  }), [externalVaultStock, externalVaultHas, externalVaultStockByKarat]);
 
   // Tüm birimleri birleştir
-  const allUnits = [...unitSummaries, externalVaultUnit];
+  const allUnits = useMemo(() => [...unitSummaries, externalVaultUnit], [unitSummaries, externalVaultUnit]);
 
   // Birimleri kullanıcının ayarladığı sıraya göre sırala ve gizli olanları filtrele
   const sortedUnits = useMemo(() => {
@@ -342,7 +342,7 @@ const UnitDashboard: React.FC = React.memo(() => {
       .map(unitId => allUnits.find(u => u.unitId === unitId))
       .filter((unit): unit is UnitSummary => unit !== undefined)
       .filter(unit => !settings.hiddenUnits.includes(unit.unitId as UnitType));
-  }, [settings.unitOrder, settings.hiddenUnits, unitSummaries, externalVaultStock, externalVaultHas]);
+  }, [settings.unitOrder, settings.hiddenUnits, allUnits]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;

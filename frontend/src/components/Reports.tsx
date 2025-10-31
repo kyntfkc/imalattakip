@@ -93,7 +93,7 @@ type DateFilterType = 'all' | 'today' | 'week' | 'month' | 'custom';
 
 const Reports: React.FC = () => {
   const { unitSummaries, transfers, deleteTransfer, isLoading } = useTransfers();
-  const { totalStock: externalVaultStock, totalHas: externalVaultHas } = useExternalVault();
+  const { totalStock: externalVaultStock, totalHas: externalVaultHas, stockByKarat: externalVaultStockByKarat } = useExternalVault();
   
   const [dateFilter, setDateFilter] = useState<DateFilterType>('all');
   const [customDateRange, setCustomDateRange] = useState<[Dayjs, Dayjs] | null>(null);
@@ -207,6 +207,14 @@ const Reports: React.FC = () => {
       });
     });
 
+    // Dış Kasa'nın has karşılığını ekle
+    Object.entries(externalVaultStockByKarat || {}).forEach(([karat, stock]) => {
+      if (karatTotals[karat]) {
+        karatTotals[karat].stock += safeNumber(stock.currentStock);
+        karatTotals[karat].has += safeNumber(stock.hasEquivalent);
+      }
+    });
+
     const totalStock = Object.values(karatTotals).reduce((sum, k) => sum + k.stock, 0);
 
     return Object.entries(karatTotals).map(([karat, totals]) => ({
@@ -215,7 +223,7 @@ const Reports: React.FC = () => {
       hasEquivalent: totals.has,
       percentage: totalStock > 0 ? (totals.stock / totalStock) * 100 : 0
     }));
-  }, [unitSummaries]);
+  }, [unitSummaries, externalVaultStockByKarat]);
 
   // Gelişmiş kolonlar
   const columns: ColumnsType<ReportData> = [
