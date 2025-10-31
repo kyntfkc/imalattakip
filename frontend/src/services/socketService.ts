@@ -16,18 +16,26 @@ class SocketService {
       return;
     }
 
-    // Railway'da WebSocket desteği sınırlı, sadece polling kullan
+    // Railway'da WebSocket desteği yok, sadece polling kullan
+    // Eski socket bağlantısını kapat
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
     this.socket = io(this.WS_URL, {
       auth: {
         token: token
       },
-      transports: ['polling'], // Railway için sadece polling
+      transports: ['polling'], // SADECE polling - WebSocket yok
       reconnection: true,
       reconnectionDelay: 2000,
       reconnectionAttempts: 10,
-      timeout: 20000,
-      forceNew: false,
-      upgrade: false // WebSocket upgrade'i devre dışı
+      timeout: 30000,
+      forceNew: true,
+      upgrade: false, // WebSocket upgrade'i tamamen devre dışı
+      rememberUpgrade: false,
+      rejectUnauthorized: false
     });
 
     this.socket.on('connect', () => {
