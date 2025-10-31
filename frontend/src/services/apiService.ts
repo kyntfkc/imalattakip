@@ -90,22 +90,55 @@ class ApiService {
     console.log('🔐 Login attempt:', { username, apiUrl: API_BASE_URL });
     
     try {
-      const response = await this.request<{
-        message: string;
-        token: string;
-        user: { id: number; username: string; role: string };
-      }>('/auth/login', {
+      // Login için token gönderme - login endpoint'i public
+      const url = `${API_BASE_URL}/auth/login`;
+      const response = await fetch(url, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ username, password }),
       });
 
-      this.token = response.token;
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      if (!response.ok) {
+        let errorMessage = 'Kullanıcı adı veya şifre hatalı!';
+        
+        try {
+          const error = await response.json();
+          errorMessage = error.error || error.message || errorMessage;
+        } catch {
+          // JSON parse hatası
+          const text = await response.text().catch(() => '');
+          errorMessage = text || errorMessage;
+        }
+        
+        // Status code'a göre mesaj
+        if (response.status === 401) {
+          errorMessage = 'Kullanıcı adı veya şifre hatalı!';
+        } else if (response.status === 404) {
+          errorMessage = 'Login endpoint bulunamadı!';
+        } else if (response.status === 500) {
+          errorMessage = 'Sunucu hatası! Lütfen daha sonra tekrar deneyin.';
+        }
+        
+        console.error('❌ Login failed:', { status: response.status, errorMessage });
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
       
-      console.log('✅ Login successful:', { userId: response.user.id, username: response.user.username });
+      if (!data.token || !data.user) {
+        console.error('❌ Login response invalid:', data);
+        throw new Error('Sunucudan geçersiz yanıt alındı!');
+      }
+
+      this.token = data.token;
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       
-      return response;
+      console.log('✅ Login successful:', { userId: data.user.id, username: data.user.username });
+      
+      return data;
     } catch (error: any) {
       console.error('❌ Login failed:', error);
       throw error;
