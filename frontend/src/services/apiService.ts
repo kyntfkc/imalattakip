@@ -146,15 +146,53 @@ class ApiService {
   }
 
   async register(username: string, password: string, role: string = 'user') {
-    const response = await this.request<{
-      message: string;
-      userId: number;
-    }>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ username, password, role }),
-    });
+    console.log('📝 Register attempt:', { username, role });
+    
+    try {
+      // Register için token gönderme - register endpoint'i public
+      const url = `${API_BASE_URL}/auth/register`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password, role }),
+      });
 
-    return response;
+      if (!response.ok) {
+        let errorMessage = 'Kayıt başarısız!';
+        
+        try {
+          const error = await response.json();
+          errorMessage = error.error || error.message || errorMessage;
+        } catch {
+          // JSON parse hatası
+          const text = await response.text().catch(() => '');
+          errorMessage = text || errorMessage;
+        }
+        
+        // Status code'a göre mesaj
+        if (response.status === 409) {
+          errorMessage = 'Bu kullanıcı adı zaten kullanılıyor!';
+        } else if (response.status === 400) {
+          errorMessage = 'Geçersiz kullanıcı adı veya şifre!';
+        } else if (response.status === 500) {
+          errorMessage = 'Sunucu hatası! Lütfen daha sonra tekrar deneyin.';
+        }
+        
+        console.error('❌ Register failed:', { status: response.status, errorMessage });
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      
+      console.log('✅ Register successful:', { userId: data.userId });
+      
+      return data;
+    } catch (error: any) {
+      console.error('❌ Register failed:', error);
+      throw error;
+    }
   }
 
   async verifyToken() {
