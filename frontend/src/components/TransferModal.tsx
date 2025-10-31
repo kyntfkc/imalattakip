@@ -392,12 +392,11 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                     const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
                     const key = e.key;
                     const isNumber = /^\d$/.test(key);
-                    const isComma = key === ',' || key === 'Comma';
-                    const isDot = key === '.' || key === 'Period';
-                    const isNumpadDecimal = key === 'NumpadDecimal' || key === 'Decimal';
+                    const isComma = key === ',';
+                    const isDot = key === '.';
                     const isControl = allowedKeys.includes(key);
                     
-                    if (isNumber || isComma || isDot || isNumpadDecimal || isControl || (e.ctrlKey || e.metaKey) || (e.shiftKey && (key === 'ArrowLeft' || key === 'ArrowRight'))) {
+                    if (isNumber || isComma || isDot || isControl || (e.ctrlKey || e.metaKey)) {
                       return; // İzin ver
                     }
                     e.preventDefault(); // Diğer karakterleri engelle
@@ -433,7 +432,11 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                     if (value && !isNaN(parseNumberFromInput(value))) {
                       const numericValue = parseNumberFromInput(value);
                       const formattedValue = formatNumberForDisplay(numericValue);
-                      form.setFieldsValue({ amount: formattedValue });
+                      form.setFieldsValue({ amount: numericValue });
+                      // Input'un görünür değerini formatla
+                      setTimeout(() => {
+                        e.target.value = formattedValue;
+                      }, 0);
                     }
                   }}
                 />
