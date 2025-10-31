@@ -158,7 +158,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       .filter(t => t.fromUnit === unitId)
       .reduce((sum, t) => {
         const safeAmount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
-        const karatMultiplier = (KARAT_HAS_RATIOS[t.karat as keyof typeof KARAT_HAS_RATIOS]) || 0;
+        const karat: KaratType = t.karat;
+        const karatMultiplier = KARAT_HAS_RATIOS[karat] || 0;
         return sum + (safeAmount * karatMultiplier);
       }, 0);
   }, [filteredTransfers, unitId, isOutputOnlyUnit, isProcessingUnit, isInputUnit, isSemiFinishedUnit, unit]);
