@@ -516,7 +516,7 @@ const AppContent: React.FC = () => {
             position: 'sticky',
             top: 0
           }}>
-            {/* Sol Kısım - Mobil Menü & Başlık */}
+            {/* Sol Kısım - Mobil Menü & Logo & Başlık */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -545,9 +545,27 @@ const AppContent: React.FC = () => {
                   ☰
                 </Button>
               )}
+              {/* Logo Icon */}
+              <div style={{
+                width: isMobile ? '40px' : '48px',
+                height: isMobile ? '40px' : '48px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                border: '2px solid rgba(255, 255, 255, 0.3)'
+              }}>
+                <ToolOutlined style={{ 
+                  fontSize: isMobile ? '20px' : '24px', 
+                  color: '#ffffff'
+                }} />
+              </div>
+              {/* Başlık */}
               <Title level={2} style={{ 
                 margin: 0, 
-                color: '#1f2937',
+                color: '#667eea',
                 fontWeight: 700,
                 fontSize: isMobile ? '16px' : '24px',
                 lineHeight: 1,
