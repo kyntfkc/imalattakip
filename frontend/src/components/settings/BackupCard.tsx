@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Space, Typography, Button, Upload, message, Modal, Input, Divider, Alert } from 'antd';
-import { DownloadOutlined, UploadOutlined, FileTextOutlined, CloudDownloadOutlined, CloudUploadOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { DownloadOutlined, UploadOutlined, FileTextOutlined, CloudDownloadOutlined, CloudUploadOutlined, InfoCircleOutlined, DatabaseOutlined } from '@ant-design/icons';
+import apiService from '../../services/apiService';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -24,6 +25,7 @@ export const BackupCard: React.FC = () => {
   const [restoreModalVisible, setRestoreModalVisible] = useState(false);
   const [backupJson, setBackupJson] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDatabaseBackingUp, setIsDatabaseBackingUp] = useState(false);
 
   // Yedekleme verilerini hazırla
   const prepareBackupData = (): BackupData => {
@@ -41,6 +43,26 @@ export const BackupCard: React.FC = () => {
         totalRecords: 0
       }
     };
+  };
+
+  // Veritabanı yedekleme
+  const handleDatabaseBackup = async () => {
+    setIsDatabaseBackingUp(true);
+    try {
+      await apiService.backupDatabase();
+      message.success({
+        content: '✅ Veritabanı yedeği başarıyla indirildi!',
+        duration: 4
+      });
+    } catch (error: any) {
+      message.error({
+        content: error.message || 'Veritabanı yedekleme sırasında hata oluştu!',
+        duration: 4
+      });
+      console.error('Database backup error:', error);
+    } finally {
+      setIsDatabaseBackingUp(false);
+    }
   };
 
   // JSON yedekleme indir
@@ -178,24 +200,41 @@ export const BackupCard: React.FC = () => {
 
           <div>
             <Title level={5}>Yedekleme İşlemleri</Title>
-            <Space wrap>
-              <Button
-                type="primary"
-                icon={<DownloadOutlined />}
-                onClick={handleDownloadBackup}
-                loading={isGenerating}
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              <Space wrap>
+                <Button
+                  type="primary"
+                  icon={<DatabaseOutlined />}
+                  onClick={handleDatabaseBackup}
+                  loading={isDatabaseBackingUp}
+                  style={{ borderRadius: '8px' }}
+                >
+                  Veritabanını Yedekle
+                </Button>
+                <Button
+                  icon={<DownloadOutlined />}
+                  onClick={handleDownloadBackup}
+                  loading={isGenerating}
+                  style={{ borderRadius: '8px' }}
+                >
+                  JSON İndir
+                </Button>
+                <Button
+                  icon={<FileTextOutlined />}
+                  onClick={handleShowBackupJson}
+                  loading={isGenerating}
+                  style={{ borderRadius: '8px' }}
+                >
+                  JSON Görüntüle
+                </Button>
+              </Space>
+              <Alert
+                message="Veritabanı Yedekleme"
+                description="Veritabanı yedekleme butonu Railway backend'den SQLite veritabanı dosyasını (.db) indirir. Bu yedek LocalStorage JSON yedeğinden farklıdır ve tüm veritabanı içeriğini içerir."
+                type="info"
+                showIcon
                 style={{ borderRadius: '8px' }}
-              >
-                JSON İndir
-              </Button>
-              <Button
-                icon={<FileTextOutlined />}
-                onClick={handleShowBackupJson}
-                loading={isGenerating}
-                style={{ borderRadius: '8px' }}
-              >
-                JSON Görüntüle
-              </Button>
+              />
             </Space>
           </div>
 

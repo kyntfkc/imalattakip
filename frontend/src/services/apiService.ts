@@ -363,6 +363,36 @@ class ApiService {
     });
   }
 
+  // Database backup
+  async backupDatabase() {
+    const url = `${API_BASE_URL}/backup/database`;
+    const headers: Record<string, string> = {
+      ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+    };
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error('Veritabanı yedekleme başarısız');
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    const timestamp = new Date().toISOString().split('T')[0];
+    link.download = `imalattakip-db-backup-${timestamp}.db`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(downloadUrl);
+
+    return { success: true };
+  }
+
   // Health check
   async healthCheck() {
     return this.request<{
