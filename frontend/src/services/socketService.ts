@@ -11,10 +11,55 @@ class SocketService {
       return;
     }
 
-    // Railway'da Socket.io 404 hatası veriyor - geçici olarak devre dışı
-    // Periyodik HTTP polling kullanılacak (TransferContext ve CompanyContext'te)
-    console.warn('⚠️ Socket.io geçici olarak devre dışı - Railway 404 hatası. HTTP polling kullanılıyor.');
-    return null;
+    if (this.socket?.connected) {
+      console.log('Socket zaten bağlı');
+      return;
+    }
+
+    // Eski socket bağlantısını kapat
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
+    // Railway URL'ini doğru kullan - /api olmadan
+    const socketUrl = this.WS_URL;
+
+    this.socket = io(socketUrl, {
+      auth: {
+        token: token
+      },
+      transports: ['websocket', 'polling'], // Önce websocket, sonra polling fallback
+      reconnection: true,
+      reconnectionDelay: 2000,
+      reconnectionAttempts: 10,
+      timeout: 30000,
+      forceNew: false,
+      autoConnect: true,
+      withCredentials: true
+    } as any);
+
+    this.socket.on('connect', () => {
+      console.log('✅ Socket bağlantısı kuruldu:', this.socket?.id);
+    });
+
+    this.socket.on('disconnect', (reason) => {
+      console.log('❌ Socket bağlantısı kesildi:', reason);
+    });
+
+    this.socket.on('connect_error', (error) => {
+      console.error('Socket bağlantı hatası:', error);
+      if (error.message) {
+        console.warn('Bağlantı hatası detayı:', error.message);
+      }
+    });
+
+    // Railway test mesajı
+    this.socket.on('hello', (message) => {
+      console.log('🔌 Socket.io mesajı:', message);
+    });
+
+    return this.socket;
   }
 
   disconnect() {

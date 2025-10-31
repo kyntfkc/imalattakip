@@ -81,19 +81,21 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
 
     loadCompanies();
 
-    // Socket.io çalışmıyor - periyodik polling ile güncelle (5 saniyede bir)
-    const pollingInterval = setInterval(loadCompanies, 5000);
+    // Socket.io çalışmıyorsa periyodik polling ile güncelle (fallback)
+    // Socket.io bağlantısı kontrol edilecek, bağlıysa polling yapılmayacak
+    const pollingInterval = setInterval(() => {
+      if (!socketService.isConnected()) {
+        loadCompanies();
+      }
+    }, 5000);
 
     return () => {
       clearInterval(pollingInterval);
     };
   }, []);
 
-  // Real-time socket event listeners (geçici olarak devre dışı - Socket.io 404 hatası)
+  // Real-time socket event listeners
   useEffect(() => {
-    // Socket.io çalışmıyor, periyodik polling kullanılıyor
-    return;
-    
     if (!socketService.isConnected()) {
       return;
     }
