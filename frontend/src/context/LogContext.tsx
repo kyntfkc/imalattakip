@@ -126,15 +126,29 @@ export const LogProvider: React.FC<LogProviderProps> = ({ children }) => {
         details: log.details
       });
       
+      // Response null ise (log kaydı başarısız ama kritik değil)
+      if (!response) {
+        console.warn('Log kaydı yapılamadı, lokal olarak eklendi');
+        // Backend hatası durumunda localStorage'a ekle
+        const newLog: LogEntry = {
+          ...log,
+          id: `LOG${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          user: user?.username || 'Bilinmeyen Kullanıcı'
+        };
+        setLogs(prev => [newLog, ...prev]);
+        return;
+      }
+      
       // Backend'den dönen veriyi frontend formatına çevir
       const newLog: LogEntry = {
-        id: response.id.toString(),
+        id: response.id?.toString() || `LOG${Date.now()}`,
         user: response.username || response.user || 'Bilinmeyen',
         action: response.action,
         entityType: response.entity_type || response.entityType,
         entityName: response.entity_name || response.entityName,
         details: response.details,
-        timestamp: response.created_at
+        timestamp: response.created_at || new Date().toISOString()
       };
       
       setLogs(prev => [newLog, ...prev]); // En yeni log en üstte

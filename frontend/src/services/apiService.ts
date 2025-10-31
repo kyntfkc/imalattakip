@@ -68,7 +68,22 @@ class ApiService {
           errorMessage = 'Endpoint bulunamadı!';
         } else if (response.status === 500) {
           // 500 hatası için backend'den gelen detaylı mesajı kullan
-          const backendError = await response.json().catch(() => null);
+          let backendError = null;
+          try {
+            const errorText = await response.text();
+            if (errorText) {
+              try {
+                backendError = JSON.parse(errorText);
+              } catch {
+                // JSON değilse text olarak kullan
+                backendError = { message: errorText };
+              }
+            }
+          } catch {
+            // Text parse edilemezse null bırak
+            backendError = null;
+          }
+          
           if (backendError && backendError.error) {
             errorMessage = `Sunucu hatası: ${backendError.error}`;
           } else if (backendError && backendError.message) {
