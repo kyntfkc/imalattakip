@@ -382,27 +382,33 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     
     // Giriş transferlerini işle
     incomingTransfers.forEach(transfer => {
-      if (transfer.cinsi && transfer.amount > 0) {
-        const existing = cinsiMap.get(transfer.cinsi) || { stock: 0, has: 0, fire: 0 };
-        const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(transfer.amount) || 0;
+      if (transfer.amount > 0) {
+        // Cinsi yoksa "Genel" olarak işle
+        const cinsi = transfer.cinsi || 'Genel';
+        const existing = cinsiMap.get(cinsi) || { stock: 0, has: 0, fire: 0 };
+        const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
         existing.stock += safeAmount;
-        existing.has += safeAmount * (transfer.karat === '24K' ? 1 : 
-                                        transfer.karat === '22K' ? 0.9167 :
-                                        transfer.karat === '18K' ? 0.75 : 0.5833);
-        cinsiMap.set(transfer.cinsi, existing);
+        const karatRatio = transfer.karat === '24K' ? 1 : 
+                           transfer.karat === '22K' ? 0.9167 :
+                           transfer.karat === '18K' ? 0.75 : 0.5833;
+        existing.has += safeAmount * karatRatio;
+        cinsiMap.set(cinsi, existing);
       }
     });
     
     // Çıkış transferlerini işle
     outgoingTransfers.forEach(transfer => {
-      if (transfer.cinsi && transfer.amount > 0) {
-        const existing = cinsiMap.get(transfer.cinsi) || { stock: 0, has: 0, fire: 0 };
-        const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(transfer.amount) || 0;
+      if (transfer.amount > 0) {
+        // Cinsi yoksa "Genel" olarak işle
+        const cinsi = transfer.cinsi || 'Genel';
+        const existing = cinsiMap.get(cinsi) || { stock: 0, has: 0, fire: 0 };
+        const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
         existing.stock -= safeAmount;
-        existing.has -= safeAmount * (transfer.karat === '24K' ? 1 : 
-                                         transfer.karat === '22K' ? 0.9167 :
-                                         transfer.karat === '18K' ? 0.75 : 0.5833);
-        cinsiMap.set(transfer.cinsi, existing);
+        const karatRatio = transfer.karat === '24K' ? 1 : 
+                           transfer.karat === '22K' ? 0.9167 :
+                           transfer.karat === '18K' ? 0.75 : 0.5833;
+        existing.has -= safeAmount * karatRatio;
+        cinsiMap.set(cinsi, existing);
       }
     });
     
