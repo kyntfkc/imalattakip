@@ -47,13 +47,13 @@ class SocketService {
       }
     } as any); // Type assertion - Socket.io types güncel olmayabilir
 
-    // WebSocket upgrade denemesini engelle
-    this.socket.io.on('upgrade', () => {
+    // WebSocket upgrade denemesini engelle (type assertion ile)
+    (this.socket.io as any).on('upgrade', () => {
       console.warn('WebSocket upgrade denemesi engellendi - polling kullanılıyor');
     });
 
-    // WebSocket transport'u devre dışı bırak
-    this.socket.io.on('upgradeError', () => {
+    // WebSocket transport'u devre dışı bırak (type assertion ile)
+    (this.socket.io as any).on('upgradeError', () => {
       console.warn('WebSocket upgrade hatası (beklenen davranış)');
     });
 
