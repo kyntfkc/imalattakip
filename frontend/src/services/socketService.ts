@@ -39,13 +39,13 @@ class SocketService {
       autoConnect: true,
       withCredentials: true,
       // Polling transport ayarları
-      transportsOptions: {
+      transportOptions: {
         polling: {
           extraHeaders: {},
           withCredentials: true
         }
       }
-    });
+    } as any); // Type assertion - Socket.io types güncel olmayabilir
 
     // WebSocket upgrade denemesini engelle
     this.socket.io.on('upgrade', () => {
