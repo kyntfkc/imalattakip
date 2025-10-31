@@ -28,14 +28,33 @@ class SocketService {
         token: token
       },
       transports: ['polling'], // SADECE polling - WebSocket yok
+      upgrade: false, // WebSocket upgrade'i tamamen devre dışı
+      rememberUpgrade: false,
       reconnection: true,
       reconnectionDelay: 2000,
       reconnectionAttempts: 10,
       timeout: 30000,
       forceNew: true,
-      upgrade: false, // WebSocket upgrade'i tamamen devre dışı
-      rememberUpgrade: false,
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
+      autoConnect: true,
+      withCredentials: true,
+      // Polling transport ayarları
+      transportsOptions: {
+        polling: {
+          extraHeaders: {},
+          withCredentials: true
+        }
+      }
+    });
+
+    // WebSocket upgrade denemesini engelle
+    this.socket.io.on('upgrade', () => {
+      console.warn('WebSocket upgrade denemesi engellendi - polling kullanılıyor');
+    });
+
+    // WebSocket transport'u devre dışı bırak
+    this.socket.io.on('upgradeError', () => {
+      console.warn('WebSocket upgrade hatası (beklenen davranış)');
     });
 
     this.socket.on('connect', () => {
