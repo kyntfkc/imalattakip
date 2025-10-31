@@ -348,6 +348,19 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
               <Form.Item
                 label="Miktar (gram)"
                 name="amount"
+                getValueFromEvent={(e) => {
+                  const value = e?.target?.value || e;
+                  if (value === '' || value === undefined || value === null) return undefined;
+                  if (typeof value === 'number') return value;
+                  const num = parseNumberFromInput(String(value));
+                  return isNaN(num) ? undefined : num;
+                }}
+                normalize={(value) => {
+                  if (value === undefined || value === null || value === '') return undefined;
+                  if (typeof value === 'number') return value;
+                  const num = parseNumberFromInput(String(value));
+                  return isNaN(num) ? undefined : num;
+                }}
                 rules={[
                   { required: true, message: 'Miktar giriniz!' },
                   { type: 'number', min: 0.01, message: 'Miktar 0.01\'den büyük olmalı!' }
@@ -363,20 +376,38 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                   }}
                   onChange={(e) => {
                     const value = e.target.value;
+                    // Boş değere izin ver
+                    if (value === '') {
+                      form.setFieldsValue({ amount: undefined });
+                      return;
+                    }
                     // Sadece sayı, virgül ve nokta karakterlerine izin ver
                     if (/^[\d,.]*$/.test(value)) {
-                      // Form'a parse edilmiş değeri gönder
-                      const numericValue = parseNumberFromInput(value);
-                      if (!isNaN(numericValue)) {
-                        form.setFieldsValue({ amount: numericValue });
+                      // Form'a parse edilmiş numeric değeri kaydet
+                      const num = parseNumberFromInput(value);
+                      if (!isNaN(num)) {
+                        form.setFieldsValue({ amount: num });
+                      }
+                      // Input'un kendi value'sunu koru (kullanıcı yazdığını görebilsin)
+                    } else {
+                      // Geçersiz karakter - önceki değeri geri yükle
+                      const prevValue = form.getFieldValue('amount');
+                      if (prevValue !== undefined && prevValue !== null) {
+                        e.target.value = formatNumberForDisplay(prevValue);
+                        form.setFieldsValue({ amount: prevValue });
                       }
                     }
                   }}
                   onBlur={(e) => {
                     const value = e.target.value;
-                    if (value && !isNaN(parseNumberFromInput(value))) {
-                      const formattedValue = formatNumberForDisplay(parseNumberFromInput(value));
-                      e.target.value = formattedValue;
+                    if (value && value !== '') {
+                      const num = parseNumberFromInput(value);
+                      if (!isNaN(num)) {
+                        const formatted = formatNumberForDisplay(num);
+                        form.setFieldsValue({ amount: num });
+                        // Input'u formatla
+                        e.target.value = formatted;
+                      }
                     }
                   }}
                 />
