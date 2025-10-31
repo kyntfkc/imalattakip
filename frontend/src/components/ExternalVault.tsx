@@ -153,7 +153,7 @@ const ExternalVault: React.FC = () => {
     }
   };
 
-  const handleSubmit = (values: any) => {
+  const handleSubmit = async (values: any) => {
     const selectedCompany = companies.find(c => c.id === values.companyId);
     
     // Amount'u parse et (string ise number'a çevir)
@@ -161,32 +161,44 @@ const ExternalVault: React.FC = () => {
       ? parseNumberFromInput(values.amount) 
       : values.amount;
     
-    // Transaction ekle
-    addTransaction({
-      type: transactionType,
-      karat: values.karat,
-      amount: amount,
-      companyId: values.companyId,
-      companyName: selectedCompany?.name,
-      notes: values.notes
-    });
+    try {
+      // Transaction ekle
+      await addTransaction({
+        type: transactionType,
+        karat: values.karat,
+        amount: amount,
+        companyId: values.companyId,
+        companyName: selectedCompany?.name,
+        notes: values.notes
+      });
 
-    // Log kaydı
-    addLog({
-      action: 'CREATE',
-      entityType: 'EXTERNAL_VAULT',
-      entityName: `${values.karat === '24K' ? 'Has Altın' : values.karat.replace('K', ' Ayar')} - ${amount} gr`,
-      details: `Dış Kasa ${transactionType === 'input' ? 'Giriş' : 'Çıkış'}${selectedCompany ? ` - Firma: ${selectedCompany.name}` : ''}`
-    });
-    
-    const successMessage = transactionType === 'input' 
-      ? `✅ Giriş işlemi kaydedildi! ${amount}gr ${values.karat}` 
-      : `✅ Çıkış işlemi kaydedildi! ${amount}gr ${values.karat} - ${selectedCompany?.name}`;
-    
-    message.success(successMessage);
-    
-    form.resetFields();
-    setModalVisible(false);
+      // Log kaydı (başarısız olsa bile devam et)
+      try {
+        await addLog({
+          action: 'CREATE',
+          entityType: 'EXTERNAL_VAULT',
+          entityName: `${values.karat === '24K' ? 'Has Altın' : values.karat.replace('K', ' Ayar')} - ${amount} gr`,
+          details: `Dış Kasa ${transactionType === 'input' ? 'Giriş' : 'Çıkış'}${selectedCompany ? ` - Firma: ${selectedCompany.name}` : ''}`
+        });
+      } catch (logError) {
+        console.warn('Log kaydı yapılamadı:', logError);
+        // Log hatası kritik değil, sessizce devam et
+      }
+      
+      const successMessage = transactionType === 'input' 
+        ? `✅ Giriş işlemi kaydedildi! ${amount}gr ${values.karat}` 
+        : `✅ Çıkış işlemi kaydedildi! ${amount}gr ${values.karat} - ${selectedCompany?.name}`;
+      
+      message.success(successMessage);
+      
+      form.resetFields();
+      setModalVisible(false);
+    } catch (error: any) {
+      console.error('Transaction eklenirken hata:', error);
+      const errorMessage = error?.message || 'İşlem eklenirken bir hata oluştu!';
+      message.error(errorMessage);
+      // Hata durumunda form'u kapatma, kullanıcı tekrar deneyebilsin
+    }
   };
 
 

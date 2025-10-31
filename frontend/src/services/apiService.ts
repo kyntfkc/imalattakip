@@ -69,18 +69,31 @@ class ApiService {
         } else if (response.status === 500) {
           // 500 hatası için backend'den gelen detaylı mesajı kullan
           let backendError = null;
+          let errorText = '';
+          
           try {
-            const errorText = await response.text();
-            if (errorText) {
+            // Önce JSON olarak parse etmeyi dene
+            const clonedResponse = response.clone();
+            try {
+              backendError = await clonedResponse.json();
+            } catch {
+              // JSON değilse text olarak oku
               try {
-                backendError = JSON.parse(errorText);
+                errorText = await response.text();
+                if (errorText) {
+                  try {
+                    backendError = JSON.parse(errorText);
+                  } catch {
+                    // JSON değilse text olarak kullan
+                    backendError = { message: errorText };
+                  }
+                }
               } catch {
-                // JSON değilse text olarak kullan
-                backendError = { message: errorText };
+                // Text parse edilemezse null bırak
+                backendError = null;
               }
             }
           } catch {
-            // Text parse edilemezse null bırak
             backendError = null;
           }
           
@@ -88,14 +101,19 @@ class ApiService {
             errorMessage = `Sunucu hatası: ${backendError.error}`;
           } else if (backendError && backendError.message) {
             errorMessage = `Sunucu hatası: ${backendError.message}`;
+          } else if (errorText) {
+            errorMessage = `Sunucu hatası: ${errorText}`;
           } else {
             errorMessage = 'Sunucu hatası! Lütfen backend log\'larını kontrol edin ve daha sonra tekrar deneyin.';
           }
+          
           console.error('❌ Backend 500 error:', {
             endpoint,
             status: response.status,
             error: backendError,
-            url: url
+            errorText: errorText,
+            url: url,
+            headers: Object.fromEntries(response.headers.entries())
           });
         } else if (response.status === 0 || response.status >= 500) {
           errorMessage = 'Sunucuya bağlanılamıyor! Lütfen internet bağlantınızı kontrol edin.';
