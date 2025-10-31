@@ -78,7 +78,7 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
     // Socket.io çalışmıyorsa periyodik polling ile güncelle (fallback)
     // Socket.io bağlantısı kontrol edilecek, bağlıysa polling yapılmayacak
     const pollingInterval = setInterval(() => {
-      if (!socketService.isConnected()) {
+      if (!socketService.isConnected() && isAuthenticated) {
         loadTransfers();
       }
     }, 5000);
@@ -86,7 +86,7 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
     return () => {
       clearInterval(pollingInterval);
     };
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   // Real-time socket event listeners
   useEffect(() => {
