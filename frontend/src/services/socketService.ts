@@ -3,7 +3,10 @@ import { io, Socket } from 'socket.io-client';
 class SocketService {
   private socket: Socket | null = null;
   private API_BASE_URL = process.env.REACT_APP_API_URL || 'https://imalattakip-backend-production.up.railway.app/api';
-  private WS_URL = this.API_BASE_URL.replace('/api', '');
+  // Railway URL'ini tam olarak kullan - /api olmadan
+  private WS_URL = process.env.REACT_APP_API_URL 
+    ? process.env.REACT_APP_API_URL.replace('/api', '')
+    : 'https://imalattakip-backend-production.up.railway.app';
 
   connect(token: string | null) {
     if (!token) {
@@ -22,8 +25,10 @@ class SocketService {
       this.socket = null;
     }
 
-    // Railway URL'ini doğru kullan - /api olmadan
+    // Railway URL'ini tam olarak kullan - /api olmadan
     const socketUrl = this.WS_URL;
+    
+    console.log('🔌 Socket.io bağlantı URL:', socketUrl);
 
     this.socket = io(socketUrl, {
       auth: {
