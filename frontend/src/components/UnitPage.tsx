@@ -448,7 +448,13 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         has: Number(data.has.toFixed(3)),
         fire: Number(data.fire.toFixed(3))
       }))
-      .filter(item => item.stock > 0 || item.fire > 0);
+      .filter(item => {
+        // Yarı mamül için stok > 0 olanları göster, diğerleri için stok > 0 veya fire > 0
+        if (isSemiFinishedUnit) {
+          return item.stock > 0;
+        }
+        return item.stock > 0 || item.fire > 0;
+      });
     
     return result;
   }, [unit, transfers, filteredTransfers, unitId, hasFire, isProcessingUnit, isInputUnit, isSemiFinishedUnit, isOutputOnlyUnit]);
