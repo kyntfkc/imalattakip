@@ -376,25 +376,36 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                   }}
                   onChange={(e) => {
                     const value = e.target.value;
+                    
                     // Boş değere izin ver
                     if (value === '') {
                       form.setFieldsValue({ amount: undefined });
                       return;
                     }
+                    
                     // Sadece sayı, virgül ve nokta karakterlerine izin ver
-                    if (/^[\d,.]*$/.test(value)) {
+                    // Birden fazla virgül veya noktaya izin verme
+                    const validPattern = /^[\d,.]*$/;
+                    const hasMultipleCommas = (value.match(/,/g) || []).length > 1;
+                    const hasMultipleDots = (value.match(/\./g) || []).length > 1;
+                    const hasBothCommaAndDot = value.includes(',') && value.includes('.');
+                    
+                    if (validPattern.test(value) && !hasMultipleCommas && !hasMultipleDots && !hasBothCommaAndDot) {
                       // Form'a parse edilmiş numeric değeri kaydet
                       const num = parseNumberFromInput(value);
                       if (!isNaN(num)) {
                         form.setFieldsValue({ amount: num });
                       }
-                      // Input'un kendi value'sunu koru (kullanıcı yazdığını görebilsin)
                     } else {
-                      // Geçersiz karakter - önceki değeri geri yükle
+                      // Geçersiz format - değeri geri al
                       const prevValue = form.getFieldValue('amount');
                       if (prevValue !== undefined && prevValue !== null) {
                         e.target.value = formatNumberForDisplay(prevValue);
                         form.setFieldsValue({ amount: prevValue });
+                      } else {
+                        // Önceki değer yoksa boşalt
+                        e.target.value = '';
+                        form.setFieldsValue({ amount: undefined });
                       }
                     }
                   }}
@@ -402,11 +413,15 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                     const value = e.target.value;
                     if (value && value !== '') {
                       const num = parseNumberFromInput(value);
-                      if (!isNaN(num)) {
+                      if (!isNaN(num) && num >= 0.01) {
                         const formatted = formatNumberForDisplay(num);
                         form.setFieldsValue({ amount: num });
                         // Input'u formatla
                         e.target.value = formatted;
+                      } else {
+                        // Geçersiz değer - temizle
+                        e.target.value = '';
+                        form.setFieldsValue({ amount: undefined });
                       }
                     }
                   }}
