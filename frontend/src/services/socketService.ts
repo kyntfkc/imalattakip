@@ -34,7 +34,7 @@ class SocketService {
       auth: {
         token: token
       },
-      transports: ['websocket', 'polling'], // Önce websocket, sonra polling fallback
+      transports: ['websocket'], // Sadece websocket kullan - polling Railway'da sorun çıkarıyor
       reconnection: true,
       reconnectionDelay: 2000,
       reconnectionAttempts: 10,
