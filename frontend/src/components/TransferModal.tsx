@@ -116,7 +116,14 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
 
   const handlePreview = () => {
     form.validateFields().then(values => {
-      setTransferData(values);
+      // Amount'u parse et (string ise number'a çevir)
+      const amount = typeof values.amount === 'string' 
+        ? parseNumberFromInput(values.amount) 
+        : values.amount;
+      setTransferData({
+        ...values,
+        amount: amount
+      });
       setShowPreview(true);
     });
   };
