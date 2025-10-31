@@ -722,7 +722,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       </Card>
 
       {/* Cinsi Bazlı Stok Dağılımı - Sadece stok tutan birimler için */}
-      {(!isProcessingUnit && !isOutputOnlyUnit && !isInputUnit) || isSemiFinishedUnit ? (
+      {((!isProcessingUnit && !isOutputOnlyUnit && !isInputUnit) || isSemiFinishedUnit) && (
         <Card 
           title={
             <Space size={12}>
