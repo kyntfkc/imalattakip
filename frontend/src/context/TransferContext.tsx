@@ -3,6 +3,7 @@ import { Transfer, UnitSummary } from '../types';
 import { calculateUnitSummaries } from '../utils/fireCalculations';
 import { apiService } from '../services/apiService';
 import socketService from '../services/socketService';
+import { useAuth } from './AuthContext';
 
 interface TransferContextType {
   transfers: Transfer[];
@@ -29,11 +30,18 @@ interface TransferProviderProps {
 }
 
 export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) => {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Backend'den transfer verilerini yükle ve periyodik olarak güncelle (Socket.io yerine)
   useEffect(() => {
+    // Authentication tamamlanana kadar bekle
+    if (authLoading || !isAuthenticated) {
+      setIsLoading(authLoading);
+      return;
+    }
+
     const loadTransfers = async () => {
       try {
         setIsLoading(true);

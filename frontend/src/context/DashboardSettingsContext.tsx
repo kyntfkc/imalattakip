@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { UnitType } from '../types';
 import { apiService } from '../services/apiService';
+import { useAuth } from './AuthContext';
 
 interface DashboardSettings {
   unitOrder: UnitType[];
@@ -42,11 +43,17 @@ interface DashboardSettingsProviderProps {
 }
 
 export const DashboardSettingsProvider: React.FC<DashboardSettingsProviderProps> = ({ children }) => {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [settings, setSettings] = useState<DashboardSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Backend'den verileri yükle
+  // Backend'den verileri yükle - sadece authenticated olduğunda
   useEffect(() => {
+    if (authLoading || !isAuthenticated) {
+      setIsLoading(authLoading);
+      return;
+    }
+
     const loadSettings = async () => {
       try {
         setIsLoading(true);
@@ -79,7 +86,7 @@ export const DashboardSettingsProvider: React.FC<DashboardSettingsProviderProps>
     };
 
     loadSettings();
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   // LocalStorage'a da kaydet (backup olarak)
   useEffect(() => {

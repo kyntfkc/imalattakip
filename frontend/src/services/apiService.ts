@@ -13,6 +13,11 @@ class ApiService {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
+    // Token'ı her request öncesi localStorage'dan kontrol et (güncel olabilir)
+    if (!this.token) {
+      this.token = localStorage.getItem('authToken');
+    }
+    
     const url = `${API_BASE_URL}${endpoint}`;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -47,7 +52,18 @@ class ApiService {
         
         // Status code'a göre daha açıklayıcı mesajlar
         if (response.status === 401) {
-          errorMessage = 'Kullanıcı adı veya şifre hatalı!';
+          // 401 hatası token geçersiz veya yok demektir
+          // Token'ı temizle ve tekrar yükle
+          this.token = null;
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          
+          // Login endpoint'i değilse "Token gerekli" mesajı ver
+          if (!endpoint.includes('/auth/login')) {
+            errorMessage = 'Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.';
+          } else {
+            errorMessage = 'Kullanıcı adı veya şifre hatalı!';
+          }
         } else if (response.status === 404) {
           errorMessage = 'Endpoint bulunamadı!';
         } else if (response.status === 500) {

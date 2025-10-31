@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { apiService } from '../services/apiService';
 import socketService from '../services/socketService';
+import { useAuth } from './AuthContext';
 
 export interface Company {
   id: string;
@@ -37,11 +38,18 @@ interface CompanyProviderProps {
 }
 
 export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) => {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Backend'den verileri yükle ve periyodik olarak güncelle (Socket.io yerine)
   useEffect(() => {
+    // Authentication tamamlanana kadar bekle
+    if (authLoading || !isAuthenticated) {
+      setIsLoading(authLoading);
+      return;
+    }
+
     const loadCompanies = async () => {
       try {
         setIsLoading(true);
@@ -81,18 +89,18 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
 
     loadCompanies();
 
-    // Socket.io çalışmıyorsa periyodik polling ile güncelle (fallback)
-    // Socket.io bağlantısı kontrol edilecek, bağlıysa polling yapılmayacak
-    const pollingInterval = setInterval(() => {
-      if (!socketService.isConnected()) {
-        loadCompanies();
-      }
-    }, 5000);
+           // Socket.io çalışmıyorsa periyodik polling ile güncelle (fallback)
+           // Socket.io bağlantısı kontrol edilecek, bağlıysa polling yapılmayacak
+           const pollingInterval = setInterval(() => {
+             if (!socketService.isConnected() && isAuthenticated) {
+               loadCompanies();
+             }
+           }, 5000);
 
-    return () => {
-      clearInterval(pollingInterval);
-    };
-  }, []);
+           return () => {
+             clearInterval(pollingInterval);
+           };
+         }, [isAuthenticated, authLoading]);
 
   // Real-time socket event listeners
   useEffect(() => {

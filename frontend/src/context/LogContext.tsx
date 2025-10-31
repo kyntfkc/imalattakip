@@ -55,10 +55,16 @@ export const LogProvider: React.FC<LogProviderProps> = ({ children }) => {
     pages: number;
   } | undefined>();
 
-  // Backend'den verileri yükle
+  // Backend'den verileri yükle - sadece authenticated olduğunda
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  
   useEffect(() => {
+    if (authLoading || !isAuthenticated) {
+      setIsLoading(authLoading);
+      return;
+    }
     loadLogs();
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   const loadLogs = async (params?: {
     page?: number;
