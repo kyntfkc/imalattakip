@@ -68,51 +68,61 @@ class ApiService {
           errorMessage = 'Endpoint bulunamadı!';
         } else if (response.status === 500) {
           // 500 hatası için backend'den gelen detaylı mesajı kullan
-          let backendError = null;
+          let backendError: any = null;
           let errorText = '';
           
           try {
-            // Önce JSON olarak parse etmeyi dene
+            // Response body'yi okumak için clone kullan
             const clonedResponse = response.clone();
+            
+            // Önce text olarak oku (JSON parse hatası olabilir)
             try {
-              backendError = await clonedResponse.json();
-            } catch {
-              // JSON değilse text olarak oku
-              try {
-                errorText = await response.text();
-                if (errorText) {
-                  try {
-                    backendError = JSON.parse(errorText);
-                  } catch {
-                    // JSON değilse text olarak kullan
-                    backendError = { message: errorText };
-                  }
+              errorText = await clonedResponse.text();
+              console.log('🔍 Backend 500 response text:', errorText);
+              
+              if (errorText && errorText.trim()) {
+                try {
+                  // JSON parse dene
+                  backendError = JSON.parse(errorText);
+                } catch {
+                  // JSON değilse text olarak kullan
+                  backendError = { message: errorText, raw: errorText };
                 }
-              } catch {
-                // Text parse edilemezse null bırak
-                backendError = null;
               }
+            } catch (textError) {
+              console.warn('Response text okunamadı:', textError);
             }
-          } catch {
-            backendError = null;
+          } catch (cloneError) {
+            console.warn('Response clone edilemedi:', cloneError);
+            // Clone başarısız olursa direkt text okumayı dene
+            try {
+              errorText = await response.text();
+              if (errorText && errorText.trim()) {
+                backendError = { message: errorText, raw: errorText };
+              }
+            } catch {
+              // Text de okunamazsa null bırak
+            }
           }
           
           if (backendError && backendError.error) {
             errorMessage = `Sunucu hatası: ${backendError.error}`;
           } else if (backendError && backendError.message) {
             errorMessage = `Sunucu hatası: ${backendError.message}`;
-          } else if (errorText) {
+          } else if (errorText && errorText.trim()) {
             errorMessage = `Sunucu hatası: ${errorText}`;
           } else {
-            errorMessage = 'Sunucu hatası! Lütfen backend log\'larını kontrol edin ve daha sonra tekrar deneyin.';
+            errorMessage = `Sunucu hatası (500)! Backend endpoint: ${endpoint}. Lütfen backend log'larını kontrol edin.`;
           }
           
           console.error('❌ Backend 500 error:', {
             endpoint,
             status: response.status,
+            statusText: response.statusText,
             error: backendError,
             errorText: errorText,
             url: url,
+            hasBody: !!errorText,
             headers: Object.fromEntries(response.headers.entries())
           });
         } else if (response.status === 0 || response.status >= 500) {
