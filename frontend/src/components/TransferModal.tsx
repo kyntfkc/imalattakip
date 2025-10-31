@@ -381,6 +381,33 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                     borderRadius: '8px'
                   }}
                   value={amountDisplay}
+                  onKeyDown={(e) => {
+                    // Sadece gerçekten engellenmesi gereken tuşları kontrol et
+                    // Sayı, virgül, nokta ve kontrol tuşlarına izin ver
+                    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
+                    const key = e.key;
+                    
+                    // Sayı kontrolü
+                    if (/^\d$/.test(key)) return;
+                    
+                    // Virgül ve nokta kontrolü - daha esnek
+                    if (key === ',' || key === '.' || key === 'Comma' || key === 'Period') return;
+                    
+                    // Numpad decimal kontrolü
+                    if (key === 'NumpadDecimal' || key === 'Decimal') return;
+                    
+                    // Kontrol tuşları
+                    if (allowedKeys.includes(key)) return;
+                    
+                    // Ctrl/Cmd + A, C, V, X gibi kombinasyonlar
+                    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(key.toLowerCase())) return;
+                    
+                    // Shift + ok tuşları (metin seçimi)
+                    if (e.shiftKey && (key === 'ArrowLeft' || key === 'ArrowRight')) return;
+                    
+                    // Diğer tüm tuşları engelle
+                    e.preventDefault();
+                  }}
                   onChange={(e) => {
                     let inputValue = e.target.value;
                     
