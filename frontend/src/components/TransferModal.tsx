@@ -381,8 +381,22 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                     borderRadius: '8px'
                   }}
                   value={amountDisplay}
+                  onKeyDown={(e) => {
+                    // Virgül, nokta, sayı ve kontrol tuşlarına izin ver
+                    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
+                    const key = e.key;
+                    const isNumber = /^\d$/.test(key);
+                    const isComma = key === ',' || key === 'NumpadDecimal';
+                    const isDot = key === '.' || key === 'Decimal';
+                    const isControl = allowedKeys.includes(key);
+                    
+                    if (isNumber || isComma || isDot || isControl || (e.ctrlKey || e.metaKey) || (e.shiftKey && (key === 'ArrowLeft' || key === 'ArrowRight'))) {
+                      return; // İzin ver
+                    }
+                    e.preventDefault(); // Diğer karakterleri engelle
+                  }}
                   onChange={(e) => {
-                    const inputValue = e.target.value;
+                    let inputValue = e.target.value;
                     
                     // Boş değere izin ver
                     if (inputValue === '') {
@@ -391,22 +405,27 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                       return;
                     }
                     
-                    // Sadece sayı, virgül ve nokta karakterlerine izin ver
-                    // Birden fazla virgül veya noktaya izin verme
-                    const validPattern = /^[\d,.]*$/;
-                    const hasMultipleCommas = (inputValue.match(/,/g) || []).length > 1;
-                    const hasMultipleDots = (inputValue.match(/\./g) || []).length > 1;
-                    const hasBothCommaAndDot = inputValue.includes(',') && inputValue.includes('.');
+                    // Geçersiz karakterleri filtrele - sadece sayı, virgül ve nokta bırak
+                    inputValue = inputValue.replace(/[^\d,.]/g, '');
                     
-                    if (validPattern.test(inputValue) && !hasMultipleCommas && !hasMultipleDots && !hasBothCommaAndDot) {
-                      // Display değerini güncelle (kullanıcı yazdığını görebilsin)
-                      setAmountDisplay(inputValue);
-                      
-                      // Form'a parse edilmiş numeric değeri kaydet
-                      const num = parseNumberFromInput(inputValue);
-                      if (!isNaN(num)) {
-                        form.setFieldsValue({ amount: num });
-                      }
+                    // Çift ondalık ayırıcı varsa, sadece birini tut (virgül tercih edilir)
+                    const parts = inputValue.split(/[,.]/);
+                    if (parts.length > 2) {
+                      inputValue = parts[0] + ',' + parts.slice(1).join('');
+                    }
+                    
+                    // Hem virgül hem nokta varsa, virgülü tercih et
+                    if (inputValue.includes(',') && inputValue.includes('.')) {
+                      inputValue = inputValue.replace(/\./g, '');
+                    }
+                    
+                    // Display değerini güncelle (kullanıcı yazdığını görebilsin)
+                    setAmountDisplay(inputValue);
+                    
+                    // Form'a parse edilmiş numeric değeri kaydet
+                    const num = parseNumberFromInput(inputValue);
+                    if (!isNaN(num) && num >= 0) {
+                      form.setFieldsValue({ amount: num });
                     }
                   }}
                   onBlur={(e) => {
