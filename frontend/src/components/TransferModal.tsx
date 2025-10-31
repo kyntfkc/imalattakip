@@ -62,7 +62,6 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
   const [semiFinishedAmount, setSemiFinishedAmount] = useState<number>(0);
   const [semiFinishedCinsi, setSemiFinishedCinsi] = useState<string>('');
   const [selectedFromUnit, setSelectedFromUnit] = useState<string>('');
-  const [amountDisplay, setAmountDisplay] = useState<string>('');
 
   const units = [
     { value: 'ana-kasa', label: 'Ana Kasa', icon: <BankOutlined /> },
@@ -182,7 +181,6 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
     setUseSemiFinished(false);
     setSemiFinishedAmount(0);
     setSemiFinishedCinsi('');
-    setAmountDisplay('');
     onClose();
   };
 
@@ -199,10 +197,6 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
         karat: '14K' // Varsayılan ayar
       });
       setSelectedFromUnit(defaultFromUnit);
-    }
-    // Modal açıldığında amountDisplay'i temizle
-    if (open) {
-      setAmountDisplay('');
     }
   }, [open, defaultFromUnit, form]);
 
@@ -354,23 +348,29 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
               <Form.Item
                 label="Miktar (gram)"
                 name="amount"
-                getValueFromEvent={(e) => {
-                  const value = e?.target?.value || e;
-                  if (value === '' || value === undefined || value === null) return undefined;
-                  if (typeof value === 'number') return value;
-                  const num = parseNumberFromInput(String(value));
-                  return isNaN(num) ? undefined : num;
-                }}
-                normalize={(value) => {
-                  if (value === undefined || value === null || value === '') return undefined;
-                  if (typeof value === 'number') return value;
-                  const num = parseNumberFromInput(String(value));
-                  return isNaN(num) ? undefined : num;
-                }}
                 rules={[
                   { required: true, message: 'Miktar giriniz!' },
-                  { type: 'number', min: 0.01, message: 'Miktar 0.01\'den büyük olmalı!' }
+                  {
+                    validator: (_, value) => {
+                      if (!value && value !== 0 && value !== '') {
+                        return Promise.reject(new Error('Miktar giriniz!'));
+                      }
+                      if (value === '' || value === undefined) {
+                        return Promise.reject(new Error('Miktar giriniz!'));
+                      }
+                      const numValue = typeof value === 'string' ? parseNumberFromInput(value) : value;
+                      if (isNaN(numValue) || numValue < 0.01) {
+                        return Promise.reject(new Error('Miktar 0.01\'den büyük olmalı!'));
+                      }
+                      return Promise.resolve();
+                    }
+                  }
                 ]}
+                getValueFromEvent={(e) => {
+                  const val = e?.target?.value || e;
+                  // String olarak tut, virgülü koru
+                  return typeof val === 'string' ? val : String(val);
+                }}
               >
                 <Input
                   placeholder="0,00"
@@ -380,86 +380,53 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                     border: '2px solid #d1d5db',
                     borderRadius: '8px'
                   }}
-                  value={amountDisplay}
                   onKeyDown={(e) => {
-                    // Sadece gerçekten engellenmesi gereken tuşları kontrol et
-                    // Sayı, virgül, nokta ve kontrol tuşlarına izin ver
+                    // Virgül, nokta, sayı ve kontrol tuşlarına izin ver
                     const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
                     const key = e.key;
+                    const isNumber = /^\d$/.test(key);
+                    const isComma = key === ',' || key === 'Comma';
+                    const isDot = key === '.' || key === 'Period';
+                    const isNumpadDecimal = key === 'NumpadDecimal' || key === 'Decimal';
+                    const isControl = allowedKeys.includes(key);
                     
-                    // Sayı kontrolü
-                    if (/^\d$/.test(key)) return;
-                    
-                    // Virgül ve nokta kontrolü - daha esnek
-                    if (key === ',' || key === '.' || key === 'Comma' || key === 'Period') return;
-                    
-                    // Numpad decimal kontrolü
-                    if (key === 'NumpadDecimal' || key === 'Decimal') return;
-                    
-                    // Kontrol tuşları
-                    if (allowedKeys.includes(key)) return;
-                    
-                    // Ctrl/Cmd + A, C, V, X gibi kombinasyonlar
-                    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(key.toLowerCase())) return;
-                    
-                    // Shift + ok tuşları (metin seçimi)
-                    if (e.shiftKey && (key === 'ArrowLeft' || key === 'ArrowRight')) return;
-                    
-                    // Diğer tüm tuşları engelle
-                    e.preventDefault();
+                    if (isNumber || isComma || isDot || isNumpadDecimal || isControl || (e.ctrlKey || e.metaKey) || (e.shiftKey && (key === 'ArrowLeft' || key === 'ArrowRight'))) {
+                      return; // İzin ver
+                    }
+                    e.preventDefault(); // Diğer karakterleri engelle
                   }}
                   onChange={(e) => {
-                    let inputValue = e.target.value;
+                    let value = e.target.value;
                     
                     // Boş değere izin ver
-                    if (inputValue === '') {
-                      setAmountDisplay('');
-                      form.setFieldsValue({ amount: undefined });
+                    if (value === '') {
+                      form.setFieldsValue({ amount: '' });
                       return;
                     }
                     
                     // Geçersiz karakterleri filtrele - sadece sayı, virgül ve nokta bırak
-                    inputValue = inputValue.replace(/[^\d,.]/g, '');
+                    value = value.replace(/[^\d,.]/g, '');
                     
                     // Çift ondalık ayırıcı varsa, sadece birini tut (virgül tercih edilir)
-                    const parts = inputValue.split(/[,.]/);
+                    const parts = value.split(/[,.]/);
                     if (parts.length > 2) {
-                      inputValue = parts[0] + ',' + parts.slice(1).join('');
+                      value = parts[0] + ',' + parts.slice(1).join('');
                     }
                     
                     // Hem virgül hem nokta varsa, virgülü tercih et
-                    if (inputValue.includes(',') && inputValue.includes('.')) {
-                      inputValue = inputValue.replace(/\./g, '');
+                    if (value.includes(',') && value.includes('.')) {
+                      value = value.replace(/\./g, '');
                     }
                     
-                    // Display değerini güncelle (kullanıcı yazdığını görebilsin)
-                    setAmountDisplay(inputValue);
-                    
-                    // Form'a parse edilmiş numeric değeri kaydet
-                    const num = parseNumberFromInput(inputValue);
-                    if (!isNaN(num) && num >= 0) {
-                      form.setFieldsValue({ amount: num });
-                    }
+                    // Form'a string olarak gönder (virgülü koru)
+                    form.setFieldsValue({ amount: value });
                   }}
                   onBlur={(e) => {
-                    const inputValue = e.target.value;
-                    if (inputValue && inputValue !== '') {
-                      const num = parseNumberFromInput(inputValue);
-                      if (!isNaN(num) && num >= 0.01) {
-                        const formatted = formatNumberForDisplay(num);
-                        setAmountDisplay(formatted);
-                        form.setFieldsValue({ amount: num });
-                      } else {
-                        setAmountDisplay('');
-                        form.setFieldsValue({ amount: undefined });
-                      }
-                    }
-                  }}
-                  onFocus={() => {
-                    // Focus olduğunda numeric değeri string'e çevir
-                    const amountValue = form.getFieldValue('amount');
-                    if (amountValue !== undefined && amountValue !== null) {
-                      setAmountDisplay(formatNumberForDisplay(amountValue));
+                    const value = e.target.value;
+                    if (value && !isNaN(parseNumberFromInput(value))) {
+                      const numericValue = parseNumberFromInput(value);
+                      const formattedValue = formatNumberForDisplay(numericValue);
+                      form.setFieldsValue({ amount: formattedValue });
                     }
                   }}
                 />
