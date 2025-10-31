@@ -182,6 +182,7 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
     setUseSemiFinished(false);
     setSemiFinishedAmount(0);
     setSemiFinishedCinsi('');
+    setAmountDisplay('');
     onClose();
   };
 
@@ -198,6 +199,10 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
         karat: '14K' // Varsayılan ayar
       });
       setSelectedFromUnit(defaultFromUnit);
+    }
+    // Modal açıldığında amountDisplay'i temizle
+    if (open) {
+      setAmountDisplay('');
     }
   }, [open, defaultFromUnit, form]);
 
