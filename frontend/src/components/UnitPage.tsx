@@ -158,7 +158,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       .filter(t => t.fromUnit === unitId)
       .reduce((sum, t) => {
         const safeAmount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
-        const karatMultiplier = KARAT_HAS_RATIOS[t.karat as KaratType] || 0;
+        const karatMultiplier = (KARAT_HAS_RATIOS[t.karat as keyof typeof KARAT_HAS_RATIOS]) || 0;
         return sum + (safeAmount * karatMultiplier);
       }, 0);
   }, [filteredTransfers, unitId, isOutputOnlyUnit, isProcessingUnit, isInputUnit, isSemiFinishedUnit, unit]);
@@ -386,7 +386,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
         existing.stock += safeAmount;
         existing.input += safeAmount;
-        const karatRatio = KARAT_HAS_RATIOS[transfer.karat as KaratType] || 0;
+        const karatRatio = (KARAT_HAS_RATIOS[transfer.karat as keyof typeof KARAT_HAS_RATIOS]) || 0;
         existing.has += safeAmount * karatRatio;
         cinsiMap.set(cinsi, existing);
       }
@@ -401,7 +401,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
         existing.stock -= safeAmount;
         existing.output += safeAmount;
-        const karatRatio = KARAT_HAS_RATIOS[transfer.karat as KaratType] || 0;
+        const karatRatio = (KARAT_HAS_RATIOS[transfer.karat as keyof typeof KARAT_HAS_RATIOS]) || 0;
         existing.has -= safeAmount * karatRatio;
         cinsiMap.set(cinsi, existing);
       }
