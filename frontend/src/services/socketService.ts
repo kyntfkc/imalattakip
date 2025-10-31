@@ -16,14 +16,18 @@ class SocketService {
       return;
     }
 
+    // Railway'da WebSocket desteği sınırlı, sadece polling kullan
     this.socket = io(this.WS_URL, {
       auth: {
         token: token
       },
-      transports: ['websocket', 'polling'],
+      transports: ['polling'], // Railway için sadece polling
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5
+      reconnectionDelay: 2000,
+      reconnectionAttempts: 10,
+      timeout: 20000,
+      forceNew: false,
+      upgrade: false // WebSocket upgrade'i devre dışı
     });
 
     this.socket.on('connect', () => {
@@ -36,6 +40,10 @@ class SocketService {
 
     this.socket.on('connect_error', (error) => {
       console.error('Socket bağlantı hatası:', error);
+      // Hata mesajını kullanıcıya göster (debugging için)
+      if (error.message) {
+        console.warn('Bağlantı hatası detayı:', error.message);
+      }
     });
 
     return this.socket;
