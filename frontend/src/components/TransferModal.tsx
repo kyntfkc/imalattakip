@@ -385,9 +385,12 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                     // Virgül, nokta, sayı ve kontrol tuşlarına izin ver
                     const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
                     const key = e.key;
+                    const keyCode = e.keyCode || e.which;
                     const isNumber = /^\d$/.test(key);
-                    const isComma = key === ',' || key === 'NumpadDecimal';
-                    const isDot = key === '.' || key === 'Decimal';
+                    // Virgül kontrolü: hem key hem de keyCode (188 = virgül, 110 = numpad decimal)
+                    const isComma = key === ',' || key === 'Comma' || keyCode === 188 || keyCode === 110;
+                    // Nokta kontrolü: hem key hem de keyCode (190 = nokta, 110 = numpad decimal)
+                    const isDot = key === '.' || key === 'Period' || keyCode === 190 || keyCode === 110;
                     const isControl = allowedKeys.includes(key);
                     
                     if (isNumber || isComma || isDot || isControl || (e.ctrlKey || e.metaKey) || (e.shiftKey && (key === 'ArrowLeft' || key === 'ArrowRight'))) {
