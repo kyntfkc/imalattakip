@@ -40,7 +40,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Backend'den verileri yükle
+  // Backend'den verileri yükle ve periyodik olarak güncelle (Socket.io yerine)
   useEffect(() => {
     const loadCompanies = async () => {
       try {
@@ -80,10 +80,20 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     };
 
     loadCompanies();
+
+    // Socket.io çalışmıyor - periyodik polling ile güncelle (5 saniyede bir)
+    const pollingInterval = setInterval(loadCompanies, 5000);
+
+    return () => {
+      clearInterval(pollingInterval);
+    };
   }, []);
 
-  // Real-time socket event listeners
+  // Real-time socket event listeners (geçici olarak devre dışı - Socket.io 404 hatası)
   useEffect(() => {
+    // Socket.io çalışmıyor, periyodik polling kullanılıyor
+    return;
+    
     if (!socketService.isConnected()) {
       return;
     }

@@ -32,7 +32,7 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Backend'den transfer verilerini yükle
+  // Backend'den transfer verilerini yükle ve periyodik olarak güncelle (Socket.io yerine)
   useEffect(() => {
     const loadTransfers = async () => {
       try {
@@ -66,10 +66,20 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
     };
 
     loadTransfers();
+
+    // Socket.io çalışmıyor - periyodik polling ile güncelle (5 saniyede bir)
+    const pollingInterval = setInterval(loadTransfers, 5000);
+
+    return () => {
+      clearInterval(pollingInterval);
+    };
   }, []);
 
-  // Real-time socket event listeners
+  // Real-time socket event listeners (geçici olarak devre dışı - Socket.io 404 hatası)
   useEffect(() => {
+    // Socket.io çalışmıyor, periyodik polling kullanılıyor
+    return;
+    
     if (!socketService.isConnected()) {
       return;
     }

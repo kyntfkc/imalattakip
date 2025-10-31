@@ -11,69 +11,10 @@ class SocketService {
       return;
     }
 
-    if (this.socket?.connected) {
-      console.log('Socket zaten bağlı');
-      return;
-    }
-
-    // Railway'da WebSocket desteği yok, sadece polling kullan
-    // Eski socket bağlantısını kapat
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-    }
-
-    this.socket = io(this.WS_URL, {
-      auth: {
-        token: token
-      },
-      transports: ['polling'], // SADECE polling - WebSocket yok
-      upgrade: false, // WebSocket upgrade'i tamamen devre dışı
-      rememberUpgrade: false,
-      reconnection: true,
-      reconnectionDelay: 2000,
-      reconnectionAttempts: 10,
-      timeout: 30000,
-      forceNew: true,
-      rejectUnauthorized: false,
-      autoConnect: true,
-      withCredentials: true,
-      // Polling transport ayarları
-      transportOptions: {
-        polling: {
-          extraHeaders: {},
-          withCredentials: true
-        }
-      }
-    } as any); // Type assertion - Socket.io types güncel olmayabilir
-
-    // WebSocket upgrade denemesini engelle (type assertion ile)
-    (this.socket.io as any).on('upgrade', () => {
-      console.warn('WebSocket upgrade denemesi engellendi - polling kullanılıyor');
-    });
-
-    // WebSocket transport'u devre dışı bırak (type assertion ile)
-    (this.socket.io as any).on('upgradeError', () => {
-      console.warn('WebSocket upgrade hatası (beklenen davranış)');
-    });
-
-    this.socket.on('connect', () => {
-      console.log('✅ Socket bağlantısı kuruldu:', this.socket?.id);
-    });
-
-    this.socket.on('disconnect', (reason) => {
-      console.log('❌ Socket bağlantısı kesildi:', reason);
-    });
-
-    this.socket.on('connect_error', (error) => {
-      console.error('Socket bağlantı hatası:', error);
-      // Hata mesajını kullanıcıya göster (debugging için)
-      if (error.message) {
-        console.warn('Bağlantı hatası detayı:', error.message);
-      }
-    });
-
-    return this.socket;
+    // Railway'da Socket.io 404 hatası veriyor - geçici olarak devre dışı
+    // Periyodik HTTP polling kullanılacak (TransferContext ve CompanyContext'te)
+    console.warn('⚠️ Socket.io geçici olarak devre dışı - Railway 404 hatası. HTTP polling kullanılıyor.');
+    return null;
   }
 
   disconnect() {
