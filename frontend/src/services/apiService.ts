@@ -297,6 +297,7 @@ class ApiService {
     amount: number;
     karat: number;
     notes?: string;
+    cinsi?: string;
   }) {
     return this.request<{ message: string; transferId: number }>('/transfers', {
       method: 'POST',

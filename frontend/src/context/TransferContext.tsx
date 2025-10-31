@@ -58,7 +58,8 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
           karat: `${t.karat}K` as any,
           notes: t.notes || '',
           date: new Date(t.created_at).toISOString(),
-          user: t.user_name || 'Bilinmeyen'
+          user: t.user_name || 'Bilinmeyen',
+          cinsi: t.cinsi || undefined
         }));
         
         setTransfers(formattedTransfers);
@@ -104,7 +105,8 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
         karat: `${data.karat}K` as any,
         notes: data.notes || '',
         date: new Date(data.created_at).toISOString(),
-        user: data.user_name || 'Bilinmeyen'
+        user: data.user_name || 'Bilinmeyen',
+        cinsi: data.cinsi || undefined
       };
 
       setTransfers(prev => {
@@ -125,7 +127,8 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
         karat: `${data.karat}K` as any,
         notes: data.notes || '',
         date: new Date(data.created_at).toISOString(),
-        user: data.user_name || 'Bilinmeyen'
+        user: data.user_name || 'Bilinmeyen',
+        cinsi: data.cinsi || undefined
       };
 
       setTransfers(prev => prev.map(t => 
@@ -159,7 +162,8 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
         toUnit: transfer.toUnit,
         amount: transfer.amount,
         karat: parseInt(transfer.karat.replace('K', '')),
-        notes: transfer.notes
+        notes: transfer.notes,
+        cinsi: transfer.cinsi
       });
 
       // Socket event ile otomatik eklenecek, burada sadece optimistic update yapabiliriz
@@ -173,7 +177,8 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
         karat: `${t.karat}K` as any,
         notes: t.notes || '',
         date: new Date(t.created_at).toISOString(),
-        user: t.user_name || 'Bilinmeyen'
+        user: t.user_name || 'Bilinmeyen',
+        cinsi: t.cinsi || undefined
       }));
       setTransfers(formattedTransfers);
     } catch (error) {
