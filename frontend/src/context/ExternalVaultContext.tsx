@@ -197,13 +197,25 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
   const addTransaction = async (transaction: Omit<ExternalVaultTransaction, 'id' | 'date'>) => {
     try {
       // Backend'e gönder
-      await apiService.createExternalVaultTransaction({
+      const transactionPayload: {
+        type: 'deposit' | 'withdrawal';
+        amount: number;
+        karat: number;
+        notes?: string;
+        company_id?: number;
+      } = {
         type: transaction.type === 'input' ? 'deposit' : 'withdrawal',
         amount: transaction.amount,
         karat: parseInt(transaction.karat.replace('K', '')),
-        notes: transaction.notes,
-        company_id: transaction.companyId ? parseInt(transaction.companyId) : undefined
-      });
+        notes: transaction.notes
+      };
+      
+      // company_id varsa ekle
+      if (transaction.companyId) {
+        transactionPayload.company_id = parseInt(transaction.companyId);
+      }
+      
+      await apiService.createExternalVaultTransaction(transactionPayload);
       
       // Backend'den güncel veriyi yükle
       const backendTransactions = await apiService.getExternalVaultTransactions();
