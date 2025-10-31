@@ -62,6 +62,7 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
   const [semiFinishedAmount, setSemiFinishedAmount] = useState<number>(0);
   const [semiFinishedCinsi, setSemiFinishedCinsi] = useState<string>('');
   const [selectedFromUnit, setSelectedFromUnit] = useState<string>('');
+  const [amountDisplay, setAmountDisplay] = useState<string>('');
 
   const units = [
     { value: 'ana-kasa', label: 'Ana Kasa', icon: <BankOutlined /> },
@@ -374,11 +375,13 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                     border: '2px solid #d1d5db',
                     borderRadius: '8px'
                   }}
+                  value={amountDisplay}
                   onChange={(e) => {
-                    const value = e.target.value;
+                    const inputValue = e.target.value;
                     
                     // Boş değere izin ver
-                    if (value === '') {
+                    if (inputValue === '') {
+                      setAmountDisplay('');
                       form.setFieldsValue({ amount: undefined });
                       return;
                     }
@@ -386,43 +389,40 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                     // Sadece sayı, virgül ve nokta karakterlerine izin ver
                     // Birden fazla virgül veya noktaya izin verme
                     const validPattern = /^[\d,.]*$/;
-                    const hasMultipleCommas = (value.match(/,/g) || []).length > 1;
-                    const hasMultipleDots = (value.match(/\./g) || []).length > 1;
-                    const hasBothCommaAndDot = value.includes(',') && value.includes('.');
+                    const hasMultipleCommas = (inputValue.match(/,/g) || []).length > 1;
+                    const hasMultipleDots = (inputValue.match(/\./g) || []).length > 1;
+                    const hasBothCommaAndDot = inputValue.includes(',') && inputValue.includes('.');
                     
-                    if (validPattern.test(value) && !hasMultipleCommas && !hasMultipleDots && !hasBothCommaAndDot) {
+                    if (validPattern.test(inputValue) && !hasMultipleCommas && !hasMultipleDots && !hasBothCommaAndDot) {
+                      // Display değerini güncelle (kullanıcı yazdığını görebilsin)
+                      setAmountDisplay(inputValue);
+                      
                       // Form'a parse edilmiş numeric değeri kaydet
-                      const num = parseNumberFromInput(value);
+                      const num = parseNumberFromInput(inputValue);
                       if (!isNaN(num)) {
                         form.setFieldsValue({ amount: num });
-                      }
-                    } else {
-                      // Geçersiz format - değeri geri al
-                      const prevValue = form.getFieldValue('amount');
-                      if (prevValue !== undefined && prevValue !== null) {
-                        e.target.value = formatNumberForDisplay(prevValue);
-                        form.setFieldsValue({ amount: prevValue });
-                      } else {
-                        // Önceki değer yoksa boşalt
-                        e.target.value = '';
-                        form.setFieldsValue({ amount: undefined });
                       }
                     }
                   }}
                   onBlur={(e) => {
-                    const value = e.target.value;
-                    if (value && value !== '') {
-                      const num = parseNumberFromInput(value);
+                    const inputValue = e.target.value;
+                    if (inputValue && inputValue !== '') {
+                      const num = parseNumberFromInput(inputValue);
                       if (!isNaN(num) && num >= 0.01) {
                         const formatted = formatNumberForDisplay(num);
+                        setAmountDisplay(formatted);
                         form.setFieldsValue({ amount: num });
-                        // Input'u formatla
-                        e.target.value = formatted;
                       } else {
-                        // Geçersiz değer - temizle
-                        e.target.value = '';
+                        setAmountDisplay('');
                         form.setFieldsValue({ amount: undefined });
                       }
+                    }
+                  }}
+                  onFocus={() => {
+                    // Focus olduğunda numeric değeri string'e çevir
+                    const amountValue = form.getFieldValue('amount');
+                    if (amountValue !== undefined && amountValue !== null) {
+                      setAmountDisplay(formatNumberForDisplay(amountValue));
                     }
                   }}
                 />
