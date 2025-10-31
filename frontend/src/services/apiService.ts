@@ -23,35 +23,77 @@ class ApiService {
       headers.Authorization = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers,
+      });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Sunucu hatası' }));
-      throw new Error(error.error || 'Bir hata oluştu');
+      if (!response.ok) {
+        let errorMessage = 'Bir hata oluştu';
+        
+        try {
+          const error = await response.json();
+          errorMessage = error.error || error.message || `HTTP ${response.status}: ${response.statusText}`;
+        } catch {
+          // JSON parse hatası - text response olabilir
+          try {
+            const text = await response.text();
+            errorMessage = text || `HTTP ${response.status}: ${response.statusText}`;
+          } catch {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          }
+        }
+        
+        // Status code'a göre daha açıklayıcı mesajlar
+        if (response.status === 401) {
+          errorMessage = 'Kullanıcı adı veya şifre hatalı!';
+        } else if (response.status === 404) {
+          errorMessage = 'Endpoint bulunamadı!';
+        } else if (response.status === 500) {
+          errorMessage = 'Sunucu hatası! Lütfen daha sonra tekrar deneyin.';
+        } else if (response.status === 0 || response.status >= 500) {
+          errorMessage = 'Sunucuya bağlanılamıyor! Lütfen internet bağlantınızı kontrol edin.';
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      return response.json();
+    } catch (error: any) {
+      // Network hataları için
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Sunucuya bağlanılamıyor! Lütfen internet bağlantınızı kontrol edin ve API URL\'nin doğru olduğundan emin olun.');
+      }
+      throw error;
     }
-
-    return response.json();
   }
 
   // Auth methods
   async login(username: string, password: string) {
-    const response = await this.request<{
-      message: string;
-      token: string;
-      user: { id: number; username: string; role: string };
-    }>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password }),
-    });
-
-    this.token = response.token;
-    localStorage.setItem('authToken', response.token);
-    localStorage.setItem('user', JSON.stringify(response.user));
+    console.log('🔐 Login attempt:', { username, apiUrl: API_BASE_URL });
     
-    return response;
+    try {
+      const response = await this.request<{
+        message: string;
+        token: string;
+        user: { id: number; username: string; role: string };
+      }>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+      });
+
+      this.token = response.token;
+      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      console.log('✅ Login successful:', { userId: response.user.id, username: response.user.username });
+      
+      return response;
+    } catch (error: any) {
+      console.error('❌ Login failed:', error);
+      throw error;
+    }
   }
 
   async register(username: string, password: string, role: string = 'user') {

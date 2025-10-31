@@ -31,7 +31,7 @@ const Login: React.FC = () => {
     try {
       const success = await login(values.username, values.password);
       if (!success) {
-        setError('Kullanıcı adı veya şifre hatalı!');
+        setError('Kullanıcı adı veya şifre hatalı! Lütfen bilgilerinizi kontrol edin.');
       } else {
         // Başarılı giriş sonrası kullanıcı adını hatırla
         if (rememberUsername) {
@@ -42,8 +42,20 @@ const Login: React.FC = () => {
           localStorage.removeItem('rememberUsername');
         }
       }
-    } catch (error) {
-      setError('Giriş sırasında bir hata oluştu!');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      const errorMessage = error?.message || 'Giriş sırasında bir hata oluştu!';
+      
+      // Daha açıklayıcı hata mesajları
+      if (errorMessage.includes('fetch') || errorMessage.includes('Failed to fetch') || errorMessage.includes('Network')) {
+        setError('Sunucuya bağlanılamıyor! Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.');
+      } else if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        setError('Kullanıcı adı veya şifre hatalı!');
+      } else if (errorMessage.includes('404') || errorMessage.includes('Not Found')) {
+        setError('Giriş servisi bulunamadı! Lütfen daha sonra tekrar deneyin.');
+      } else {
+        setError(errorMessage || 'Giriş sırasında bir hata oluştu!');
+      }
     } finally {
       setLoading(false);
     }

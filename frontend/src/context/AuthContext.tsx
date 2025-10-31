@@ -107,12 +107,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Socket bağlantısını başlat
       const token = localStorage.getItem('authToken');
-      socketService.connect(token);
+      if (token) {
+        socketService.connect(token);
+      }
       
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Giriş hatası:', error);
-      return false;
+      // Hata mesajını throw et ki Login.tsx'te gösterilebilsin
+      throw error;
     }
   };
 
