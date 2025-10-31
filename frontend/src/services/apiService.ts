@@ -34,21 +34,32 @@ class ApiService {
         headers,
       });
 
-      if (!response.ok) {
-        let errorMessage = 'Bir hata oluştu';
-        
-        try {
-          const error = await response.json();
-          errorMessage = error.error || error.message || `HTTP ${response.status}: ${response.statusText}`;
-        } catch {
-          // JSON parse hatası - text response olabilir
-          try {
-            const text = await response.text();
-            errorMessage = text || `HTTP ${response.status}: ${response.statusText}`;
-          } catch {
-            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-          }
-        }
+          if (!response.ok) {
+            let errorMessage = 'Bir hata oluştu';
+            
+            // Response body'yi okumadan önce clone et (body sadece bir kez okunabilir)
+            let responseClone: Response | null = null;
+            try {
+              responseClone = response.clone();
+            } catch {
+              // Clone edilemezse devam et
+            }
+            
+            try {
+              // Önce JSON olarak parse etmeyi dene
+              const error = await response.json();
+              errorMessage = error.error || error.message || `HTTP ${response.status}: ${response.statusText}`;
+            } catch {
+              // JSON parse hatası - text response olabilir
+              // Eğer clone varsa onu kullan, yoksa response'u tekrar kullan (zaten tüketilmiş)
+              try {
+                const textResponse = responseClone || response;
+                const text = await textResponse.text();
+                errorMessage = text || `HTTP ${response.status}: ${response.statusText}`;
+              } catch {
+                errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+              }
+            }
         
         // Status code'a göre daha açıklayıcı mesajlar
         if (response.status === 401) {
@@ -71,13 +82,26 @@ class ApiService {
           let backendError: any = null;
           let errorText = '';
           
+          // Response body'yi okumadan önce clone et (body sadece bir kez okunabilir)
+          let clonedResponse: Response | null = null;
           try {
-            // Response body'yi okumak için clone kullan
-            const clonedResponse = response.clone();
-            
-            // Önce text olarak oku (JSON parse hatası olabilir)
+            clonedResponse = response.clone();
+          } catch {
+            // Clone edilemezse devam et
+          }
+          
+          try {
+            // Önce JSON olarak parse etmeyi dene (orijinal response'u kullan)
+            const error = await response.json();
+            backendError = error;
+            errorText = JSON.stringify(error);
+            console.log('🔍 Backend 500 response JSON:', error);
+          } catch {
+            // JSON parse hatası - text response olabilir
+            // Clone varsa onu kullan, yoksa text okumayı dene
             try {
-              errorText = await clonedResponse.text();
+              const textResponse = clonedResponse || response;
+              errorText = await textResponse.text();
               console.log('🔍 Backend 500 response text:', errorText);
               
               if (errorText && errorText.trim()) {
@@ -91,17 +115,6 @@ class ApiService {
               }
             } catch (textError) {
               console.warn('Response text okunamadı:', textError);
-            }
-          } catch (cloneError) {
-            console.warn('Response clone edilemedi:', cloneError);
-            // Clone başarısız olursa direkt text okumayı dene
-            try {
-              errorText = await response.text();
-              if (errorText && errorText.trim()) {
-                backendError = { message: errorText, raw: errorText };
-              }
-            } catch {
-              // Text de okunamazsa null bırak
             }
           }
           
