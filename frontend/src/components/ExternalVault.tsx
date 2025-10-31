@@ -92,36 +92,48 @@ const ExternalVault: React.FC = () => {
       title: 'Toplam Giriş',
       dataIndex: 'totalInput',
       key: 'totalInput',
-      render: (value: number) => `${value.toFixed(2)} gr`,
+      render: (value: any) => {
+        const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
+        return `${numValue.toFixed(2)} gr`;
+      },
       sorter: (a, b) => a.totalInput - b.totalInput
     },
     {
       title: 'Toplam Çıkış',
       dataIndex: 'totalOutput',
       key: 'totalOutput',
-      render: (value: number) => `${value.toFixed(2)} gr`,
+      render: (value: any) => {
+        const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
+        return `${numValue.toFixed(2)} gr`;
+      },
       sorter: (a, b) => a.totalOutput - b.totalOutput
     },
     {
       title: 'Mevcut Stok',
       dataIndex: 'currentStock',
       key: 'currentStock',
-      render: (value: number) => (
-        <Text strong style={{ color: '#1890ff', fontSize: '16px' }}>
-          {value.toFixed(2)} gr
-        </Text>
-      ),
+      render: (value: any) => {
+        const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
+        return (
+          <Text strong style={{ color: '#1890ff', fontSize: '16px' }}>
+            {numValue.toFixed(2)} gr
+          </Text>
+        );
+      },
       sorter: (a, b) => a.currentStock - b.currentStock
     },
     {
       title: 'Has Karşılığı',
       dataIndex: 'hasEquivalent',
       key: 'hasEquivalent',
-      render: (value: number) => (
-        <Text style={{ color: '#52c41a' }}>
-          {value.toFixed(2)} gr
-        </Text>
-      ),
+      render: (value: any) => {
+        const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
+        return (
+          <Text style={{ color: '#52c41a' }}>
+            {numValue.toFixed(2)} gr
+          </Text>
+        );
+      },
       sorter: (a, b) => a.hasEquivalent - b.hasEquivalent
     }
   ];
@@ -363,7 +375,10 @@ const ExternalVault: React.FC = () => {
                     title: 'Miktar',
                     dataIndex: 'amount',
                     key: 'amount',
-                    render: (amount: number) => `${amount.toFixed(2)} gr`
+                    render: (amount: any) => {
+                      const numValue = typeof amount === 'number' ? amount : (parseFloat(amount) || 0);
+                      return `${numValue.toFixed(2)} gr`;
+                    }
                   },
                   {
                     title: 'Firma',
