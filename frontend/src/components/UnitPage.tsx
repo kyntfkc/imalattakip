@@ -383,8 +383,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     // Giriş transferlerini işle
     incomingTransfers.forEach(transfer => {
       if (transfer.amount > 0) {
-        // Cinsi yoksa "Genel" olarak işle
-        const cinsi = transfer.cinsi || 'Genel';
+        // Cinsi kontrolü: undefined, null, boş string veya sadece boşluk ise "Genel"
+        const cinsi = (transfer.cinsi && transfer.cinsi.trim()) ? transfer.cinsi.trim() : 'Genel';
         const existing = cinsiMap.get(cinsi) || { stock: 0, has: 0, fire: 0 };
         const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
         existing.stock += safeAmount;
@@ -399,8 +399,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     // Çıkış transferlerini işle
     outgoingTransfers.forEach(transfer => {
       if (transfer.amount > 0) {
-        // Cinsi yoksa "Genel" olarak işle
-        const cinsi = transfer.cinsi || 'Genel';
+        // Cinsi kontrolü: undefined, null, boş string veya sadece boşluk ise "Genel"
+        const cinsi = (transfer.cinsi && transfer.cinsi.trim()) ? transfer.cinsi.trim() : 'Genel';
         const existing = cinsiMap.get(cinsi) || { stock: 0, has: 0, fire: 0 };
         const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
         existing.stock -= safeAmount;
