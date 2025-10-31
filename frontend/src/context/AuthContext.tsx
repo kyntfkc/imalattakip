@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { apiService } from '../services/apiService';
+import socketService from '../services/socketService';
 
 export interface User {
   id: number;
@@ -38,23 +39,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Backend'den kullanıcı bilgilerini yükle
+  // Backend'den kullanıcı bilgilerini yükle ve socket bağlantısını başlat
   useEffect(() => {
     const loadUserData = async () => {
       try {
         // Token doğrulama
         const verification = await apiService.verifyToken();
         if (verification && verification.valid) {
-          setUser({
+          const loadedUser = {
             id: verification.user.id,
             username: verification.user.username,
             role: verification.user.role as 'admin' | 'user'
-          });
+          };
+          setUser(loadedUser);
+          
+          // Socket bağlantısını başlat
+          const token = localStorage.getItem('authToken');
+          if (token) {
+            socketService.connect(token);
+          }
         } else {
           // Fallback: localStorage'dan yükle
           const savedUser = localStorage.getItem('user');
           if (savedUser) {
             setUser(JSON.parse(savedUser));
+            const token = localStorage.getItem('authToken');
+            if (token) {
+              socketService.connect(token);
+            }
           }
         }
       } catch (error) {
@@ -63,6 +75,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const savedUser = localStorage.getItem('user');
         if (savedUser) {
           setUser(JSON.parse(savedUser));
+          const token = localStorage.getItem('authToken');
+          if (token) {
+            socketService.connect(token);
+          }
         }
       } finally {
         setIsLoading(false);
@@ -70,6 +86,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     loadUserData();
+
+    // Cleanup: component unmount'ta socket bağlantısını kapat
+    return () => {
+      socketService.disconnect();
+    };
   }, []);
 
   // Backend API kullanımı için localStorage varsayılan kullanıcıları kaldırıldı
@@ -77,11 +98,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
       const response = await apiService.login(username, password);
-      setUser({
+      const newUser = {
         id: response.user.id,
         username: response.user.username,
         role: response.user.role as 'admin' | 'user'
-      });
+      };
+      setUser(newUser);
+      
+      // Socket bağlantısını başlat
+      const token = localStorage.getItem('authToken');
+      socketService.connect(token);
+      
       return true;
     } catch (error) {
       console.error('Giriş hatası:', error);
@@ -100,6 +127,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
+    // Socket bağlantısını kapat
+    socketService.disconnect();
+    
     setUser(null);
     apiService.logout();
   };

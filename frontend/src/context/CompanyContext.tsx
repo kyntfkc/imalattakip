@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { apiService } from '../services/apiService';
+import socketService from '../services/socketService';
 
 export interface Company {
   id: string;
@@ -79,6 +80,61 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     };
 
     loadCompanies();
+  }, []);
+
+  // Real-time socket event listeners
+  useEffect(() => {
+    if (!socketService.isConnected()) {
+      return;
+    }
+
+    // Company oluşturuldu
+    socketService.onCompanyCreated((data: any) => {
+      const formattedCompany: Company = {
+        id: data.id.toString(),
+        name: data.name,
+        type: data.type,
+        contact: data.contact,
+        address: data.address,
+        notes: data.notes,
+        createdAt: data.created_at
+      };
+
+      setCompanies(prev => {
+        const exists = prev.find(c => c.id === formattedCompany.id);
+        if (exists) return prev;
+        return [...prev, formattedCompany];
+      });
+    });
+
+    // Company güncellendi
+    socketService.onCompanyUpdated((data: any) => {
+      const formattedCompany: Company = {
+        id: data.id.toString(),
+        name: data.name,
+        type: data.type,
+        contact: data.contact,
+        address: data.address,
+        notes: data.notes,
+        createdAt: data.created_at
+      };
+
+      setCompanies(prev => prev.map(c => 
+        c.id === formattedCompany.id ? formattedCompany : c
+      ));
+    });
+
+    // Company silindi
+    socketService.onCompanyDeleted((data: { id: number }) => {
+      setCompanies(prev => prev.filter(c => c.id !== data.id.toString()));
+    });
+
+    return () => {
+      // Cleanup listeners
+      socketService.off('company:created');
+      socketService.off('company:updated');
+      socketService.off('company:deleted');
+    };
   }, []);
 
   // LocalStorage'a da kaydet (backup olarak)

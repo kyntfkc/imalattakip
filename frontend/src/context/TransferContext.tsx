@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useMe
 import { Transfer, UnitSummary } from '../types';
 import { calculateUnitSummaries } from '../utils/fireCalculations';
 import { apiService } from '../services/apiService';
+import socketService from '../services/socketService';
 
 interface TransferContextType {
   transfers: Transfer[];
@@ -67,6 +68,64 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
     loadTransfers();
   }, []);
 
+  // Real-time socket event listeners
+  useEffect(() => {
+    if (!socketService.isConnected()) {
+      return;
+    }
+
+    // Transfer oluşturuldu
+    socketService.onTransferCreated((data: any) => {
+      const formattedTransfer: Transfer = {
+        id: data.id.toString(),
+        fromUnit: data.from_unit,
+        toUnit: data.to_unit,
+        amount: data.amount,
+        karat: `${data.karat}K` as any,
+        notes: data.notes || '',
+        date: new Date(data.created_at).toISOString(),
+        user: data.user_name || 'Bilinmeyen'
+      };
+
+      setTransfers(prev => {
+        // Zaten varsa ekleme (duplicate kontrolü)
+        const exists = prev.find(t => t.id === formattedTransfer.id);
+        if (exists) return prev;
+        return [formattedTransfer, ...prev];
+      });
+    });
+
+    // Transfer güncellendi
+    socketService.onTransferUpdated((data: any) => {
+      const formattedTransfer: Transfer = {
+        id: data.id.toString(),
+        fromUnit: data.from_unit,
+        toUnit: data.to_unit,
+        amount: data.amount,
+        karat: `${data.karat}K` as any,
+        notes: data.notes || '',
+        date: new Date(data.created_at).toISOString(),
+        user: data.user_name || 'Bilinmeyen'
+      };
+
+      setTransfers(prev => prev.map(t => 
+        t.id === formattedTransfer.id ? formattedTransfer : t
+      ));
+    });
+
+    // Transfer silindi
+    socketService.onTransferDeleted((data: { id: number }) => {
+      setTransfers(prev => prev.filter(t => t.id !== data.id.toString()));
+    });
+
+    return () => {
+      // Cleanup listeners
+      socketService.off('transfer:created');
+      socketService.off('transfer:updated');
+      socketService.off('transfer:deleted');
+    };
+  }, []);
+
   // Transfer değiştiğinde özetleri hesapla
   const unitSummaries = useMemo(() => {
     return calculateUnitSummaries(transfers);
@@ -83,15 +142,20 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
         notes: transfer.notes
       });
 
-      // Yeni transfer'i listeye ekle
-      const newTransfer: Transfer = {
-        ...transfer,
-        id: response.transferId.toString(),
-        date: new Date().toISOString(),
-        user: 'Mevcut Kullanıcı'
-      };
-
-      setTransfers(prev => [newTransfer, ...prev]);
+      // Socket event ile otomatik eklenecek, burada sadece optimistic update yapabiliriz
+      // Ya da backend'den güncel veriyi çek
+      const backendTransfers = await apiService.getTransfers();
+      const formattedTransfers: Transfer[] = backendTransfers.map((t: any) => ({
+        id: t.id.toString(),
+        fromUnit: t.from_unit,
+        toUnit: t.to_unit,
+        amount: t.amount,
+        karat: `${t.karat}K` as any,
+        notes: t.notes || '',
+        date: new Date(t.created_at).toISOString(),
+        user: t.user_name || 'Bilinmeyen'
+      }));
+      setTransfers(formattedTransfers);
     } catch (error) {
       console.error('Transfer eklenemedi:', error);
       throw error;
