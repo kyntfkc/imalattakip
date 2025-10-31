@@ -384,7 +384,7 @@ class ApiService {
     const link = document.createElement('a');
     link.href = downloadUrl;
     const timestamp = new Date().toISOString().split('T')[0];
-    link.download = `imalattakip-db-backup-${timestamp}.db`;
+    link.download = `imalattakip-db-backup-${timestamp}.sql`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
