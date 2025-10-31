@@ -84,14 +84,19 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
         ]);
         
         // Backend formatını frontend formatına çevir
-        const formattedTransactions: ExternalVaultTransaction[] = backendTransactions.map((t: any) => ({
-          id: t.id.toString(),
-          type: t.type === 'deposit' ? 'input' : 'output',
-          karat: `${t.karat}K` as KaratType,
-          amount: t.amount,
-          notes: t.notes,
-          date: t.created_at
-        }));
+        const formattedTransactions: ExternalVaultTransaction[] = backendTransactions.map((t: any) => {
+          const amount = typeof t.amount === 'number' ? t.amount : (parseFloat(String(t.amount)) || 0);
+          const karatValue = typeof t.karat === 'number' ? t.karat : parseInt(String(t.karat)) || 0;
+          
+          return {
+            id: t.id.toString(),
+            type: t.type === 'deposit' ? 'input' : 'output',
+            karat: `${karatValue}K` as KaratType,
+            amount: isNaN(amount) ? 0 : amount,
+            notes: t.notes,
+            date: t.created_at
+          };
+        });
         
         setTransactions(formattedTransactions);
         
@@ -105,30 +110,45 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
         
         // Backend stoklarını kullan
         backendStock.forEach((stock: any) => {
-          const karat = `${stock.karat}K` as KaratType;
-          if (newStock[karat]) {
-            newStock[karat].currentStock = stock.amount;
-            newStock[karat].hasEquivalent = stock.amount * KARAT_HAS_RATIOS[karat];
+          const karatValue = typeof stock.karat === 'number' ? stock.karat : parseInt(stock.karat) || 0;
+          const karat = `${karatValue}K` as KaratType;
+          const stockAmount = typeof stock.amount === 'number' ? stock.amount : (parseFloat(stock.amount) || 0);
+          
+          if (newStock[karat] && !isNaN(stockAmount)) {
+            newStock[karat].currentStock = stockAmount;
+            const ratio = KARAT_HAS_RATIOS[karat] || 0;
+            newStock[karat].hasEquivalent = stockAmount * ratio;
           }
         });
         
         // İşlemlerden toplam giriş/çıkış hesapla
         formattedTransactions.forEach(transaction => {
-          if (transaction.type === 'input') {
-            newStock[transaction.karat].totalInput += transaction.amount;
-          } else {
-            newStock[transaction.karat].totalOutput += transaction.amount;
+          const karat = transaction.karat;
+          const amount = typeof transaction.amount === 'number' ? transaction.amount : (parseFloat(String(transaction.amount)) || 0);
+          
+          if (newStock[karat] && !isNaN(amount)) {
+            if (transaction.type === 'input') {
+              newStock[karat].totalInput += amount;
+            } else {
+              newStock[karat].totalOutput += amount;
+            }
           }
         });
         
         setStockByKarat(newStock);
         
         // Toplamları hesapla
-        const total = Object.values(newStock).reduce((sum, stock) => sum + stock.currentStock, 0);
-        const totalHasValue = Object.values(newStock).reduce((sum, stock) => sum + stock.hasEquivalent, 0);
+        const total = Object.values(newStock).reduce((sum, stock) => {
+          const stockValue = typeof stock.currentStock === 'number' ? stock.currentStock : (parseFloat(String(stock.currentStock)) || 0);
+          return sum + (isNaN(stockValue) ? 0 : stockValue);
+        }, 0);
+        const totalHasValue = Object.values(newStock).reduce((sum, stock) => {
+          const hasValue = typeof stock.hasEquivalent === 'number' ? stock.hasEquivalent : (parseFloat(String(stock.hasEquivalent)) || 0);
+          return sum + (isNaN(hasValue) ? 0 : hasValue);
+        }, 0);
         
-        setTotalStock(total);
-        setTotalHas(totalHasValue);
+        setTotalStock(isNaN(total) ? 0 : total);
+        setTotalHas(isNaN(totalHasValue) ? 0 : totalHasValue);
         
       } catch (error) {
         console.error('Dış kasa verileri yüklenemedi:', error);
@@ -153,39 +173,78 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
     loadData();
   }, [isAuthenticated, authLoading]);
 
-  // Transaction değiştiğinde stokları güncelle
+  // Transaction değiştiğinde backend'den güncel stock verilerini yükle
   useEffect(() => {
-    const newStock: { [key in KaratType]: ExternalVaultStock } = {
-      '14K': { karat: '14K', totalInput: 0, totalOutput: 0, currentStock: 0, fire: 0, hasEquivalent: 0 },
-      '18K': { karat: '18K', totalInput: 0, totalOutput: 0, currentStock: 0, fire: 0, hasEquivalent: 0 },
-      '22K': { karat: '22K', totalInput: 0, totalOutput: 0, currentStock: 0, fire: 0, hasEquivalent: 0 },
-      '24K': { karat: '24K', totalInput: 0, totalOutput: 0, currentStock: 0, fire: 0, hasEquivalent: 0 }
+    if (!isAuthenticated || isLoading || transactions.length === 0) {
+      return;
+    }
+
+    const updateStock = async () => {
+      try {
+        // Backend'den güncel stokları yükle
+        const backendStock = await apiService.getExternalVaultStock();
+        
+        // Mevcut stock'u koru ve sadece backend stock ile güncelle
+        setStockByKarat(prevStock => {
+          const newStock = { ...prevStock };
+          
+          // Backend stoklarını kullan
+          backendStock.forEach((stock: any) => {
+            const karatValue = typeof stock.karat === 'number' ? stock.karat : parseInt(stock.karat) || 0;
+            const karat = `${karatValue}K` as KaratType;
+            const stockAmount = typeof stock.amount === 'number' ? stock.amount : (parseFloat(stock.amount) || 0);
+            
+            if (newStock[karat] && !isNaN(stockAmount)) {
+              newStock[karat].currentStock = stockAmount;
+              const ratio = KARAT_HAS_RATIOS[karat] || 0;
+              newStock[karat].hasEquivalent = stockAmount * ratio;
+            }
+          });
+          
+          // İşlemlerden toplam giriş/çıkış hesapla (sıfırdan)
+          transactions.forEach(transaction => {
+            const karat = transaction.karat;
+            const amount = typeof transaction.amount === 'number' ? transaction.amount : (parseFloat(String(transaction.amount)) || 0);
+            
+            if (newStock[karat] && !isNaN(amount)) {
+              if (transaction.type === 'input') {
+                newStock[karat].totalInput += amount;
+              } else {
+                newStock[karat].totalOutput += amount;
+              }
+            }
+          });
+          
+          return newStock;
+        });
+        
+        // Toplamları hesapla
+        const backendStockMap: { [key: string]: number } = {};
+        backendStock.forEach((stock: any) => {
+          const karatValue = typeof stock.karat === 'number' ? stock.karat : parseInt(stock.karat) || 0;
+          const karat = `${karatValue}K`;
+          const stockAmount = typeof stock.amount === 'number' ? stock.amount : (parseFloat(stock.amount) || 0);
+          if (!isNaN(stockAmount)) {
+            backendStockMap[karat] = stockAmount;
+          }
+        });
+        
+        const total = Object.values(backendStockMap).reduce((sum, stockAmount) => sum + (isNaN(stockAmount) ? 0 : stockAmount), 0);
+        const totalHasValue = Object.entries(backendStockMap).reduce((sum, [karat, stockAmount]) => {
+          const karatType = karat as KaratType;
+          const ratio = KARAT_HAS_RATIOS[karatType] || 0;
+          return sum + (stockAmount * ratio);
+        }, 0);
+        
+        setTotalStock(isNaN(total) ? 0 : total);
+        setTotalHas(isNaN(totalHasValue) ? 0 : totalHasValue);
+      } catch (error) {
+        console.error('Stock güncelleme hatası:', error);
+      }
     };
 
-    transactions.forEach(transaction => {
-      if (transaction.type === 'input') {
-        newStock[transaction.karat].totalInput += transaction.amount;
-      } else {
-        newStock[transaction.karat].totalOutput += transaction.amount;
-      }
-    });
-
-    // Her ayar için mevcut stok ve has karşılığını hesapla
-    Object.keys(newStock).forEach(karat => {
-      const k = karat as KaratType;
-      newStock[k].currentStock = newStock[k].totalInput - newStock[k].totalOutput;
-      newStock[k].hasEquivalent = newStock[k].currentStock * KARAT_HAS_RATIOS[k];
-    });
-
-    setStockByKarat(newStock);
-
-    // Toplamları hesapla
-    const total = Object.values(newStock).reduce((sum, stock) => sum + stock.currentStock, 0);
-    const totalHasValue = Object.values(newStock).reduce((sum, stock) => sum + stock.hasEquivalent, 0);
-    
-    setTotalStock(total);
-    setTotalHas(totalHasValue);
-  }, [transactions]);
+    updateStock();
+  }, [transactions, isAuthenticated, isLoading]);
 
   // LocalStorage'a da kaydet (backup olarak)
   useEffect(() => {
@@ -217,20 +276,89 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
       
       await apiService.createExternalVaultTransaction(transactionPayload);
       
-      // Backend'den güncel veriyi yükle
-      const backendTransactions = await apiService.getExternalVaultTransactions();
-      const formattedTransactions: ExternalVaultTransaction[] = backendTransactions.map((t: any) => ({
-        id: t.id.toString(),
-        type: t.type === 'deposit' ? 'input' : 'output',
-        karat: `${t.karat}K` as KaratType,
-        amount: t.amount,
-        notes: t.notes,
-        date: t.created_at,
-        companyId: t.company_id ? t.company_id.toString() : undefined,
-        companyName: t.company_name || t.companyName
-      }));
+      // Backend'den güncel veriyi yükle (hem transactions hem de stock)
+      const [backendTransactions, backendStock] = await Promise.all([
+        apiService.getExternalVaultTransactions(),
+        apiService.getExternalVaultStock()
+      ]);
+      
+      const formattedTransactions: ExternalVaultTransaction[] = backendTransactions.map((t: any) => {
+        const amount = typeof t.amount === 'number' ? t.amount : (parseFloat(String(t.amount)) || 0);
+        const karatValue = typeof t.karat === 'number' ? t.karat : parseInt(String(t.karat)) || 0;
+        
+        return {
+          id: t.id.toString(),
+          type: t.type === 'deposit' ? 'input' : 'output',
+          karat: `${karatValue}K` as KaratType,
+          amount: isNaN(amount) ? 0 : amount,
+          notes: t.notes,
+          date: t.created_at,
+          companyId: t.company_id ? t.company_id.toString() : undefined,
+          companyName: t.company_name || t.companyName
+        };
+      });
       
       setTransactions(formattedTransactions);
+      
+      // Stock'u güncelle
+      setStockByKarat(prevStock => {
+        const newStock: { [key in KaratType]: ExternalVaultStock } = {
+          '14K': { karat: '14K', totalInput: 0, totalOutput: 0, currentStock: 0, fire: 0, hasEquivalent: 0 },
+          '18K': { karat: '18K', totalInput: 0, totalOutput: 0, currentStock: 0, fire: 0, hasEquivalent: 0 },
+          '22K': { karat: '22K', totalInput: 0, totalOutput: 0, currentStock: 0, fire: 0, hasEquivalent: 0 },
+          '24K': { karat: '24K', totalInput: 0, totalOutput: 0, currentStock: 0, fire: 0, hasEquivalent: 0 }
+        };
+        
+        // Backend stoklarını kullan
+        backendStock.forEach((stock: any) => {
+          const karatValue = typeof stock.karat === 'number' ? stock.karat : parseInt(stock.karat) || 0;
+          const karat = `${karatValue}K` as KaratType;
+          const stockAmount = typeof stock.amount === 'number' ? stock.amount : (parseFloat(stock.amount) || 0);
+          
+          if (newStock[karat] && !isNaN(stockAmount)) {
+            newStock[karat].currentStock = stockAmount;
+            const ratio = KARAT_HAS_RATIOS[karat] || 0;
+            newStock[karat].hasEquivalent = stockAmount * ratio;
+          }
+        });
+        
+        // İşlemlerden toplam giriş/çıkış hesapla (sıfırdan)
+        formattedTransactions.forEach(transaction => {
+          const karat = transaction.karat;
+          const amount = typeof transaction.amount === 'number' ? transaction.amount : (parseFloat(String(transaction.amount)) || 0);
+          
+          if (newStock[karat] && !isNaN(amount)) {
+            if (transaction.type === 'input') {
+              newStock[karat].totalInput += amount;
+            } else {
+              newStock[karat].totalOutput += amount;
+            }
+          }
+        });
+        
+        return newStock;
+      });
+      
+      // Toplamları hesapla
+      const backendStockMap: { [key: string]: number } = {};
+      backendStock.forEach((stock: any) => {
+        const karatValue = typeof stock.karat === 'number' ? stock.karat : parseInt(stock.karat) || 0;
+        const karat = `${karatValue}K`;
+        const stockAmount = typeof stock.amount === 'number' ? stock.amount : (parseFloat(stock.amount) || 0);
+        if (!isNaN(stockAmount)) {
+          backendStockMap[karat] = stockAmount;
+        }
+      });
+      
+      const total = Object.values(backendStockMap).reduce((sum, stockAmount) => sum + (isNaN(stockAmount) ? 0 : stockAmount), 0);
+      const totalHasValue = Object.entries(backendStockMap).reduce((sum, [karat, stockAmount]) => {
+        const karatType = karat as KaratType;
+        const ratio = KARAT_HAS_RATIOS[karatType] || 0;
+        return sum + (stockAmount * ratio);
+      }, 0);
+      
+      setTotalStock(isNaN(total) ? 0 : total);
+      setTotalHas(isNaN(totalHasValue) ? 0 : totalHasValue);
     } catch (error: any) {
       console.error('❌ Dış kasa işlemi eklenemedi:', error);
       console.error('Error details:', {
@@ -257,18 +385,82 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
       // Backend'den sil
       await apiService.deleteExternalVaultTransaction(parseInt(id));
       
-      // Backend'den güncel veriyi yükle
-      const backendTransactions = await apiService.getExternalVaultTransactions();
-      const formattedTransactions: ExternalVaultTransaction[] = backendTransactions.map((t: any) => ({
-        id: t.id.toString(),
-        type: t.type === 'deposit' ? 'input' : 'output',
-        karat: `${t.karat}K` as KaratType,
-        amount: t.amount,
-        notes: t.notes,
-        date: t.created_at
-      }));
+      // Backend'den güncel veriyi yükle (hem transactions hem de stock)
+      const [backendTransactions, backendStock] = await Promise.all([
+        apiService.getExternalVaultTransactions(),
+        apiService.getExternalVaultStock()
+      ]);
+      
+      const formattedTransactions: ExternalVaultTransaction[] = backendTransactions.map((t: any) => {
+        const amount = typeof t.amount === 'number' ? t.amount : (parseFloat(String(t.amount)) || 0);
+        const karatValue = typeof t.karat === 'number' ? t.karat : parseInt(String(t.karat)) || 0;
+        
+        return {
+          id: t.id.toString(),
+          type: t.type === 'deposit' ? 'input' : 'output',
+          karat: `${karatValue}K` as KaratType,
+          amount: isNaN(amount) ? 0 : amount,
+          notes: t.notes,
+          date: t.created_at
+        };
+      });
       
       setTransactions(formattedTransactions);
+      
+      // Stock'u güncelle
+      setStockByKarat(prevStock => {
+        const newStock = { ...prevStock };
+        
+        // Backend stoklarını kullan
+        backendStock.forEach((stock: any) => {
+          const karatValue = typeof stock.karat === 'number' ? stock.karat : parseInt(stock.karat) || 0;
+          const karat = `${karatValue}K` as KaratType;
+          const stockAmount = typeof stock.amount === 'number' ? stock.amount : (parseFloat(stock.amount) || 0);
+          
+          if (newStock[karat] && !isNaN(stockAmount)) {
+            newStock[karat].currentStock = stockAmount;
+            const ratio = KARAT_HAS_RATIOS[karat] || 0;
+            newStock[karat].hasEquivalent = stockAmount * ratio;
+          }
+        });
+        
+        // İşlemlerden toplam giriş/çıkış hesapla
+        formattedTransactions.forEach(transaction => {
+          const karat = transaction.karat;
+          const amount = typeof transaction.amount === 'number' ? transaction.amount : (parseFloat(String(transaction.amount)) || 0);
+          
+          if (newStock[karat] && !isNaN(amount)) {
+            if (transaction.type === 'input') {
+              newStock[karat].totalInput = (newStock[karat].totalInput || 0) + amount;
+            } else {
+              newStock[karat].totalOutput = (newStock[karat].totalOutput || 0) + amount;
+            }
+          }
+        });
+        
+        return newStock;
+      });
+      
+      // Toplamları hesapla
+      const backendStockMap: { [key: string]: number } = {};
+      backendStock.forEach((stock: any) => {
+        const karatValue = typeof stock.karat === 'number' ? stock.karat : parseInt(stock.karat) || 0;
+        const karat = `${karatValue}K`;
+        const stockAmount = typeof stock.amount === 'number' ? stock.amount : (parseFloat(stock.amount) || 0);
+        if (!isNaN(stockAmount)) {
+          backendStockMap[karat] = stockAmount;
+        }
+      });
+      
+      const total = Object.values(backendStockMap).reduce((sum, stockAmount) => sum + (isNaN(stockAmount) ? 0 : stockAmount), 0);
+      const totalHasValue = Object.entries(backendStockMap).reduce((sum, [karat, stockAmount]) => {
+        const karatType = karat as KaratType;
+        const ratio = KARAT_HAS_RATIOS[karatType] || 0;
+        return sum + (stockAmount * ratio);
+      }, 0);
+      
+      setTotalStock(isNaN(total) ? 0 : total);
+      setTotalHas(isNaN(totalHasValue) ? 0 : totalHasValue);
     } catch (error) {
       console.error('Dış kasa işlemi silinemedi:', error);
       // Backend hatası durumunda localStorage'dan sil
@@ -324,30 +516,45 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
       
       // Backend stoklarını kullan
       backendStock.forEach((stock: any) => {
-        const karat = `${stock.karat}K` as KaratType;
-        if (newStock[karat]) {
-          newStock[karat].currentStock = stock.amount;
-          newStock[karat].hasEquivalent = stock.amount * KARAT_HAS_RATIOS[karat];
+        const karatValue = typeof stock.karat === 'number' ? stock.karat : parseInt(stock.karat) || 0;
+        const karat = `${karatValue}K` as KaratType;
+        const stockAmount = typeof stock.amount === 'number' ? stock.amount : (parseFloat(stock.amount) || 0);
+        
+        if (newStock[karat] && !isNaN(stockAmount)) {
+          newStock[karat].currentStock = stockAmount;
+          const ratio = KARAT_HAS_RATIOS[karat] || 0;
+          newStock[karat].hasEquivalent = stockAmount * ratio;
         }
       });
       
       // İşlemlerden toplam giriş/çıkış hesapla
       transactions.forEach(transaction => {
-        if (transaction.type === 'input') {
-          newStock[transaction.karat].totalInput += transaction.amount;
-        } else {
-          newStock[transaction.karat].totalOutput += transaction.amount;
+        const karat = transaction.karat;
+        const amount = typeof transaction.amount === 'number' ? transaction.amount : (parseFloat(String(transaction.amount)) || 0);
+        
+        if (newStock[karat] && !isNaN(amount)) {
+          if (transaction.type === 'input') {
+            newStock[karat].totalInput += amount;
+          } else {
+            newStock[karat].totalOutput += amount;
+          }
         }
       });
       
       setStockByKarat(newStock);
       
       // Toplamları hesapla
-      const total = Object.values(newStock).reduce((sum, stock) => sum + stock.currentStock, 0);
-      const totalHasValue = Object.values(newStock).reduce((sum, stock) => sum + stock.hasEquivalent, 0);
+      const total = Object.values(newStock).reduce((sum, stock) => {
+        const stockValue = typeof stock.currentStock === 'number' ? stock.currentStock : (parseFloat(String(stock.currentStock)) || 0);
+        return sum + (isNaN(stockValue) ? 0 : stockValue);
+      }, 0);
+      const totalHasValue = Object.values(newStock).reduce((sum, stock) => {
+        const hasValue = typeof stock.hasEquivalent === 'number' ? stock.hasEquivalent : (parseFloat(String(stock.hasEquivalent)) || 0);
+        return sum + (isNaN(hasValue) ? 0 : hasValue);
+      }, 0);
       
-      setTotalStock(total);
-      setTotalHas(totalHasValue);
+      setTotalStock(isNaN(total) ? 0 : total);
+      setTotalHas(isNaN(totalHasValue) ? 0 : totalHasValue);
       
     } catch (error) {
       console.error('Stok senkronizasyonu başarısız:', error);
