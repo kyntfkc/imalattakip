@@ -303,10 +303,14 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     // PDF oluştur
     const doc = new jsPDF('landscape', 'mm', 'a4');
     
+    // Türkçe karakter desteği için Unicode encoding ayarları
+    doc.setLanguage('tr-TR');
+    
     // Başlık
     doc.setFontSize(18);
     doc.setTextColor(31, 41, 55);
-    doc.text(`${unitName} - Tüm İşlemler`, 14, 15);
+    const title = `${unitName} - Tüm İşlemler`;
+    doc.text(title, 14, 15);
     
     // Tarih bilgisi
     doc.setFontSize(10);
@@ -318,7 +322,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       hour: '2-digit',
       minute: '2-digit'
     });
-    doc.text(`Oluşturulma Tarihi: ${exportDate}`, 14, 22);
+    const dateText = `Oluşturulma Tarihi: ${exportDate}`;
+    doc.text(dateText, 14, 22);
     
     // Filtre bilgisi
     let filterInfo = '';
@@ -335,9 +340,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     if (filterInfo) {
       doc.text(filterInfo, 14, 28);
     }
-    doc.text(`Toplam İşlem: ${dataToExport.length}`, 14, 34);
+    const totalText = `Toplam İşlem: ${dataToExport.length}`;
+    doc.text(totalText, 14, 34);
 
-    // Tablo verileri
+    // Tablo verileri - Türkçe karakterleri koru
     const tableData = dataToExport.map(transfer => {
       const isIncoming = transfer.toUnit === unitId;
       const date = new Date(transfer.date).toLocaleString('tr-TR', {
@@ -352,19 +358,20 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       const karat = transfer.karat === '24K' ? 'Has Altın' : transfer.karat.replace('K', ' Ayar');
       const cinsi = transfer.cinsi ? cinsiOptions.find(opt => opt.value === transfer.cinsi)?.label || transfer.cinsi : '-';
       
+      // Her hücreyi string olarak döndür - Unicode karakterleri koru
       return [
-        date,
-        type,
-        UNIT_NAMES[transfer.fromUnit as UnitType] || transfer.fromUnit,
-        UNIT_NAMES[transfer.toUnit as UnitType] || transfer.toUnit,
-        karat,
+        String(date || ''),
+        String(type || ''),
+        String(UNIT_NAMES[transfer.fromUnit as UnitType] || transfer.fromUnit || ''),
+        String(UNIT_NAMES[transfer.toUnit as UnitType] || transfer.toUnit || ''),
+        String(karat || ''),
         `${amount.toFixed(2)} gr`,
-        cinsi,
-        transfer.notes || '-'
+        String(cinsi || '-'),
+        String(transfer.notes || '-')
       ];
     });
 
-    // Tablo oluştur
+    // Tablo oluştur - Türkçe karakter desteği için didParseCell hook'u kullan
     autoTable(doc, {
       head: [['Tarih', 'İşlem Tipi', 'Kaynak Birim', 'Hedef Birim', 'Ayar', 'Miktar', 'Cinsi', 'Not']],
       body: tableData,
@@ -373,12 +380,15 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         fontSize: 8,
         cellPadding: 2,
         overflow: 'linebreak',
-        cellWidth: 'wrap'
+        cellWidth: 'wrap',
+        font: 'helvetica',
+        fontStyle: 'normal'
       },
       headStyles: {
         fillColor: [31, 41, 55],
         textColor: 255,
-        fontStyle: 'bold'
+        fontStyle: 'bold',
+        font: 'helvetica'
       },
       alternateRowStyles: {
         fillColor: [249, 250, 251]
@@ -393,7 +403,27 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         6: { cellWidth: 30 },
         7: { cellWidth: 40 }
       },
-      margin: { left: 14, right: 14 }
+      margin: { left: 14, right: 14 },
+      didParseCell: function(data: any) {
+        // Türkçe karakterleri doğru encode et - Unicode karakterleri koru
+        if (data.cell && typeof data.cell.text !== 'undefined') {
+          const convertText = (text: any): string => {
+            if (typeof text === 'string') {
+              // Unicode karakterleri olduğu gibi koru
+              return text;
+            }
+            return String(text || '');
+          };
+          
+          if (Array.isArray(data.cell.text)) {
+            data.cell.text = data.cell.text.map(convertText);
+          } else {
+            data.cell.text = convertText(data.cell.text);
+          }
+        }
+      },
+      // Unicode desteği için encoding ayarları
+      useUnicode: true
     });
 
     // PDF'i indir
@@ -418,33 +448,94 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       width: 160,
       filteredValue: tableFilteredInfo.date || null,
       onFilter: (value, record) => {
-        const recordDate = new Date(record.date).toLocaleDateString('tr-TR');
-        return recordDate.includes(String(value));
+        if (!value || !Array.isArray(value) || value.length === 0) return true;
+        
+        const recordDate = dayjs(record.date);
+        if (value.length === 1) {
+          // Tek tarih seçildiyse, o güne ait tüm kayıtları göster
+          return recordDate.format('DD.MM.YYYY') === value[0];
+        } else if (value.length === 2) {
+          // Tarih aralığı seçildiyse
+          const startDate = dayjs(value[0]).startOf('day');
+          const endDate = dayjs(value[1]).endOf('day');
+          return recordDate.isAfter(startDate.subtract(1, 'day')) && recordDate.isBefore(endDate.add(1, 'day'));
+        }
+        return true;
       },
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
-        <div style={{ padding: 8 }}>
-          <Input
-            placeholder="Tarih ara"
-            value={selectedKeys[0]}
-            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-            onPressEnter={() => confirm()}
-            style={{ marginBottom: 8, display: 'block' }}
-          />
-          <Space>
-            <Button
-              type="primary"
-              onClick={() => confirm()}
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => {
+        const handleDateChange = (dates: any) => {
+          if (dates && dates.length > 0) {
+            if (dates.length === 1) {
+              setSelectedKeys([dates[0].format('DD.MM.YYYY')]);
+            } else if (dates.length === 2) {
+              setSelectedKeys([dates[0].format('DD.MM.YYYY'), dates[1].format('DD.MM.YYYY')]);
+            }
+          } else {
+            setSelectedKeys([]);
+          }
+        };
+
+        const selectedDates = selectedKeys && selectedKeys.length > 0 
+          ? selectedKeys.map((key: string) => dayjs(key, 'DD.MM.YYYY'))
+          : null;
+
+        return (
+          <div style={{ padding: 8 }}>
+            <DatePicker
+              placeholder="Tarih seç"
+              value={selectedDates && selectedDates[0] ? selectedDates[0] : null}
+              onChange={(date) => {
+                if (date) {
+                  setSelectedKeys([date.format('DD.MM.YYYY')]);
+                } else {
+                  setSelectedKeys([]);
+                }
+              }}
+              format="DD.MM.YYYY"
+              style={{ marginBottom: 8, width: '100%' }}
               size="small"
-              style={{ width: 90 }}
-            >
-              Ara
-            </Button>
-            <Button onClick={() => clearFilters && clearFilters()} size="small" style={{ width: 90 }}>
-              Temizle
-            </Button>
-          </Space>
-        </div>
-      ),
+            />
+            <DatePicker.RangePicker
+              placeholder={['Başlangıç', 'Bitiş']}
+              value={selectedDates && selectedDates.length === 2 
+                ? [selectedDates[0], selectedDates[1]] as [Dayjs, Dayjs]
+                : null}
+              onChange={(dates) => {
+                if (dates && dates[0] && dates[1]) {
+                  setSelectedKeys([dates[0].format('DD.MM.YYYY'), dates[1].format('DD.MM.YYYY')]);
+                } else {
+                  setSelectedKeys([]);
+                }
+              }}
+              format="DD.MM.YYYY"
+              style={{ marginBottom: 8, width: '100%' }}
+              size="small"
+            />
+            <Space>
+              <Button
+                type="primary"
+                onClick={() => confirm()}
+                size="small"
+                style={{ width: 90 }}
+              >
+                Ara
+              </Button>
+              <Button 
+                onClick={() => {
+                  if (clearFilters) {
+                    clearFilters();
+                    setSelectedKeys([]);
+                  }
+                }} 
+                size="small" 
+                style={{ width: 90 }}
+              >
+                Temizle
+              </Button>
+            </Space>
+          </div>
+        );
+      },
       filterIcon: (filtered) => <FilterOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
     },
     {
