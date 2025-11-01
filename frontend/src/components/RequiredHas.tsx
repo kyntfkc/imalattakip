@@ -183,7 +183,7 @@ const RequiredHas: React.FC = () => {
       sorter: (a, b) => a.input - b.input,
       render: (value: number) => value > 0 ? (
         <Text style={{ color: '#52c41a', fontSize: '15px', fontWeight: '600' }}>
-          {formatNumberForDisplay(value)}
+          {Math.round(value)}
         </Text>
       ) : (
         <Text type="secondary">-</Text>
@@ -198,7 +198,7 @@ const RequiredHas: React.FC = () => {
       sorter: (a, b) => a.output - b.output,
       render: (value: number, record: RequiredHasItem) => value > 0 ? (
         <Text style={{ color: '#ff4d4f', fontSize: '15px', fontWeight: '600' }}>
-          {formatNumberForDisplay(value)}
+          {Math.round(value)}
         </Text>
       ) : (
         <Text type="secondary">-</Text>
@@ -284,42 +284,14 @@ const RequiredHas: React.FC = () => {
 
       {/* Özet İstatistik - Sadece Alınacak Toplam */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={8}>
-          <Card style={{ borderRadius: '20px', border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
-            <Statistic
-              title="Toplam Giriş"
-              value={totals.input}
-              suffix="TL"
-              valueStyle={{ color: '#52c41a', fontSize: '20px' }}
-              prefix={<CalculatorOutlined style={{ color: '#64748b' }} />}
-              precision={2}
-              formatter={(value) => formatNumberForDisplay(Number(value))}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card style={{ borderRadius: '20px', border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
-            <Statistic
-              title="Toplam Çıkış"
-              value={totals.output}
-              suffix="TL"
-              valueStyle={{ color: '#ff4d4f', fontSize: '20px' }}
-              prefix={<CalculatorOutlined style={{ color: '#64748b' }} />}
-              precision={2}
-              formatter={(value) => formatNumberForDisplay(Number(value))}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
+        <Col xs={24}>
           <Card style={{ borderRadius: '20px', border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', background: 'linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%)' }}>
             <Statistic
               title="Alınacak Toplam"
-              value={totals.required}
+              value={Math.round(totals.required)}
               suffix="TL"
               valueStyle={{ color: '#fa8c16', fontSize: '24px', fontWeight: '700' }}
               prefix={<GoldOutlined style={{ color: '#fa8c16' }} />}
-              precision={2}
-              formatter={(value) => formatNumberForDisplay(Number(value))}
             />
           </Card>
         </Col>
@@ -396,6 +368,31 @@ const RequiredHas: React.FC = () => {
           />
         )}
       </Card>
+
+      {/* Alt Bilgi Satırı */}
+      <div style={{
+        marginTop: '24px',
+        padding: '12px 16px',
+        background: '#f8fafc',
+        borderRadius: '12px',
+        border: '1px solid #e5e7eb',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        fontSize: '14px',
+        color: '#64748b'
+      }}>
+        <Space size="large">
+          <Text style={{ fontSize: '14px', color: '#64748b' }}>
+            <Text strong style={{ color: '#52c41a' }}>Toplam Giriş: </Text>
+            {Math.round(totals.input)} TL
+          </Text>
+          <Text style={{ fontSize: '14px', color: '#64748b' }}>
+            <Text strong style={{ color: '#ff4d4f' }}>Toplam Çıkış: </Text>
+            {Math.round(totals.output)} TL
+          </Text>
+        </Space>
+      </div>
 
       {/* Ekleme/Düzenleme Modal */}
       <Modal
