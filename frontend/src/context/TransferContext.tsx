@@ -178,7 +178,7 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
         amount: transfer.amount,
         karat: parseInt(transfer.karat.replace('K', '')),
         notes: transfer.notes,
-        cinsi: transfer.cinsi || null
+        cinsi: transfer.cinsi || undefined
       });
 
       // Socket event ile otomatik eklenecek, burada sadece optimistic update yapabiliriz
