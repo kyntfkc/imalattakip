@@ -726,12 +726,32 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             </Space>
           </Col>
           
-          {/* Sağ Kısım - Has Karşılığı */}
+          {/* Sağ Kısım - Has Karşılığı veya Toplam Fire */}
           <Col xs={24} sm={12}>
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
               {(() => {
+                // Fire birimleri için toplam fire hesapla
+                if (hasFire || isProcessingUnit) {
+                  // Toplam fire = Toplam Giriş - Toplam Çıkış
+                  const totalFire = Math.max(0, totalInput - totalOutput);
+                  const formattedFire = totalFire.toFixed(2).replace(/^0+(?=\d)/, '');
+                  return (
+                    <Statistic
+                      title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Toplam Fire</Text>}
+                      value={formattedFire}
+                      suffix="gr"
+                      valueStyle={{ 
+                        color: totalFire > 1 ? '#ff4d4f' : totalFire > 0 ? '#faad14' : '#52c41a',
+                        fontSize: '28px',
+                        fontWeight: 700
+                      }}
+                      prefix={<ThunderboltOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
+                    />
+                  );
+                }
+                
+                // Diğer birimler için Has Karşılığı
                 const hasValue = isOutputOnlyUnit ? filteredHasEquivalent : 
-                               isProcessingUnit ? 0 : 
                                isSemiFinishedUnit ? filteredHasEquivalent : (unit?.hasEquivalent || 0);
                 const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
                 return (
