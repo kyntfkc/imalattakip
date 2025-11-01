@@ -120,6 +120,16 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
       const amount = typeof values.amount === 'string' 
         ? parseNumberFromInput(values.amount) 
         : values.amount;
+      
+      console.log('📋 Transfer önizleme - Form değerleri:', {
+        fromUnit: values.fromUnit,
+        toUnit: values.toUnit,
+        amount: amount,
+        karat: values.karat,
+        cinsi: values.cinsi,
+        notes: values.notes
+      });
+      
       setTransferData({
         ...values,
         amount: amount
@@ -130,6 +140,15 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
 
   const handleSubmit = () => {
     if (!transferData) return;
+    
+    console.log('✅ Transfer kaydediliyor - transferData:', {
+      fromUnit: transferData.fromUnit,
+      toUnit: transferData.toUnit,
+      amount: transferData.amount,
+      karat: transferData.karat,
+      cinsi: transferData.cinsi,
+      notes: transferData.notes
+    });
     
     // Yarı mamül kullanımı varsa önce yarı mamülden çıkış yap
     if (useSemiFinished && semiFinishedAmount && semiFinishedCinsi) {

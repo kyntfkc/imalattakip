@@ -163,29 +163,48 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
   // Backend'e yeni transfer ekle
   const addNewTransfer = useCallback(async (transfer: Omit<Transfer, 'id' | 'date'>) => {
     try {
+      console.log('📤 Transfer gönderiliyor:', {
+        fromUnit: transfer.fromUnit,
+        toUnit: transfer.toUnit,
+        amount: transfer.amount,
+        karat: transfer.karat,
+        cinsi: transfer.cinsi,
+        notes: transfer.notes
+      });
+      
       const response = await apiService.createTransfer({
         fromUnit: transfer.fromUnit,
         toUnit: transfer.toUnit,
         amount: transfer.amount,
         karat: parseInt(transfer.karat.replace('K', '')),
         notes: transfer.notes,
-        cinsi: transfer.cinsi
+        cinsi: transfer.cinsi || null
       });
 
       // Socket event ile otomatik eklenecek, burada sadece optimistic update yapabiliriz
       // Ya da backend'den güncel veriyi çek
       const backendTransfers = await apiService.getTransfers();
-      const formattedTransfers: Transfer[] = backendTransfers.map((t: any) => ({
-        id: t.id.toString(),
-        fromUnit: t.from_unit,
-        toUnit: t.to_unit,
-        amount: t.amount,
-        karat: `${t.karat}K` as any,
-        notes: t.notes || '',
-        date: new Date(t.created_at).toISOString(),
-        user: t.user_name || 'Bilinmeyen',
-        cinsi: t.cinsi || undefined
-      }));
+      const formattedTransfers: Transfer[] = backendTransfers.map((t: any) => {
+        console.log(`📥 Backend'den gelen transfer ID ${t.id}:`, {
+          cinsi: t.cinsi,
+          type: typeof t.cinsi,
+          from_unit: t.from_unit,
+          to_unit: t.to_unit,
+          amount: t.amount
+        });
+        
+        return {
+          id: t.id.toString(),
+          fromUnit: t.from_unit,
+          toUnit: t.to_unit,
+          amount: t.amount,
+          karat: `${t.karat}K` as any,
+          notes: t.notes || '',
+          date: new Date(t.created_at).toISOString(),
+          user: t.user_name || 'Bilinmeyen',
+          cinsi: (t.cinsi && String(t.cinsi).trim()) ? String(t.cinsi).trim() : undefined
+        };
+      });
       setTransfers(formattedTransfers);
     } catch (error) {
       console.error('Transfer eklenemedi:', error);
