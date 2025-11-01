@@ -43,6 +43,7 @@ interface RequiredHasItem {
 
 const RequiredHas: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalType, setModalType] = useState<'input' | 'output' | 'edit'>('input');
   const [editingItem, setEditingItem] = useState<RequiredHasItem | null>(null);
   const [form] = Form.useForm();
   const [items, setItems] = useState<RequiredHasItem[]>([]);
@@ -81,30 +82,44 @@ const RequiredHas: React.FC = () => {
 
   // Ekle/düzenle
   const handleAddOrEdit = (values: any) => {
-    const newItem: RequiredHasItem = {
-      id: editingItem?.id || `RH${Date.now()}`,
-      date: values.date ? dayjs(values.date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
-      description: values.description,
-      input: typeof values.input === 'string' 
-        ? parseNumberFromInput(values.input) 
-        : values.input || 0,
-      output: typeof values.output === 'string' 
-        ? parseNumberFromInput(values.output) 
-        : values.output || 0,
-      notes: values.notes
-    };
-
     if (editingItem) {
+      // Düzenleme
+      const newItem: RequiredHasItem = {
+        id: editingItem.id,
+        date: values.date ? dayjs(values.date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+        description: values.description,
+        input: typeof values.input === 'string' 
+          ? parseNumberFromInput(values.input) 
+          : values.input || 0,
+        output: typeof values.output === 'string' 
+          ? parseNumberFromInput(values.output) 
+          : values.output || 0,
+        notes: values.notes
+      };
       setItems(items.map(item => item.id === editingItem.id ? newItem : item));
       message.success('Güncellendi!');
     } else {
+      // Yeni ekleme
+      const newItem: RequiredHasItem = {
+        id: `RH${Date.now()}`,
+        date: values.date ? dayjs(values.date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+        description: values.description,
+        input: modalType === 'input' 
+          ? (typeof values.amount === 'string' ? parseNumberFromInput(values.amount) : values.amount || 0)
+          : 0,
+        output: modalType === 'output' 
+          ? (typeof values.amount === 'string' ? parseNumberFromInput(values.amount) : values.amount || 0)
+          : 0,
+        notes: values.notes
+      };
       setItems([...items, newItem]);
-      message.success('Eklendi!');
+      message.success(modalType === 'input' ? 'Giriş eklendi!' : 'Çıkış eklendi!');
     }
 
     form.resetFields();
     setModalVisible(false);
     setEditingItem(null);
+    setModalType('input');
   };
 
   const handleDelete = (id: string) => {
@@ -114,6 +129,7 @@ const RequiredHas: React.FC = () => {
 
   const handleEdit = (item: RequiredHasItem) => {
     setEditingItem(item);
+    setModalType('edit');
     form.setFieldsValue({
       date: dayjs(item.date),
       description: item.description,
@@ -124,8 +140,17 @@ const RequiredHas: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleOpenModal = () => {
+  const handleOpenInputModal = () => {
     setEditingItem(null);
+    setModalType('input');
+    form.resetFields();
+    form.setFieldsValue({ date: dayjs() });
+    setModalVisible(true);
+  };
+
+  const handleOpenOutputModal = () => {
+    setEditingItem(null);
+    setModalType('output');
     form.resetFields();
     form.setFieldsValue({ date: dayjs() });
     setModalVisible(true);
@@ -310,14 +335,26 @@ const RequiredHas: React.FC = () => {
           </Space>
         }
         extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleOpenModal}
-            size="large"
-          >
-            Yeni Ekle
-          </Button>
+          <Space>
+            <Button
+              type="default"
+              icon={<PlusOutlined />}
+              onClick={handleOpenInputModal}
+              size="large"
+              style={{ background: '#f0f9ff', borderColor: '#52c41a', color: '#52c41a' }}
+            >
+              Giriş Ekle
+            </Button>
+            <Button
+              type="default"
+              icon={<PlusOutlined />}
+              onClick={handleOpenOutputModal}
+              size="large"
+              style={{ background: '#fff1f0', borderColor: '#ff4d4f', color: '#ff4d4f' }}
+            >
+              Çıkış Ekle
+            </Button>
+          </Space>
         }
         style={{ borderRadius: commonStyles.borderRadius, boxShadow: commonStyles.cardShadow }}
       >
@@ -326,9 +363,24 @@ const RequiredHas: React.FC = () => {
             description="Henüz kayıt yok"
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           >
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenModal}>
-              İlk Kaydı Ekle
-            </Button>
+            <Space>
+              <Button 
+                type="default" 
+                icon={<PlusOutlined />} 
+                onClick={handleOpenInputModal}
+                style={{ background: '#f0f9ff', borderColor: '#52c41a', color: '#52c41a' }}
+              >
+                Giriş Ekle
+              </Button>
+              <Button 
+                type="default" 
+                icon={<PlusOutlined />} 
+                onClick={handleOpenOutputModal}
+                style={{ background: '#fff1f0', borderColor: '#ff4d4f', color: '#ff4d4f' }}
+              >
+                Çıkış Ekle
+              </Button>
+            </Space>
           </Empty>
         ) : (
           <Table
@@ -349,8 +401,11 @@ const RequiredHas: React.FC = () => {
       <Modal
         title={
           <Space>
-            {editingItem ? <EditOutlined /> : <PlusOutlined />}
-            <span>{editingItem ? 'Kayıt Düzenle' : 'Yeni Kayıt Ekle'}</span>
+            {modalType === 'edit' ? <EditOutlined /> : <PlusOutlined />}
+            <span>
+              {modalType === 'edit' ? 'Kayıt Düzenle' : 
+               modalType === 'input' ? 'Giriş Ekle' : 'Çıkış Ekle'}
+            </span>
           </Space>
         }
         open={modalVisible}
@@ -358,6 +413,7 @@ const RequiredHas: React.FC = () => {
           form.resetFields();
           setModalVisible(false);
           setEditingItem(null);
+          setModalType('input');
         }}
         footer={null}
         width={600}
@@ -391,112 +447,180 @@ const RequiredHas: React.FC = () => {
             />
           </Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                label="Giriş (TL)"
-                name="input"
-                getValueFromEvent={(e) => {
-                  const value = e.target?.value || e;
-                  return typeof value === 'string' ? value : String(value);
+          {modalType === 'edit' ? (
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label="Giriş (TL)"
+                  name="input"
+                  getValueFromEvent={(e) => {
+                    const value = e.target?.value || e;
+                    return typeof value === 'string' ? value : String(value);
+                  }}
+                >
+                  <Input
+                    placeholder="0,00"
+                    size="large"
+                    style={{ width: '100%' }}
+                    onKeyDown={(e) => {
+                      const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
+                      const key = e.key;
+                      const isNumber = /^\d$/.test(key);
+                      const isComma = key === ',';
+                      const isDot = key === '.';
+                      const isControl = allowedKeys.includes(key);
+                      
+                      if (isNumber || isComma || isDot || isControl || (e.ctrlKey || e.metaKey)) {
+                        return;
+                      }
+                      e.preventDefault();
+                    }}
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      if (value === '') {
+                        form.setFieldsValue({ input: '' });
+                        return;
+                      }
+                      value = value.replace(/[^\d,.]/g, '');
+                      const parts = value.split(/[,.]/);
+                      if (parts.length > 2) {
+                        value = parts[0] + ',' + parts.slice(1).join('');
+                      }
+                      form.setFieldsValue({ input: value });
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value;
+                      if (value && !isNaN(parseNumberFromInput(value))) {
+                        const numericValue = parseNumberFromInput(value);
+                        form.setFieldsValue({ input: numericValue });
+                        setTimeout(() => {
+                          e.target.value = formatNumberForDisplay(numericValue);
+                        }, 0);
+                      }
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Çıkış (TL)"
+                  name="output"
+                  getValueFromEvent={(e) => {
+                    const value = e.target?.value || e;
+                    return typeof value === 'string' ? value : String(value);
+                  }}
+                >
+                  <Input
+                    placeholder="0,00"
+                    size="large"
+                    style={{ width: '100%' }}
+                    onKeyDown={(e) => {
+                      const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
+                      const key = e.key;
+                      const isNumber = /^\d$/.test(key);
+                      const isComma = key === ',';
+                      const isDot = key === '.';
+                      const isControl = allowedKeys.includes(key);
+                      
+                      if (isNumber || isComma || isDot || isControl || (e.ctrlKey || e.metaKey)) {
+                        return;
+                      }
+                      e.preventDefault();
+                    }}
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      if (value === '') {
+                        form.setFieldsValue({ output: '' });
+                        return;
+                      }
+                      value = value.replace(/[^\d,.]/g, '');
+                      const parts = value.split(/[,.]/);
+                      if (parts.length > 2) {
+                        value = parts[0] + ',' + parts.slice(1).join('');
+                      }
+                      form.setFieldsValue({ output: value });
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value;
+                      if (value && !isNaN(parseNumberFromInput(value))) {
+                        const numericValue = parseNumberFromInput(value);
+                        form.setFieldsValue({ output: numericValue });
+                        setTimeout(() => {
+                          e.target.value = formatNumberForDisplay(numericValue);
+                        }, 0);
+                      }
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          ) : (
+            <Form.Item
+              label={modalType === 'input' ? 'Giriş Miktarı (TL)' : 'Çıkış Miktarı (TL)'}
+              name="amount"
+              rules={[
+                { required: true, message: `${modalType === 'input' ? 'Giriş' : 'Çıkış'} miktarını giriniz!` },
+                {
+                  validator: (_, value) => {
+                    if (!value && value !== 0 && value !== '') {
+                      return Promise.reject(new Error(`${modalType === 'input' ? 'Giriş' : 'Çıkış'} miktarını giriniz!`));
+                    }
+                    const numValue = typeof value === 'string' ? parseNumberFromInput(value) : value;
+                    if (isNaN(numValue) || numValue <= 0) {
+                      return Promise.reject(new Error('Miktar 0\'dan büyük olmalı!'));
+                    }
+                    return Promise.resolve();
+                  }
+                }
+              ]}
+              getValueFromEvent={(e) => {
+                const value = e.target?.value || e;
+                return typeof value === 'string' ? value : String(value);
+              }}
+            >
+              <Input
+                placeholder="0,00"
+                size="large"
+                style={{ width: '100%' }}
+                onKeyDown={(e) => {
+                  const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
+                  const key = e.key;
+                  const isNumber = /^\d$/.test(key);
+                  const isComma = key === ',';
+                  const isDot = key === '.';
+                  const isControl = allowedKeys.includes(key);
+                  
+                  if (isNumber || isComma || isDot || isControl || (e.ctrlKey || e.metaKey)) {
+                    return;
+                  }
+                  e.preventDefault();
                 }}
-              >
-                <Input
-                  placeholder="0,00"
-                  size="large"
-                  style={{ width: '100%' }}
-                  onKeyDown={(e) => {
-                    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
-                    const key = e.key;
-                    const isNumber = /^\d$/.test(key);
-                    const isComma = key === ',';
-                    const isDot = key === '.';
-                    const isControl = allowedKeys.includes(key);
-                    
-                    if (isNumber || isComma || isDot || isControl || (e.ctrlKey || e.metaKey)) {
-                      return;
-                    }
-                    e.preventDefault();
-                  }}
-                  onChange={(e) => {
-                    let value = e.target.value;
-                    if (value === '') {
-                      form.setFieldsValue({ input: '' });
-                      return;
-                    }
-                    value = value.replace(/[^\d,.]/g, '');
-                    const parts = value.split(/[,.]/);
-                    if (parts.length > 2) {
-                      value = parts[0] + ',' + parts.slice(1).join('');
-                    }
-                    form.setFieldsValue({ input: value });
-                  }}
-                  onBlur={(e) => {
-                    const value = e.target.value;
-                    if (value && !isNaN(parseNumberFromInput(value))) {
-                      const numericValue = parseNumberFromInput(value);
-                      form.setFieldsValue({ input: numericValue });
-                      setTimeout(() => {
-                        e.target.value = formatNumberForDisplay(numericValue);
-                      }, 0);
-                    }
-                  }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="Çıkış (TL)"
-                name="output"
-                getValueFromEvent={(e) => {
-                  const value = e.target?.value || e;
-                  return typeof value === 'string' ? value : String(value);
+                onChange={(e) => {
+                  let value = e.target.value;
+                  if (value === '') {
+                    form.setFieldsValue({ amount: '' });
+                    return;
+                  }
+                  value = value.replace(/[^\d,.]/g, '');
+                  const parts = value.split(/[,.]/);
+                  if (parts.length > 2) {
+                    value = parts[0] + ',' + parts.slice(1).join('');
+                  }
+                  form.setFieldsValue({ amount: value });
                 }}
-              >
-                <Input
-                  placeholder="0,00"
-                  size="large"
-                  style={{ width: '100%' }}
-                  onKeyDown={(e) => {
-                    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
-                    const key = e.key;
-                    const isNumber = /^\d$/.test(key);
-                    const isComma = key === ',';
-                    const isDot = key === '.';
-                    const isControl = allowedKeys.includes(key);
-                    
-                    if (isNumber || isComma || isDot || isControl || (e.ctrlKey || e.metaKey)) {
-                      return;
-                    }
-                    e.preventDefault();
-                  }}
-                  onChange={(e) => {
-                    let value = e.target.value;
-                    if (value === '') {
-                      form.setFieldsValue({ output: '' });
-                      return;
-                    }
-                    value = value.replace(/[^\d,.]/g, '');
-                    const parts = value.split(/[,.]/);
-                    if (parts.length > 2) {
-                      value = parts[0] + ',' + parts.slice(1).join('');
-                    }
-                    form.setFieldsValue({ output: value });
-                  }}
-                  onBlur={(e) => {
-                    const value = e.target.value;
-                    if (value && !isNaN(parseNumberFromInput(value))) {
-                      const numericValue = parseNumberFromInput(value);
-                      form.setFieldsValue({ output: numericValue });
-                      setTimeout(() => {
-                        e.target.value = formatNumberForDisplay(numericValue);
-                      }, 0);
-                    }
-                  }}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+                onBlur={(e) => {
+                  const value = e.target.value;
+                  if (value && !isNaN(parseNumberFromInput(value))) {
+                    const numericValue = parseNumberFromInput(value);
+                    form.setFieldsValue({ amount: numericValue });
+                    setTimeout(() => {
+                      e.target.value = formatNumberForDisplay(numericValue);
+                    }, 0);
+                  }
+                }}
+              />
+            </Form.Item>
+          )}
 
           <Form.Item
             label="Notlar"
@@ -515,6 +639,7 @@ const RequiredHas: React.FC = () => {
                   form.resetFields();
                   setModalVisible(false);
                   setEditingItem(null);
+                  setModalType('input');
                 }}
                 size="large"
               >
