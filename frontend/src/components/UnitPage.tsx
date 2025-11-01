@@ -13,7 +13,8 @@ import {
   Popconfirm,
   message,
   Empty,
-  Segmented
+  Segmented,
+  Input
 } from 'antd';
 import {
   GoldOutlined,
@@ -27,7 +28,9 @@ import {
   DeleteOutlined,
   PlusOutlined,
   FilterOutlined,
-  CalendarOutlined
+  CalendarOutlined,
+  DownloadOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { useTransfers } from '../context/TransferContext';
 import { useLog } from '../context/LogContext';
@@ -50,6 +53,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const { cinsiOptions } = useCinsiSettings();
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState<'all' | 'week' | 'month' | 'year'>('all');
+  const [tableSearchText, setTableSearchText] = useState('');
+  const [tableFilteredInfo, setTableFilteredInfo] = useState<Record<string, string[] | null>>({});
   const { isBackendOnline, isChecking } = useBackendStatus();
 
   const unit = unitSummaries.find(u => u.unitId === unitId);
@@ -202,6 +207,63 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     return 'error';
   };
 
+  // Tablo için filtreleme ve export fonksiyonları
+  const handleResetFilters = useCallback(() => {
+    setTableFilteredInfo({});
+    setTableSearchText('');
+  }, []);
+
+  const handleExport = useCallback(() => {
+    const dataToExport = (isOutputOnlyUnit || isInputUnit || unitId === 'satis' || isSemiFinishedUnit) ? filteredTransfers : unitTransfers;
+    
+    // CSV formatında export
+    const headers = ['Tarih', 'İşlem Tipi', 'Kaynak Birim', 'Hedef Birim', 'Ayar', 'Miktar (gr)', 'Cinsi', 'Not'];
+    const rows = dataToExport.map(transfer => {
+      const isIncoming = transfer.toUnit === unitId;
+      const date = new Date(transfer.date).toLocaleString('tr-TR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      const type = isIncoming ? 'Giriş' : 'Çıkış';
+      const amount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(transfer.amount) || 0;
+      const karat = transfer.karat === '24K' ? 'Has Altın' : transfer.karat.replace('K', ' Ayar');
+      
+      return [
+        date,
+        type,
+        UNIT_NAMES[transfer.fromUnit as UnitType] || transfer.fromUnit,
+        UNIT_NAMES[transfer.toUnit as UnitType] || transfer.toUnit,
+        karat,
+        amount.toFixed(2),
+        transfer.cinsi || '-',
+        transfer.notes || '-'
+      ];
+    });
+
+    // CSV oluştur
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    // BOM ekle (Türkçe karakterler için)
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${unitName}_işlemler_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    message.success('İşlemler başarıyla dışa aktarıldı');
+  }, [unitTransfers, filteredTransfers, isOutputOnlyUnit, isInputUnit, unitId, isSemiFinishedUnit, unitName]);
+
   const columns: ColumnsType<any> = [
     {
       title: 'Tarih',
@@ -214,7 +276,37 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         hour: '2-digit',
         minute: '2-digit'
       }),
-      width: 160
+      width: 160,
+      filteredValue: tableFilteredInfo.date || null,
+      onFilter: (value, record) => {
+        const recordDate = new Date(record.date).toLocaleDateString('tr-TR');
+        return recordDate.includes(String(value));
+      },
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+        <div style={{ padding: 8 }}>
+          <Input
+            placeholder="Tarih ara"
+            value={selectedKeys[0]}
+            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => confirm()}
+            style={{ marginBottom: 8, display: 'block' }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Ara
+            </Button>
+            <Button onClick={() => clearFilters && clearFilters()} size="small" style={{ width: 90 }}>
+              Temizle
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered) => <FilterOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
     },
     {
       title: 'İşlem Tipi',
@@ -227,7 +319,16 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           </Tag>
         );
       },
-      width: 100
+      width: 100,
+      filters: [
+        { text: 'Giriş', value: 'giris' },
+        { text: 'Çıkış', value: 'cikis' }
+      ],
+      filteredValue: tableFilteredInfo.type || null,
+      onFilter: (value, record) => {
+        const isIncoming = record.toUnit === unitId;
+        return value === 'giris' ? isIncoming : !isIncoming;
+      }
     },
     {
       title: 'Detay',
@@ -265,7 +366,15 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         <Tag color="blue">
           {karat === '24K' ? 'Has Altın' : karat.replace('K', ' Ayar')}
         </Tag>
-      )
+      ),
+      filters: [
+        { text: '14 Ayar', value: '14K' },
+        { text: '18 Ayar', value: '18K' },
+        { text: '22 Ayar', value: '22K' },
+        { text: 'Has Altın', value: '24K' }
+      ],
+      filteredValue: tableFilteredInfo.karat || null,
+      onFilter: (value, record) => record.karat === value
     },
     {
       title: 'Miktar',
@@ -693,46 +802,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         }}
       >
         <Row gutter={16}>
-          {/* Sol Kısım - Toplam Satış/Stok/İşlem */}
-          <Col xs={24} sm={12}>
-            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              {(() => {
-                const calculatedValue = unitId === 'satis' ? totalInput : 
-                                       isOutputOnlyUnit ? totalInput : 
-                                       hasFire ? totalInput + totalOutput : 
-                                       isProcessingUnit ? totalInput + totalOutput : 
-                                       isInputUnit ? totalInput + totalOutput : (unit?.totalStock || 0);
-                const formattedValue = calculatedValue.toFixed(2).replace(/^0+(?=\d)/, '');
-                return (
-                  <Statistic
-                    title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>
-                      {unitId === 'satis' ? 'Toplam Satış' : 
-                       isOutputOnlyUnit ? 'Toplam Giriş' : 
-                       hasFire ? 'Toplam İşlem' : 
-                       isProcessingUnit ? 'Toplam İşlem' : 
-                       isInputUnit ? 'Toplam İşlem' : 'Toplam Stok'}
-                    </Text>}
-                    value={formattedValue}
-                    suffix="gr"
-                    valueStyle={{ 
-                      color: '#1f2937', 
-                      fontSize: '28px',
-                      fontWeight: 700
-                    }}
-                    prefix={<GoldOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
-                  />
-                );
-              })()}
-            </Space>
-          </Col>
-          
-          {/* Sağ Kısım - Has Karşılığı veya Toplam Fire */}
-          <Col xs={24} sm={12}>
-            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              {(() => {
-                // Fire birimleri için toplam fire hesapla
-                if (hasFire || isProcessingUnit) {
-                  // Toplam fire = Toplam Giriş - Toplam Çıkış
+          {/* Fire birimleri için sadece Toplam Fire göster */}
+          {hasFire || isProcessingUnit ? (
+            <Col xs={24} style={{ textAlign: 'center' }}>
+              <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                {(() => {
                   const totalFire = Math.max(0, totalInput - totalOutput);
                   const formattedFire = totalFire.toFixed(2).replace(/^0+(?=\d)/, '');
                   return (
@@ -742,34 +816,70 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                       suffix="gr"
                       valueStyle={{ 
                         color: totalFire > 1 ? '#ff4d4f' : totalFire > 0 ? '#faad14' : '#52c41a',
-                        fontSize: '28px',
+                        fontSize: '32px',
                         fontWeight: 700
                       }}
-                      prefix={<ThunderboltOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
+                      prefix={<ThunderboltOutlined style={{ fontSize: '24px', color: '#64748b' }} />}
                     />
                   );
-                }
-                
-                // Diğer birimler için Has Karşılığı
-                const hasValue = isOutputOnlyUnit ? filteredHasEquivalent : 
-                               isSemiFinishedUnit ? filteredHasEquivalent : (unit?.hasEquivalent || 0);
-                const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
-                return (
-                  <Statistic
-                    title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
-                    value={formattedHas}
-                    suffix="gr"
-                    valueStyle={{ 
-                      color: '#059669',
-                      fontSize: '28px',
-                      fontWeight: 700
-                    }}
-                    prefix={<CrownOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
-                  />
-                );
-              })()}
-            </Space>
-          </Col>
+                })()}
+              </Space>
+            </Col>
+          ) : (
+            <>
+              {/* Sol Kısım - Toplam Satış/Stok/İşlem */}
+              <Col xs={24} sm={12}>
+                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                  {(() => {
+                    const calculatedValue = unitId === 'satis' ? totalInput : 
+                                           isOutputOnlyUnit ? totalInput : 
+                                           isInputUnit ? totalInput + totalOutput : (unit?.totalStock || 0);
+                    const formattedValue = calculatedValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                    return (
+                      <Statistic
+                        title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>
+                          {unitId === 'satis' ? 'Toplam Satış' : 
+                           isOutputOnlyUnit ? 'Toplam Giriş' : 
+                           isInputUnit ? 'Toplam İşlem' : 'Toplam Stok'}
+                        </Text>}
+                        value={formattedValue}
+                        suffix="gr"
+                        valueStyle={{ 
+                          color: '#1f2937', 
+                          fontSize: '28px',
+                          fontWeight: 700
+                        }}
+                        prefix={<GoldOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
+                      />
+                    );
+                  })()}
+                </Space>
+              </Col>
+              
+              {/* Sağ Kısım - Has Karşılığı */}
+              <Col xs={24} sm={12}>
+                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                  {(() => {
+                    // Diğer birimler için Has Karşılığı
+                    const hasValue = isOutputOnlyUnit ? filteredHasEquivalent : 
+                                   isSemiFinishedUnit ? filteredHasEquivalent : (unit?.hasEquivalent || 0);
+                    const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                    return (
+                      <Statistic
+                        title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
+                        value={formattedHas}
+                        suffix="gr"
+                        valueStyle={{ 
+                          color: '#059669',
+                          fontSize: '28px',
+                          fontWeight: 700
+                        }}
+                        prefix={<CrownOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
+                      />
+                    );
+                  })()}
+                </Space>
+              </Col>
         </Row>
       </Card>
 
@@ -816,33 +926,57 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       {/* İşlem Geçmişi */}
       <Card
         title={
-          <Space size={12} align="center">
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '8px',
-              background: unitColor.gradient,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <HistoryOutlined style={{ color: '#ffffff', fontSize: '18px' }} />
-            </div>
-            <Space size={8} align="center">
-              <Text strong style={{ fontSize: '16px' }}>Tüm İşlemler</Text>
-              <Tag 
-                color={unitColor.primary} 
-                style={{ 
-                  borderRadius: '10px',
-                  fontSize: '12px',
-                  padding: '2px 8px',
-                  margin: 0
-                }}
-              >
-                {unitTransfers.length}
-              </Tag>
-            </Space>
-          </Space>
+          <Row justify="space-between" align="middle">
+            <Col>
+              <Space size={12} align="center">
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '8px',
+                  background: unitColor.gradient,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <HistoryOutlined style={{ color: '#ffffff', fontSize: '18px' }} />
+                </div>
+                <Space size={8} align="center">
+                  <Text strong style={{ fontSize: '16px' }}>Tüm İşlemler</Text>
+                  <Tag 
+                    color={unitColor.primary} 
+                    style={{ 
+                      borderRadius: '10px',
+                      fontSize: '12px',
+                      padding: '2px 8px',
+                      margin: 0
+                    }}
+                  >
+                    {(isOutputOnlyUnit || isInputUnit || unitId === 'satis' || isSemiFinishedUnit) ? filteredTransfers.length : unitTransfers.length}
+                  </Tag>
+                </Space>
+              </Space>
+            </Col>
+            <Col>
+              <Space size={8}>
+                <Button
+                  icon={<FilterOutlined />}
+                  onClick={handleResetFilters}
+                  size="small"
+                  disabled={Object.keys(tableFilteredInfo).length === 0 && !tableSearchText}
+                >
+                  Filtreleri Temizle
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<DownloadOutlined />}
+                  onClick={handleExport}
+                  size="small"
+                >
+                  Dışa Aktar
+                </Button>
+              </Space>
+            </Col>
+          </Row>
         }
         style={{ 
           borderRadius: commonStyles.borderRadius,
@@ -852,7 +986,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         {unitTransfers.length > 0 ? (
           <Table
             columns={columns}
-            dataSource={(isOutputOnlyUnit || isInputUnit || unitId === 'satis') ? filteredTransfers : unitTransfers}
+            dataSource={(isOutputOnlyUnit || isInputUnit || unitId === 'satis' || isSemiFinishedUnit) ? filteredTransfers : unitTransfers}
             rowKey="id"
             pagination={{
               pageSize: 20,
@@ -860,6 +994,9 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               showTotal: (total) => `Toplam ${total} işlem`
             }}
             scroll={{ x: 1000 }}
+            onChange={(pagination, filters, sorter) => {
+              setTableFilteredInfo(filters as Record<string, string[] | null>);
+            }}
           />
         ) : (
           <Empty description="Henüz işlem yok" />
