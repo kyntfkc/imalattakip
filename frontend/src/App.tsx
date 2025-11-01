@@ -748,7 +748,12 @@ const AppContent: React.FC = () => {
             width: '100%',
             overflow: 'auto'
           }}>
-            <div className="fade-in" style={{ padding: isMobile ? '12px' : '24px', maxWidth: '100%' }}>
+            <div className="fade-in" style={{ 
+              padding: isMobile ? '12px' : '24px', 
+              maxWidth: isMobile ? '100%' : '1600px',
+              margin: '0 auto',
+              width: '100%'
+            }}>
               {renderContent()}
             </div>
           </Content>
