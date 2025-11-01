@@ -493,7 +493,7 @@ const AppContent: React.FC = () => {
             style={{
               border: 'none',
               background: '#ffffff',
-              padding: '8px',
+              padding: '8px 8px 8px 24px',
               fontSize: '14px'
             }}
             theme="light"
@@ -749,7 +749,7 @@ const AppContent: React.FC = () => {
             overflow: 'auto'
           }}>
             <div className="fade-in" style={{ 
-              padding: isMobile ? '12px' : '24px', 
+              padding: isMobile ? '12px' : '24px 48px 24px 24px', 
               maxWidth: isMobile ? '100%' : '1600px',
               margin: '0 auto',
               width: '100%'
