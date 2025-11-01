@@ -773,8 +773,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         </Row>
       </Card>
 
-      {/* Cinsi Bazlı Stok Dağılımı - Stok tutan birimler ve fire birimleri için */}
-      {((!isProcessingUnit && !isOutputOnlyUnit && !isInputUnit) || isSemiFinishedUnit || hasFire) && (
+      {/* Cinsi Bazlı Stok Dağılımı - Sadece stok tutan birimler için (fire birimleri hariç) */}
+      {((!isProcessingUnit && !isOutputOnlyUnit && !isInputUnit && !hasFire) || isSemiFinishedUnit) && (
         <Card 
           title={
             <Space size={12}>
