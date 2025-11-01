@@ -768,9 +768,10 @@ onClick={handleOpenRequiredModal}
                       size="large"
                       showSearch
                       optionFilterProp="children"
-                      filterOption={(input, option) =>
-                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                      }
+                      filterOption={(input, option) => {
+                        const label = String(option?.label ?? '');
+                        return label.toLowerCase().includes(input.toLowerCase());
+                      }}
                     >
                       {items.map(item => (
                         <Select.Option key={item.id} value={item.id} label={item.productName}>
