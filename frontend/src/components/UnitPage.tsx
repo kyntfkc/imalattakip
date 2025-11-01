@@ -19,7 +19,7 @@ import {
 } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import {
   GoldOutlined,
   ToolOutlined,
@@ -365,7 +365,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     });
 
     // Tablo oluştur
-    (doc as any).autoTable({
+    autoTable(doc, {
       head: [['Tarih', 'İşlem Tipi', 'Kaynak Birim', 'Hedef Birim', 'Ayar', 'Miktar', 'Cinsi', 'Not']],
       body: tableData,
       startY: filterInfo ? 40 : 36,
