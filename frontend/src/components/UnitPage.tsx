@@ -458,63 +458,98 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         return true;
       },
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => {
-        const handleDateChange = (dates: any) => {
-          if (dates && dates.length > 0) {
-            if (dates.length === 1) {
-              setSelectedKeys([dates[0].format('DD.MM.YYYY')]);
-            } else if (dates.length === 2) {
-              setSelectedKeys([dates[0].format('DD.MM.YYYY'), dates[1].format('DD.MM.YYYY')]);
-            }
-          } else {
-            setSelectedKeys([]);
-          }
-        };
-
         const selectedDates = selectedKeys && selectedKeys.length > 0 
           ? selectedKeys.map((key) => dayjs(String(key), 'DD.MM.YYYY'))
           : null;
 
+        const isRangeSelected = selectedDates && selectedDates.length === 2;
+        const isSingleDateSelected = selectedDates && selectedDates.length === 1 && !isRangeSelected;
+
         return (
-          <div style={{ padding: 8 }}>
-            <DatePicker
-              placeholder="Tarih seç"
-              value={selectedDates && selectedDates[0] ? selectedDates[0] : null}
-              onChange={(date) => {
-                if (date) {
-                  setSelectedKeys([date.format('DD.MM.YYYY')]);
-                } else {
-                  setSelectedKeys([]);
-                }
-              }}
-              format="DD.MM.YYYY"
-              style={{ marginBottom: 8, width: '100%' }}
-              size="small"
-            />
-            <DatePicker.RangePicker
-              placeholder={['Başlangıç', 'Bitiş']}
-              value={selectedDates && selectedDates.length === 2 
-                ? [selectedDates[0], selectedDates[1]] as [Dayjs, Dayjs]
-                : null}
-              onChange={(dates) => {
-                if (dates && dates[0] && dates[1]) {
-                  setSelectedKeys([dates[0].format('DD.MM.YYYY'), dates[1].format('DD.MM.YYYY')]);
-                } else {
-                  setSelectedKeys([]);
-                }
-              }}
-              format="DD.MM.YYYY"
-              style={{ marginBottom: 8, width: '100%' }}
-              size="small"
-            />
-            <Space>
-              <Button
-                type="primary"
-                onClick={() => confirm()}
-                size="small"
-                style={{ width: 90 }}
-              >
-                Ara
-              </Button>
+          <div style={{ 
+            padding: '16px',
+            background: '#ffffff',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            minWidth: '320px'
+          }}>
+            <div style={{ marginBottom: '16px' }}>
+              <Text strong style={{ 
+                display: 'block', 
+                marginBottom: '12px', 
+                fontSize: '14px',
+                color: '#1f2937',
+                fontWeight: 600
+              }}>
+                Tarih Filtresi
+              </Text>
+              
+              <div style={{ marginBottom: '12px' }}>
+                <Text style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  fontSize: '12px',
+                  color: '#6b7280',
+                  fontWeight: 500
+                }}>
+                  Tek Tarih
+                </Text>
+                <DatePicker
+                  placeholder="Tarih seç"
+                  value={isSingleDateSelected ? selectedDates[0] : null}
+                  onChange={(date) => {
+                    if (date) {
+                      setSelectedKeys([date.format('DD.MM.YYYY')]);
+                    } else {
+                      setSelectedKeys([]);
+                    }
+                  }}
+                  format="DD.MM.YYYY"
+                  style={{ width: '100%' }}
+                  size="middle"
+                  allowClear
+                />
+              </div>
+
+              <Divider style={{ margin: '12px 0' }} />
+
+              <div style={{ marginBottom: '12px' }}>
+                <Text style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  fontSize: '12px',
+                  color: '#6b7280',
+                  fontWeight: 500
+                }}>
+                  Tarih Aralığı
+                </Text>
+                <DatePicker.RangePicker
+                  placeholder={['Başlangıç Tarihi', 'Bitiş Tarihi']}
+                  value={isRangeSelected 
+                    ? [selectedDates[0], selectedDates[1]] as [Dayjs, Dayjs]
+                    : null}
+                  onChange={(dates) => {
+                    if (dates && dates[0] && dates[1]) {
+                      setSelectedKeys([dates[0].format('DD.MM.YYYY'), dates[1].format('DD.MM.YYYY')]);
+                    } else {
+                      setSelectedKeys([]);
+                    }
+                  }}
+                  format="DD.MM.YYYY"
+                  style={{ width: '100%' }}
+                  size="middle"
+                  allowClear
+                />
+              </div>
+            </div>
+            
+            <div style={{ 
+              borderTop: '1px solid #e5e7eb', 
+              paddingTop: '12px',
+              display: 'flex',
+              gap: '8px',
+              justifyContent: 'flex-end'
+            }}>
               <Button 
                 onClick={() => {
                   if (clearFilters) {
@@ -522,12 +557,28 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                     setSelectedKeys([]);
                   }
                 }} 
-                size="small" 
-                style={{ width: 90 }}
+                size="middle"
+                style={{ 
+                  minWidth: '90px',
+                  borderColor: '#d1d5db',
+                  color: '#6b7280'
+                }}
               >
                 Temizle
               </Button>
-            </Space>
+              <Button
+                type="primary"
+                onClick={() => confirm()}
+                size="middle"
+                style={{ 
+                  minWidth: '90px',
+                  background: '#3b82f6',
+                  borderColor: '#3b82f6'
+                }}
+              >
+                Uygula
+              </Button>
+            </div>
           </div>
         );
       },
