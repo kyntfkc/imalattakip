@@ -56,7 +56,7 @@ export const KARAT_HAS_RATIOS: { [key in KaratType]: number } = {
 };
 
 // Fire olan birimler
-export const FIRE_UNITS: UnitType[] = [];
+export const FIRE_UNITS: UnitType[] = ['lazer-kesim', 'tezgah', 'cila'];
 
 // Fire olmayan birimler
 export const NO_FIRE_UNITS: UnitType[] = ['ana-kasa', 'dokum', 'tedarik', 'dis-kasa', 'satis'];

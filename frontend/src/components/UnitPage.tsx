@@ -572,8 +572,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           </Col>
         </Row>
         
-        {/* Filtreler - Satış, output-only ve input birimler için */}
-        {(isOutputOnlyUnit || unitId === 'satis' || isInputUnit) && (
+        {/* Filtreler - Satış, output-only, input ve yarı mamül birimler için */}
+        {(isOutputOnlyUnit || unitId === 'satis' || isInputUnit || isSemiFinishedUnit) && (
           <div style={{ 
             marginTop: '24px',
             paddingTop: '24px',
@@ -753,8 +753,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         </Row>
       </Card>
 
-      {/* Cinsi Bazlı Stok Dağılımı - Sadece stok tutan birimler için */}
-      {((!isProcessingUnit && !isOutputOnlyUnit && !isInputUnit) || isSemiFinishedUnit) && (
+      {/* Cinsi Bazlı Stok Dağılımı - Stok tutan birimler ve fire birimleri için */}
+      {((!isProcessingUnit && !isOutputOnlyUnit && !isInputUnit) || isSemiFinishedUnit || hasFire) && (
         <Card 
           title={
             <Space size={12}>
