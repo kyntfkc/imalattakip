@@ -300,35 +300,6 @@ const ExternalVault: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24}>
-          <Card 
-            title={
-              <Space>
-                <GoldOutlined />
-                <span>Ayar Bazlı Stok Durumu</span>
-              </Space>
-            }
-            style={{ borderRadius: 12 }}
-          >
-            {stockData.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px' }}>
-                <BankOutlined style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: 16 }} />
-                <Title level={4} type="secondary">Dış Kasada stok yok</Title>
-                <Text type="secondary">Giriş işlemi yaparak başlayın</Text>
-              </div>
-            ) : (
-              <Table
-                columns={stockColumns}
-                dataSource={stockData}
-                pagination={false}
-                rowKey="karat"
-              />
-            )}
-          </Card>
-        </Col>
-      </Row>
-
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={16}>
           <Card 
