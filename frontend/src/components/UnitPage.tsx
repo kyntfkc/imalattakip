@@ -128,38 +128,34 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
 
   // OUTPUT_ONLY_UNITS, FIRE_UNITS, PROCESSING_UNITS, INPUT_UNITS ve SEMI_FINISHED_UNITS için toplam giriş hesapla
   const totalInput = useMemo(() => {
-    if (!isOutputOnlyUnit && !hasFire && !isProcessingUnit && !isInputUnit && !isSemiFinishedUnit) return unit?.totalStock || 0;
-    
-    return filteredTransfers
+    // Tüm birimler için transferlerden hesapla (backend'den gelen değere güvenme)
+    return transfers
       .filter(t => t.toUnit === unitId)
       .reduce((sum, t) => {
         const safeAmount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
         return sum + safeAmount;
       }, 0);
-  }, [filteredTransfers, unitId, isOutputOnlyUnit, hasFire, isProcessingUnit, isInputUnit, isSemiFinishedUnit, unit]);
+  }, [transfers, unitId]);
 
   // OUTPUT_ONLY_UNITS, FIRE_UNITS, PROCESSING_UNITS, INPUT_UNITS ve SEMI_FINISHED_UNITS için toplam çıkış hesapla
   const totalOutput = useMemo(() => {
-    if (!isOutputOnlyUnit && !hasFire && !isProcessingUnit && !isInputUnit && !isSemiFinishedUnit) return 0;
-    
-    return filteredTransfers
+    // Tüm birimler için transferlerden hesapla (backend'den gelen değere güvenme)
+    return transfers
       .filter(t => t.fromUnit === unitId)
       .reduce((sum, t) => {
         const safeAmount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
         return sum + safeAmount;
       }, 0);
-  }, [filteredTransfers, unitId, isOutputOnlyUnit, hasFire, isProcessingUnit, isInputUnit, isSemiFinishedUnit]);
+  }, [transfers, unitId]);
 
-  // OUTPUT_ONLY_UNITS, PROCESSING_UNITS, INPUT_UNITS ve SEMI_FINISHED_UNITS için has karşılığı hesapla
+  // Has karşılığı hesapla - Tüm birimler için transferlerden hesapla
   const filteredHasEquivalent = useMemo(() => {
-    if (!isOutputOnlyUnit && !isProcessingUnit && !isInputUnit && !isSemiFinishedUnit) return unit?.hasEquivalent || 0;
-    
     // Yarı mamül için: girişlerden çıkışları çıkar (mevcut stokun has karşılığı)
     if (isSemiFinishedUnit) {
       // Giriş ve çıkışları karat bazında topla
       const stockByKarat = new Map<string, { input: number; output: number }>();
       
-      filteredTransfers.forEach(t => {
+      transfers.forEach(t => {
         if (t.toUnit === unitId || t.fromUnit === unitId) {
           const key = t.karat;
           if (!stockByKarat.has(key)) {
@@ -184,16 +180,34 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       }, 0);
     }
     
-    // Diğer birimler için çıkışlardan hesapla
-    return filteredTransfers
-      .filter(t => t.fromUnit === unitId)
-      .reduce((sum, t) => {
-        const safeAmount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
-        const karat: KaratType = t.karat;
-        const karatMultiplier = KARAT_HAS_RATIOS[karat] || 0;
-        return sum + (safeAmount * karatMultiplier);
-      }, 0);
-  }, [filteredTransfers, unitId, isOutputOnlyUnit, isProcessingUnit, isInputUnit, isSemiFinishedUnit, unit]);
+    // Normal birimler (Ana Kasa, Dış Kasa vb.) için: mevcut stokun has karşılığı
+    // Mevcut stok = giriş - çıkış
+    const stockByKarat = new Map<string, { input: number; output: number }>();
+    
+    transfers.forEach(t => {
+      if (t.toUnit === unitId || t.fromUnit === unitId) {
+        const key = t.karat;
+        if (!stockByKarat.has(key)) {
+          stockByKarat.set(key, { input: 0, output: 0 });
+        }
+        const stock = stockByKarat.get(key)!;
+        
+        if (t.toUnit === unitId) {
+          stock.input += typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+        }
+        if (t.fromUnit === unitId) {
+          stock.output += typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+        }
+      }
+    });
+    
+    // Her karat için mevcut stokun has karşılığını hesapla
+    return Array.from(stockByKarat.entries()).reduce((sum, [karat, stock]) => {
+      const currentStock = Math.max(0, stock.input - stock.output);
+      const karatMultiplier = KARAT_HAS_RATIOS[karat as keyof typeof KARAT_HAS_RATIOS] || 0;
+      return sum + (currentStock * karatMultiplier);
+    }, 0);
+  }, [transfers, unitId, isSemiFinishedUnit]);
 
   const handleDeleteTransfer = (id: string) => {
     // Silinecek transfer'i bul
@@ -1139,9 +1153,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               <Col xs={24} sm={12}>
                 <Space direction="vertical" size="small" style={{ width: '100%' }}>
                   {(() => {
+                    // Normal birimler için (Ana Kasa, Dış Kasa vb.) transferlerden hesapla
                     const calculatedValue = unitId === 'satis' ? totalInput : 
                                            isOutputOnlyUnit ? totalInput : 
-                                           isInputUnit ? totalInput + totalOutput : (unit?.totalStock || 0);
+                                           isInputUnit ? totalInput + totalOutput : 
+                                           Math.max(0, totalInput - totalOutput); // Toplam Stok = Giriş - Çıkış
                     const formattedValue = calculatedValue.toFixed(2).replace(/^0+(?=\d)/, '');
                     return (
                       <Statistic
