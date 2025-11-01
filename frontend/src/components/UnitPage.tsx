@@ -317,51 +317,62 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   ];
 
   // Cinsi bazlı stok tablosu
-  const cinsiColumns: ColumnsType<any> = [
-    {
-      title: 'Cinsi',
-      dataIndex: 'cinsi',
-      key: 'cinsi',
-      render: (cinsi: string) => (
-        <Tag color="purple">
-          {cinsiOptions.find((opt: CinsiOption) => opt.value === cinsi)?.label || cinsi}
-        </Tag>
-      )
-    },
-    {
-      title: 'Stok',
-      dataIndex: 'stock',
-      key: 'stock',
-      render: (stock: number) => `${(typeof stock === 'number' ? stock : parseFloat(stock) || 0).toFixed(2)} gr`
-    },
-    {
-      title: 'Has Karşılığı',
-      dataIndex: 'has',
-      key: 'has',
-      render: (has: number) => {
-        const safeHas = typeof has === 'number' ? has : parseFloat(has) || 0;
-        return (
-          <Text style={{ color: '#52c41a' }}>{safeHas.toFixed(2)} gr</Text>
-        );
-      }
-    }
-  ];
-
-  if (hasFire) {
-    cinsiColumns.push({
-      title: 'Fire',
-      dataIndex: 'fire',
-      key: 'fire',
-      render: (fire: number) => {
-        const safeFire = typeof fire === 'number' ? fire : parseFloat(fire) || 0;
-        return (
-          <Tag color={getFireColor(safeFire)}>
-            {safeFire.toFixed(2)} gr
+  const cinsiColumns: ColumnsType<any> = useMemo(() => {
+    const columns: ColumnsType<any> = [
+      {
+        title: 'Cinsi',
+        dataIndex: 'cinsi',
+        key: 'cinsi',
+        width: 200,
+        render: (cinsi: string) => (
+          <Tag color="purple">
+            {cinsiOptions.find((opt: CinsiOption) => opt.value === cinsi)?.label || cinsi}
           </Tag>
-        );
+        )
+      },
+      {
+        title: 'Stok',
+        dataIndex: 'stock',
+        key: 'stock',
+        width: 150,
+        align: 'right' as const,
+        render: (stock: number) => `${(typeof stock === 'number' ? stock : parseFloat(stock) || 0).toFixed(2)} gr`
+      },
+      {
+        title: 'Has Karşılığı',
+        dataIndex: 'has',
+        key: 'has',
+        width: 150,
+        align: 'right' as const,
+        render: (has: number) => {
+          const safeHas = typeof has === 'number' ? has : parseFloat(has) || 0;
+          return (
+            <Text style={{ color: '#52c41a' }}>{safeHas.toFixed(2)} gr</Text>
+          );
+        }
       }
-    });
-  }
+    ];
+
+    if (hasFire) {
+      columns.push({
+        title: 'Fire',
+        dataIndex: 'fire',
+        key: 'fire',
+        width: 150,
+        align: 'right' as const,
+        render: (fire: number) => {
+          const safeFire = typeof fire === 'number' ? fire : parseFloat(fire) || 0;
+          return (
+            <Tag color={getFireColor(safeFire)}>
+              {safeFire.toFixed(2)} gr
+            </Tag>
+          );
+        }
+      });
+    }
+
+    return columns;
+  }, [hasFire, cinsiOptions]);
 
   // Cinsi bazlı stok verilerini hesapla
   const cinsiData = useMemo(() => {
@@ -380,11 +391,12 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     
     // Giriş transferlerini işle
     incomingTransfers.forEach(transfer => {
-      if (transfer.amount > 0) {
-        // Cinsi kontrolü: undefined, null, boş string veya sadece boşluk ise "Genel"
-        const cinsi = (transfer.cinsi && transfer.cinsi.trim()) ? transfer.cinsi.trim() : 'Genel';
+      const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
+      if (safeAmount > 0) {
+        // Cinsi kontrolü: undefined, null, boş string veya sadece boşluk ise atla (cinsi belirtilmemiş transferleri gösterme)
+        if (!transfer.cinsi || !String(transfer.cinsi).trim()) return;
+        const cinsi = String(transfer.cinsi).trim();
         const existing = cinsiMap.get(cinsi) || { stock: 0, has: 0, fire: 0, input: 0, output: 0 };
-        const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
         existing.stock += safeAmount;
         existing.input += safeAmount;
         const karatRatio = (KARAT_HAS_RATIOS[transfer.karat as keyof typeof KARAT_HAS_RATIOS]) || 0;
@@ -395,11 +407,12 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     
     // Çıkış transferlerini işle
     outgoingTransfers.forEach(transfer => {
-      if (transfer.amount > 0) {
-        // Cinsi kontrolü: undefined, null, boş string veya sadece boşluk ise "Genel"
-        const cinsi = (transfer.cinsi && transfer.cinsi.trim()) ? transfer.cinsi.trim() : 'Genel';
+      const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
+      if (safeAmount > 0) {
+        // Cinsi kontrolü: undefined, null, boş string veya sadece boşluk ise atla (cinsi belirtilmemiş transferleri gösterme)
+        if (!transfer.cinsi || !String(transfer.cinsi).trim()) return;
+        const cinsi = String(transfer.cinsi).trim();
         const existing = cinsiMap.get(cinsi) || { stock: 0, has: 0, fire: 0, input: 0, output: 0 };
-        const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
         existing.stock -= safeAmount;
         existing.output += safeAmount;
         const karatRatio = (KARAT_HAS_RATIOS[transfer.karat as keyof typeof KARAT_HAS_RATIOS]) || 0;
@@ -415,8 +428,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       cinsiMap.forEach((data, cinsi) => {
         data.fire = Math.max(0, data.input - data.output); // Fire = giriş - çıkış
         data.stock = 0; // Fire/işlem birimlerinde stok 0
-        // Has hesaplaması: Stok 0 olduğu için has da 0 olmalı, ama fire'ın has karşılığı gösterilebilir
-        // Şu an has değeri korunuyor (fire birimlerinde fire gösterilir)
+        data.has = 0; // Fire birimlerinde has da 0 (stok olmadığı için)
       });
     } else if (isInputUnit) {
       // Döküm, Tedarik - stok tutulur ama fire yok
@@ -444,7 +456,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       });
     }
     
-    // Sonuçları filtrele ve düzenle
+    // Sonuçları filtrele ve düzenle - cinsi ayarlarına göre sırala
     const result = Array.from(cinsiMap.entries())
       .map(([cinsi, data]) => ({
         key: cinsi,
@@ -459,10 +471,25 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           return item.stock > 0;
         }
         return item.stock > 0 || item.fire > 0;
+      })
+      .sort((a, b) => {
+        // Cinsi ayarlarına göre sırala
+        const aIndex = cinsiOptions.findIndex(opt => opt.value === a.cinsi);
+        const bIndex = cinsiOptions.findIndex(opt => opt.value === b.cinsi);
+        
+        // Ayarlarda tanımlı olanlar önce gelsin
+        if (aIndex !== -1 && bIndex !== -1) {
+          return aIndex - bIndex;
+        }
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        
+        // İkisi de ayarlarda yoksa alfabetik sırala
+        return a.cinsi.localeCompare(b.cinsi, 'tr');
       });
     
     return result;
-  }, [unit, transfers, filteredTransfers, unitId, hasFire, isProcessingUnit, isInputUnit, isSemiFinishedUnit, isOutputOnlyUnit]);
+  }, [unit, transfers, filteredTransfers, unitId, hasFire, isProcessingUnit, isInputUnit, isSemiFinishedUnit, isOutputOnlyUnit, cinsiOptions]);
 
   if (!unit) {
     return (
@@ -757,6 +784,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               dataSource={cinsiData}
               pagination={false}
               size="middle"
+              rowKey="cinsi"
+              scroll={{ x: 'max-content' }}
             />
           ) : (
             <Empty description="Bu birimde henüz stok yok" />
