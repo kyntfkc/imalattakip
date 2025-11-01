@@ -478,7 +478,7 @@ const RequiredHas: React.FC = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={handleOpenModal}
+onClick={handleOpenRequiredModal}
             size="large"
           >
             Yeni Ekle
