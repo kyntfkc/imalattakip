@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
+import {
   Card, 
   Row, 
   Col, 
@@ -17,7 +17,9 @@ import {
   message,
   Divider,
   Popconfirm,
-  Empty
+  Empty,
+  Select,
+  Radio
 } from 'antd';
 import { 
   CalculatorOutlined, 
@@ -26,7 +28,9 @@ import {
   EditOutlined,
   GoldOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined
+  CloseCircleOutlined,
+  ShoppingCartOutlined,
+  DownloadOutlined
 } from '@ant-design/icons';
 import { useExternalVault } from '../context/ExternalVaultContext';
 import { useLog } from '../context/LogContext';
@@ -51,8 +55,11 @@ const RequiredHas: React.FC = () => {
   const { totalHas, addTransaction } = useExternalVault();
   const { addLog } = useLog();
   const [modalVisible, setModalVisible] = useState(false);
+  const [receivedModalVisible, setReceivedModalVisible] = useState(false);
+  const [modalMode, setModalMode] = useState<'add-required' | 'add-received' | 'edit'>('add-required');
   const [editingItem, setEditingItem] = useState<RequiredHasItem | null>(null);
   const [form] = Form.useForm();
+  const [receivedForm] = Form.useForm();
   const [items, setItems] = useState<RequiredHasItem[]>([]);
 
   // LocalStorage'dan verileri yükle
@@ -123,7 +130,8 @@ const RequiredHas: React.FC = () => {
     }
   };
 
-  const handleAddOrEdit = (values: any) => {
+  // Alınacak has ekle/düzenle
+  const handleAddRequiredHas = (values: any) => {
     const newItem: RequiredHasItem = {
       id: editingItem?.id || `RH${Date.now()}`,
       date: values.date ? dayjs(values.date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
@@ -131,11 +139,7 @@ const RequiredHas: React.FC = () => {
       requiredHas: typeof values.requiredHas === 'string' 
         ? parseNumberFromInput(values.requiredHas) 
         : values.requiredHas,
-      receivedHas: values.receivedHas 
-        ? (typeof values.receivedHas === 'string' 
-          ? parseNumberFromInput(values.receivedHas) 
-          : values.receivedHas)
-        : undefined,
+      receivedHas: undefined, // Alınacak has eklerken alınan boş
       notes: values.notes
     };
 
@@ -144,12 +148,57 @@ const RequiredHas: React.FC = () => {
       message.success('Güncellendi!');
     } else {
       setItems([...items, newItem]);
-      message.success('Eklendi!');
+      message.success('Alınacak has eklendi!');
     }
 
     form.resetFields();
     setModalVisible(false);
     setEditingItem(null);
+    setModalMode('add-required');
+  };
+
+  // Alınan has ekle
+  const handleAddReceivedHas = async (values: any) => {
+    const receivedAmount = typeof values.receivedHas === 'string' 
+      ? parseNumberFromInput(values.receivedHas) 
+      : values.receivedHas;
+
+    if (!receivedAmount || receivedAmount <= 0) {
+      message.warning('Alınan has miktarını giriniz!');
+      return;
+    }
+
+    if (values.mode === 'existing' && values.itemId) {
+      // Mevcut kayıta alınan has ekle
+      const item = items.find(i => i.id === values.itemId);
+      if (item) {
+        const newReceivedHas = (item.receivedHas || 0) + receivedAmount;
+        setItems(items.map(i => 
+          i.id === values.itemId 
+            ? { ...i, receivedHas: newReceivedHas }
+            : i
+        ));
+        message.success(`${formatNumberForDisplay(receivedAmount)} TL alınan has eklendi!`);
+      }
+    } else {
+      // Yeni kayıt oluştur
+      const newItem: RequiredHasItem = {
+        id: `RH${Date.now()}`,
+        date: values.date ? dayjs(values.date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+        productName: values.productName,
+        requiredHas: typeof values.requiredHas === 'string' 
+          ? parseNumberFromInput(values.requiredHas) 
+          : values.requiredHas || 0,
+        receivedHas: receivedAmount,
+        notes: values.notes
+      };
+      setItems([...items, newItem]);
+      message.success('Alınan has kaydı oluşturuldu!');
+    }
+
+    receivedForm.resetFields();
+    receivedForm.setFieldsValue({ mode: 'existing', date: dayjs() });
+    setReceivedModalVisible(false);
   };
 
   const handleDelete = (id: string) => {
@@ -159,6 +208,7 @@ const RequiredHas: React.FC = () => {
 
   const handleEdit = (item: RequiredHasItem) => {
     setEditingItem(item);
+    setModalMode('edit');
     form.setFieldsValue({
       date: dayjs(item.date),
       productName: item.productName,
@@ -169,11 +219,23 @@ const RequiredHas: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleOpenModal = () => {
+  const handleOpenRequiredModal = () => {
     setEditingItem(null);
+    setModalMode('add-required');
     form.resetFields();
     form.setFieldsValue({ date: dayjs() });
     setModalVisible(true);
+  };
+
+  const handleOpenReceivedModal = () => {
+    receivedForm.resetFields();
+    receivedForm.setFieldsValue({ 
+      date: dayjs(),
+      itemId: undefined,
+      productName: '',
+      requiredHas: ''
+    });
+    setReceivedModalVisible(true);
   };
 
   const columns: ColumnsType<RequiredHasItem> = [
@@ -429,9 +491,14 @@ const RequiredHas: React.FC = () => {
             description="Henüz gereken has kaydı yok"
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           >
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenModal}>
-              İlk Kaydı Ekle
-            </Button>
+            <Space>
+              <Button type="default" icon={<PlusOutlined />} onClick={handleOpenRequiredModal}>
+                Alınacak Has Ekle
+              </Button>
+              <Button type="primary" icon={<DownloadOutlined />} onClick={handleOpenReceivedModal}>
+                Alınan Has Ekle
+              </Button>
+            </Space>
           </Empty>
         ) : (
           <Table
@@ -448,12 +515,12 @@ const RequiredHas: React.FC = () => {
         )}
       </Card>
 
-      {/* Ekleme/Düzenleme Modal */}
+      {/* Alınacak Has Ekleme/Düzenleme Modal */}
       <Modal
         title={
           <Space>
-            {editingItem ? <EditOutlined /> : <PlusOutlined />}
-            <span>{editingItem ? 'Gereken Has Düzenle' : 'Yeni Gereken Has Ekle'}</span>
+            {modalMode === 'edit' ? <EditOutlined /> : <PlusOutlined />}
+            <span>{modalMode === 'edit' ? 'Gereken Has Düzenle' : 'Alınacak Has Ekle'}</span>
           </Space>
         }
         open={modalVisible}
@@ -461,6 +528,7 @@ const RequiredHas: React.FC = () => {
           form.resetFields();
           setModalVisible(false);
           setEditingItem(null);
+          setModalMode('add-required');
         }}
         footer={null}
         width={600}
@@ -468,7 +536,7 @@ const RequiredHas: React.FC = () => {
         <Form
           form={form}
           layout="vertical"
-          onFinish={handleAddOrEdit}
+          onFinish={handleAddRequiredHas}
         >
           <Form.Item
             label="Tarih"
@@ -640,6 +708,254 @@ const RequiredHas: React.FC = () => {
                 icon={editingItem ? <EditOutlined /> : <PlusOutlined />}
               >
                 {editingItem ? 'Güncelle' : 'Ekle'}
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Alınan Has Ekleme Modal */}
+      <Modal
+        title={
+          <Space>
+            <DownloadOutlined />
+            <span>Alınan Has Ekle</span>
+          </Space>
+        }
+        open={receivedModalVisible}
+        onCancel={() => {
+          receivedForm.resetFields();
+          setReceivedModalVisible(false);
+        }}
+        footer={null}
+        width={600}
+      >
+        <Form
+          form={receivedForm}
+          layout="vertical"
+          onFinish={handleAddReceivedHas}
+          initialValues={{
+            mode: 'existing',
+            date: dayjs()
+          }}
+        >
+          <Form.Item
+            label="İşlem Tipi"
+            name="mode"
+          >
+            <Radio.Group>
+              <Radio value="existing">Mevcut Kayıta Ekle</Radio>
+              <Radio value="new">Yeni Kayıt Oluştur</Radio>
+            </Radio.Group>
+          </Form.Item>
+
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, currentValues) => prevValues.mode !== currentValues.mode}
+          >
+            {({ getFieldValue }) => {
+              const mode = getFieldValue('mode');
+              
+              if (mode === 'existing') {
+                return (
+                  <Form.Item
+                    label="Mevcut Kayıt"
+                    name="itemId"
+                    rules={[{ required: true, message: 'Bir kayıt seçiniz!' }]}
+                  >
+                    <Select
+                      placeholder="Kayıt seçiniz..."
+                      size="large"
+                      showSearch
+                      optionFilterProp="children"
+                      filterOption={(input, option) =>
+                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                      }
+                    >
+                      {items.map(item => (
+                        <Select.Option key={item.id} value={item.id} label={item.productName}>
+                          {item.productName} - {formatNumberForDisplay(item.requiredHas)} TL
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                );
+              }
+              
+              return (
+                <>
+                  <Form.Item
+                    label="Tarih"
+                    name="date"
+                    rules={[{ required: true, message: 'Tarih seçiniz!' }]}
+                  >
+                    <DatePicker
+                      style={{ width: '100%' }}
+                      size="large"
+                      format="DD.MM.YYYY"
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="Ürün Adı"
+                    name="productName"
+                    rules={[{ required: true, message: 'Ürün adı giriniz!' }]}
+                  >
+                    <Input
+                      placeholder="Örn: Anka kolye, Nokta küpe..."
+                      size="large"
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="Gereken Has (TL) - Opsiyonel"
+                    name="requiredHas"
+                    getValueFromEvent={(e) => {
+                      const value = e.target?.value || e;
+                      return typeof value === 'string' ? value : String(value);
+                    }}
+                  >
+                    <Input
+                      placeholder="0,00"
+                      size="large"
+                      style={{ width: '100%' }}
+                      onKeyDown={(e) => {
+                        const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
+                        const key = e.key;
+                        const isNumber = /^\d$/.test(key);
+                        const isComma = key === ',';
+                        const isDot = key === '.';
+                        const isControl = allowedKeys.includes(key);
+                        
+                        if (isNumber || isComma || isDot || isControl || (e.ctrlKey || e.metaKey)) {
+                          return;
+                        }
+                        e.preventDefault();
+                      }}
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        if (value === '') {
+                          receivedForm.setFieldsValue({ requiredHas: '' });
+                          return;
+                        }
+                        value = value.replace(/[^\d,.]/g, '');
+                        const parts = value.split(/[,.]/);
+                        if (parts.length > 2) {
+                          value = parts[0] + ',' + parts.slice(1).join('');
+                        }
+                        receivedForm.setFieldsValue({ requiredHas: value });
+                      }}
+                      onBlur={(e) => {
+                        const value = e.target.value;
+                        if (value && !isNaN(parseNumberFromInput(value))) {
+                          const numericValue = parseNumberFromInput(value);
+                          receivedForm.setFieldsValue({ requiredHas: numericValue });
+                          setTimeout(() => {
+                            e.target.value = formatNumberForDisplay(numericValue);
+                          }, 0);
+                        }
+                      }}
+                    />
+                  </Form.Item>
+                </>
+              );
+            }}
+          </Form.Item>
+
+          <Form.Item
+            label="Alınan Has (TL)"
+            name="receivedHas"
+            rules={[
+              { required: true, message: 'Alınan has miktarını giriniz!' },
+              {
+                validator: (_, value) => {
+                  if (!value && value !== 0 && value !== '') {
+                    return Promise.reject(new Error('Alınan has miktarını giriniz!'));
+                  }
+                  const numValue = typeof value === 'string' ? parseNumberFromInput(value) : value;
+                  if (isNaN(numValue) || numValue <= 0) {
+                    return Promise.reject(new Error('Alınan has 0\'dan büyük olmalı!'));
+                  }
+                  return Promise.resolve();
+                }
+              }
+            ]}
+            getValueFromEvent={(e) => {
+              const value = e.target?.value || e;
+              return typeof value === 'string' ? value : String(value);
+            }}
+          >
+            <Input
+              placeholder="0,00"
+              size="large"
+              style={{ width: '100%' }}
+              onKeyDown={(e) => {
+                const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
+                const key = e.key;
+                const isNumber = /^\d$/.test(key);
+                const isComma = key === ',';
+                const isDot = key === '.';
+                const isControl = allowedKeys.includes(key);
+                
+                if (isNumber || isComma || isDot || isControl || (e.ctrlKey || e.metaKey)) {
+                  return;
+                }
+                e.preventDefault();
+              }}
+              onChange={(e) => {
+                let value = e.target.value;
+                if (value === '') {
+                  receivedForm.setFieldsValue({ receivedHas: '' });
+                  return;
+                }
+                value = value.replace(/[^\d,.]/g, '');
+                const parts = value.split(/[,.]/);
+                if (parts.length > 2) {
+                  value = parts[0] + ',' + parts.slice(1).join('');
+                }
+                receivedForm.setFieldsValue({ receivedHas: value });
+              }}
+              onBlur={(e) => {
+                const value = e.target.value;
+                if (value && !isNaN(parseNumberFromInput(value))) {
+                  const numericValue = parseNumberFromInput(value);
+                  receivedForm.setFieldsValue({ receivedHas: numericValue });
+                  setTimeout(() => {
+                    e.target.value = formatNumberForDisplay(numericValue);
+                  }, 0);
+                }
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Notlar"
+            name="notes"
+          >
+            <Input.TextArea
+              placeholder="Ek notlar..."
+              rows={3}
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+              <Button 
+                onClick={() => {
+                  receivedForm.resetFields();
+                  setReceivedModalVisible(false);
+                }}
+                size="large"
+              >
+                İptal
+              </Button>
+              <Button 
+                type="primary" 
+                htmlType="submit"
+                size="large"
+                icon={<DownloadOutlined />}
+              >
+                Ekle
               </Button>
             </Space>
           </Form.Item>
