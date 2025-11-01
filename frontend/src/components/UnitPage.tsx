@@ -303,9 +303,6 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     // PDF oluştur
     const doc = new jsPDF('landscape', 'mm', 'a4');
     
-    // Türkçe karakter desteği için Unicode encoding ayarları
-    doc.setLanguage('tr-TR');
-    
     // Başlık
     doc.setFontSize(18);
     doc.setTextColor(31, 41, 55);
