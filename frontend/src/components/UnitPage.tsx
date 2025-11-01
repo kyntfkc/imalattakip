@@ -418,9 +418,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             data.cell.text = convertText(data.cell.text);
           }
         }
-      },
-      // Unicode desteği için encoding ayarları
-      useUnicode: true
+      }
     });
 
     // PDF'i indir
