@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { 
   Card, 
   Row, 
@@ -385,10 +387,123 @@ const Reports: React.FC = () => {
   const handleExport = async (format: 'excel' | 'pdf') => {
     setIsExporting(true);
     try {
-      // Simüle edilmiş export işlemi
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      message.success(`${format.toUpperCase()} formatında rapor dışa aktarıldı`);
+      if (format === 'pdf') {
+        // PDF oluştur
+        const doc = new jsPDF('landscape', 'mm', 'a4');
+        
+        // Başlık
+        doc.setFontSize(18);
+        doc.setTextColor(31, 41, 55);
+        doc.text('Raporlar - Birim Bazlı Analiz', 14, 15);
+        
+        // Tarih bilgisi
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        const exportDate = new Date().toLocaleString('tr-TR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        doc.text(`Oluşturulma Tarihi: ${exportDate}`, 14, 22);
+        
+        // Filtre bilgisi
+        let currentY = 28;
+        const dateRange = getDateRange();
+        if (dateRange) {
+          doc.text(`Tarih Aralığı: ${dateRange[0].format('DD.MM.YYYY')} - ${dateRange[1].format('DD.MM.YYYY')}`, 14, currentY);
+          currentY += 6;
+        }
+        if (selectedUnit !== 'all') {
+          const unitName = reportData.find(item => {
+            const unitIdMap: { [key: string]: string } = {
+              'Ana Kasa': 'ana-kasa',
+              'Yarımamül': 'yarimamul',
+              'Lazer Kesim': 'lazer-kesim',
+              'Tezgah': 'tezgah',
+              'Cila': 'cila',
+              'Döküm': 'dokum',
+              'Dış Kasa': 'dis-kasa'
+            };
+            return unitIdMap[item.unit] === selectedUnit;
+          })?.unit || selectedUnit;
+          doc.text(`Seçili Birim: ${unitName}`, 14, currentY);
+          currentY += 6;
+        }
+        doc.text(`Toplam Birim: ${reportData.length}`, 14, currentY);
+        currentY += 8;
+
+        // Tablo verileri
+        const tableData = reportData.map(item => [
+          String(item.unit || '-'),
+          `${safeNumber(item.totalStock).toFixed(2)} gr`,
+          `${safeNumber(item.fireAmount).toFixed(2)} gr`,
+          `${safeNumber(item.hasEquivalent).toFixed(2)} gr`,
+          String(item.lastUpdate || '-')
+        ]);
+
+        // Tablo oluştur
+        autoTable(doc, {
+          head: [['Birim', 'Toplam Stok', 'Fire', 'Has Karşılığı', 'Son Güncelleme']],
+          body: tableData,
+          startY: currentY,
+          styles: {
+            fontSize: 7,
+            cellPadding: 1.5,
+            overflow: 'linebreak',
+            cellWidth: 'wrap',
+            font: 'helvetica',
+            fontStyle: 'normal'
+          },
+          headStyles: {
+            fillColor: [31, 41, 55],
+            textColor: 255,
+            fontStyle: 'bold',
+            font: 'helvetica',
+            fontSize: 7
+          },
+          alternateRowStyles: {
+            fillColor: [249, 250, 251]
+          },
+          columnStyles: {
+            0: { cellWidth: 50 },  // Birim
+            1: { cellWidth: 35 },  // Toplam Stok
+            2: { cellWidth: 30 },  // Fire
+            3: { cellWidth: 35 },  // Has Karşılığı
+            4: { cellWidth: 50 }   // Son Güncelleme
+          },
+          margin: { left: 10, right: 10 },
+          didParseCell: function(data: any) {
+            if (data.cell && typeof data.cell.text !== 'undefined') {
+              const convertText = (text: any): string => {
+                if (typeof text === 'string') {
+                  return text;
+                }
+                return String(text || '');
+              };
+              
+              if (Array.isArray(data.cell.text)) {
+                data.cell.text = data.cell.text.map(convertText);
+              } else {
+                data.cell.text = convertText(data.cell.text);
+              }
+            }
+          }
+        });
+
+        // PDF'i indir
+        const fileName = `Raporlar_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
+        
+        message.success('PDF formatında rapor dışa aktarıldı');
+      } else {
+        // Excel export (simüle edilmiş - gelecekte implement edilebilir)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        message.success('Excel formatında rapor dışa aktarıldı');
+      }
     } catch (error) {
+      console.error('Export hatası:', error);
       message.error('Dışa aktarma işlemi başarısız');
     } finally {
       setIsExporting(false);

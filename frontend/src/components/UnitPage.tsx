@@ -369,13 +369,14 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     });
 
     // Tablo oluştur - Türkçe karakter desteği için didParseCell hook'u kullan
+    // Landscape A4: 297mm x 210mm (kullanılabilir: ~277mm x ~190mm, margin'lerle: ~249mm x ~162mm)
     autoTable(doc, {
       head: [['Tarih', 'İşlem Tipi', 'Kaynak Birim', 'Hedef Birim', 'Ayar', 'Miktar', 'Cinsi', 'Not']],
       body: tableData,
       startY: filterInfo ? 40 : 36,
       styles: {
-        fontSize: 8,
-        cellPadding: 2,
+        fontSize: 7,
+        cellPadding: 1.5,
         overflow: 'linebreak',
         cellWidth: 'wrap',
         font: 'helvetica',
@@ -385,22 +386,23 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         fillColor: [31, 41, 55],
         textColor: 255,
         fontStyle: 'bold',
-        font: 'helvetica'
+        font: 'helvetica',
+        fontSize: 7
       },
       alternateRowStyles: {
         fillColor: [249, 250, 251]
       },
       columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 25 },
-        2: { cellWidth: 35 },
-        3: { cellWidth: 35 },
-        4: { cellWidth: 30 },
-        5: { cellWidth: 25 },
-        6: { cellWidth: 30 },
-        7: { cellWidth: 40 }
+        0: { cellWidth: 35 },  // Tarih
+        1: { cellWidth: 22 },  // İşlem Tipi
+        2: { cellWidth: 30 },  // Kaynak Birim
+        3: { cellWidth: 30 },  // Hedef Birim
+        4: { cellWidth: 25 },  // Ayar
+        5: { cellWidth: 22 },  // Miktar
+        6: { cellWidth: 28 },  // Cinsi
+        7: { cellWidth: 35 }   // Not
       },
-      margin: { left: 14, right: 14 },
+      margin: { left: 10, right: 10 },
       didParseCell: function(data: any) {
         // Türkçe karakterleri doğru encode et - Unicode karakterleri koru
         if (data.cell && typeof data.cell.text !== 'undefined') {
