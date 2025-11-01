@@ -880,6 +880,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   })()}
                 </Space>
               </Col>
+            </>
+          )}
         </Row>
       </Card>
 
