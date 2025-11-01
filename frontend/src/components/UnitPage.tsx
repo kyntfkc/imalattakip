@@ -14,8 +14,12 @@ import {
   message,
   Empty,
   Segmented,
-  Input
+  Input,
+  DatePicker
 } from 'antd';
+import dayjs, { Dayjs } from 'dayjs';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import {
   GoldOutlined,
   ToolOutlined,
@@ -53,6 +57,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const { cinsiOptions } = useCinsiSettings();
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState<'all' | 'week' | 'month' | 'year'>('all');
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null]>([null, null]);
   const [tableSearchText, setTableSearchText] = useState('');
   const [tableFilteredInfo, setTableFilteredInfo] = useState<Record<string, string[] | null>>({});
   const { isBackendOnline, isChecking } = useBackendStatus();
@@ -68,24 +73,45 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
 
   // Tarih filtreleme fonksiyonu
   const filterTransfersByDate = (transfers: any[]) => {
-    if (dateFilter === 'all') return transfers;
-    
-    const now = new Date();
-    const filterDate = new Date();
-    
-    switch (dateFilter) {
-      case 'week':
-        filterDate.setDate(now.getDate() - 7);
-        break;
-      case 'month':
-        filterDate.setMonth(now.getMonth() - 1);
-        break;
-      case 'year':
-        filterDate.setFullYear(now.getFullYear() - 1);
-        break;
+    let filtered = transfers;
+
+    // Önce tarih aralığı filtresini uygula
+    if (dateRange[0] && dateRange[1]) {
+      const startDate = dateRange[0].startOf('day').toDate();
+      const endDate = dateRange[1].endOf('day').toDate();
+      filtered = filtered.filter(transfer => {
+        const transferDate = new Date(transfer.date);
+        return transferDate >= startDate && transferDate <= endDate;
+      });
+    } else if (dateRange[0]) {
+      const startDate = dateRange[0].startOf('day').toDate();
+      filtered = filtered.filter(transfer => new Date(transfer.date) >= startDate);
+    } else if (dateRange[1]) {
+      const endDate = dateRange[1].endOf('day').toDate();
+      filtered = filtered.filter(transfer => new Date(transfer.date) <= endDate);
     }
-    
-    return transfers.filter(transfer => new Date(transfer.date) >= filterDate);
+
+    // Sonra preset filtreyi uygula (eğer tarih aralığı yoksa)
+    if (dateFilter !== 'all' && !dateRange[0] && !dateRange[1]) {
+      const now = new Date();
+      const filterDate = new Date();
+      
+      switch (dateFilter) {
+        case 'week':
+          filterDate.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          filterDate.setMonth(now.getMonth() - 1);
+          break;
+        case 'year':
+          filterDate.setFullYear(now.getFullYear() - 1);
+          break;
+      }
+      
+      filtered = filtered.filter(transfer => new Date(transfer.date) >= filterDate);
+    }
+
+    return filtered;
   };
 
   // Bu birime ait işlemleri getir
@@ -98,7 +124,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   // Filtrelenmiş transferler
   const filteredTransfers = useMemo(() => {
     return filterTransfersByDate(unitTransfers);
-  }, [unitTransfers, dateFilter]);
+  }, [unitTransfers, dateFilter, dateRange]);
 
   // OUTPUT_ONLY_UNITS, FIRE_UNITS, PROCESSING_UNITS, INPUT_UNITS ve SEMI_FINISHED_UNITS için toplam giriş hesapla
   const totalInput = useMemo(() => {
@@ -211,14 +237,108 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const handleResetFilters = useCallback(() => {
     setTableFilteredInfo({});
     setTableSearchText('');
+    setDateRange([null, null]);
+    setDateFilter('all');
   }, []);
 
   const handleExport = useCallback(() => {
-    const dataToExport = (isOutputOnlyUnit || isInputUnit || unitId === 'satis' || isSemiFinishedUnit) ? filteredTransfers : unitTransfers;
+    // Filtrelenmiş verileri al (tableFilteredInfo ve tableSearchText'e göre)
+    let dataToExport = (isOutputOnlyUnit || isInputUnit || unitId === 'satis' || isSemiFinishedUnit) ? filteredTransfers : unitTransfers;
     
-    // CSV formatında export
-    const headers = ['Tarih', 'İşlem Tipi', 'Kaynak Birim', 'Hedef Birim', 'Ayar', 'Miktar (gr)', 'Cinsi', 'Not'];
-    const rows = dataToExport.map(transfer => {
+    // Arama filtresini uygula
+    if (tableSearchText) {
+      dataToExport = dataToExport.filter(transfer => {
+        const searchLower = tableSearchText.toLowerCase();
+        const fromUnitName = (UNIT_NAMES[transfer.fromUnit as UnitType] || transfer.fromUnit).toLowerCase();
+        const toUnitName = (UNIT_NAMES[transfer.toUnit as UnitType] || transfer.toUnit).toLowerCase();
+        const karat = transfer.karat === '24K' ? 'Has Altın' : transfer.karat.replace('K', ' Ayar');
+        const cinsi = transfer.cinsi ? cinsiOptions.find(opt => opt.value === transfer.cinsi)?.label || transfer.cinsi : '';
+        const notes = transfer.notes || '';
+        
+        return fromUnitName.includes(searchLower) ||
+               toUnitName.includes(searchLower) ||
+               karat.toLowerCase().includes(searchLower) ||
+               cinsi.toLowerCase().includes(searchLower) ||
+               notes.toLowerCase().includes(searchLower);
+      });
+    }
+
+    // Tablo filtrelerini uygula
+    if (tableFilteredInfo['Tarih']) {
+      const filteredDates = tableFilteredInfo['Tarih'];
+      if (filteredDates && filteredDates.length > 0) {
+        dataToExport = dataToExport.filter(transfer => {
+          const transferDate = new Date(transfer.date).toLocaleDateString('tr-TR');
+          return filteredDates.includes(transferDate);
+        });
+      }
+    }
+
+    if (tableFilteredInfo['İşlem Tipi']) {
+      const filteredTypes = tableFilteredInfo['İşlem Tipi'];
+      if (filteredTypes && filteredTypes.length > 0) {
+        dataToExport = dataToExport.filter(transfer => {
+          const isIncoming = transfer.toUnit === unitId;
+          const type = isIncoming ? 'Giriş' : 'Çıkış';
+          return filteredTypes.includes(type);
+        });
+      }
+    }
+
+    if (tableFilteredInfo['Ayar']) {
+      const filteredKarat = tableFilteredInfo['Ayar'];
+      if (filteredKarat && filteredKarat.length > 0) {
+        dataToExport = dataToExport.filter(transfer => {
+          const karat = transfer.karat === '24K' ? 'Has Altın' : transfer.karat.replace('K', ' Ayar');
+          return filteredKarat.includes(karat);
+        });
+      }
+    }
+
+    if (dataToExport.length === 0) {
+      message.warning('Dışa aktarılacak işlem bulunamadı');
+      return;
+    }
+
+    // PDF oluştur
+    const doc = new jsPDF('landscape', 'mm', 'a4');
+    
+    // Başlık
+    doc.setFontSize(18);
+    doc.setTextColor(31, 41, 55);
+    doc.text(`${unitName} - Tüm İşlemler`, 14, 15);
+    
+    // Tarih bilgisi
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    const exportDate = new Date().toLocaleString('tr-TR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    doc.text(`Oluşturulma Tarihi: ${exportDate}`, 14, 22);
+    
+    // Filtre bilgisi
+    let filterInfo = '';
+    if (dateRange[0] && dateRange[1]) {
+      filterInfo = `Tarih Aralığı: ${dateRange[0].format('DD.MM.YYYY')} - ${dateRange[1].format('DD.MM.YYYY')}`;
+    } else if (dateFilter !== 'all') {
+      const filterLabels: Record<string, string> = {
+        'week': 'Son 1 Hafta',
+        'month': 'Son 1 Ay',
+        'year': 'Son 1 Yıl'
+      };
+      filterInfo = `Tarih Filtresi: ${filterLabels[dateFilter]}`;
+    }
+    if (filterInfo) {
+      doc.text(filterInfo, 14, 28);
+    }
+    doc.text(`Toplam İşlem: ${dataToExport.length}`, 14, 34);
+
+    // Tablo verileri
+    const tableData = dataToExport.map(transfer => {
       const isIncoming = transfer.toUnit === unitId;
       const date = new Date(transfer.date).toLocaleString('tr-TR', {
         day: '2-digit',
@@ -230,6 +350,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       const type = isIncoming ? 'Giriş' : 'Çıkış';
       const amount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(transfer.amount) || 0;
       const karat = transfer.karat === '24K' ? 'Has Altın' : transfer.karat.replace('K', ' Ayar');
+      const cinsi = transfer.cinsi ? cinsiOptions.find(opt => opt.value === transfer.cinsi)?.label || transfer.cinsi : '-';
       
       return [
         date,
@@ -237,32 +358,50 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         UNIT_NAMES[transfer.fromUnit as UnitType] || transfer.fromUnit,
         UNIT_NAMES[transfer.toUnit as UnitType] || transfer.toUnit,
         karat,
-        amount.toFixed(2),
-        transfer.cinsi || '-',
+        `${amount.toFixed(2)} gr`,
+        cinsi,
         transfer.notes || '-'
       ];
     });
 
-    // CSV oluştur
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-    ].join('\n');
+    // Tablo oluştur
+    (doc as any).autoTable({
+      head: [['Tarih', 'İşlem Tipi', 'Kaynak Birim', 'Hedef Birim', 'Ayar', 'Miktar', 'Cinsi', 'Not']],
+      body: tableData,
+      startY: filterInfo ? 40 : 36,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        overflow: 'linebreak',
+        cellWidth: 'wrap'
+      },
+      headStyles: {
+        fillColor: [31, 41, 55],
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251]
+      },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 35 },
+        3: { cellWidth: 35 },
+        4: { cellWidth: 30 },
+        5: { cellWidth: 25 },
+        6: { cellWidth: 30 },
+        7: { cellWidth: 40 }
+      },
+      margin: { left: 14, right: 14 }
+    });
 
-    // BOM ekle (Türkçe karakterler için)
-    const BOM = '\uFEFF';
-    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${unitName}_işlemler_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // PDF'i indir
+    const fileName = `${unitName}_işlemler_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
     
-    message.success('İşlemler başarıyla dışa aktarıldı');
-  }, [unitTransfers, filteredTransfers, isOutputOnlyUnit, isInputUnit, unitId, isSemiFinishedUnit, unitName]);
+    message.success(`${dataToExport.length} işlem PDF olarak dışa aktarıldı`);
+  }, [unitTransfers, filteredTransfers, isOutputOnlyUnit, isInputUnit, unitId, isSemiFinishedUnit, unitName, tableSearchText, tableFilteredInfo, dateRange, dateFilter, cinsiOptions]);
 
   const columns: ColumnsType<any> = [
     {
@@ -723,7 +862,13 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             </div>
             <Segmented
               value={dateFilter}
-              onChange={(value) => setDateFilter(value as typeof dateFilter)}
+              onChange={(value) => {
+                setDateFilter(value as typeof dateFilter);
+                // Preset filtre seçildiğinde tarih aralığını temizle
+                if (value !== 'all') {
+                  setDateRange([null, null]);
+                }
+              }}
               options={[
                 {
                   label: (
@@ -784,6 +929,30 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                 border: '1px solid #e5e7eb'
               }}
               block
+            />
+          </div>
+        )}
+        
+        {/* Tarih Aralığı Seçici */}
+        {(isOutputOnlyUnit || isInputUnit || unitId === 'satis' || isSemiFinishedUnit) && (
+          <div style={{ marginTop: 16 }}>
+            <Text strong style={{ display: 'block', marginBottom: 8, fontSize: '14px' }}>
+              Tarih Aralığı
+            </Text>
+            <DatePicker.RangePicker
+              value={dateRange}
+              onChange={(dates) => {
+                setDateRange(dates as [Dayjs | null, Dayjs | null]);
+                // Tarih aralığı seçildiğinde preset filtreyi sıfırla
+                if (dates && dates[0] && dates[1]) {
+                  setDateFilter('all');
+                }
+              }}
+              format="DD.MM.YYYY"
+              placeholder={['Başlangıç Tarihi', 'Bitiş Tarihi']}
+              style={{ width: '100%' }}
+              size="large"
+              allowClear
             />
           </div>
         )}
@@ -964,7 +1133,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   icon={<FilterOutlined />}
                   onClick={handleResetFilters}
                   size="small"
-                  disabled={Object.keys(tableFilteredInfo).length === 0 && !tableSearchText}
+                  disabled={Object.keys(tableFilteredInfo).length === 0 && !tableSearchText && dateFilter === 'all' && !dateRange[0] && !dateRange[1]}
                 >
                   Filtreleri Temizle
                 </Button>
