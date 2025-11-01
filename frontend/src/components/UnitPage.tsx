@@ -471,7 +471,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         };
 
         const selectedDates = selectedKeys && selectedKeys.length > 0 
-          ? selectedKeys.map((key: string) => dayjs(key, 'DD.MM.YYYY'))
+          ? selectedKeys.map((key) => dayjs(String(key), 'DD.MM.YYYY'))
           : null;
 
         return (
