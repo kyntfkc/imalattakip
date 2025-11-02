@@ -123,10 +123,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transfers, unitId]);
 
-  // Filtrelenmiş transferler - Yarı mamül, Tedarik ve Satış için filtre uygulanmaz
+  // Filtrelenmiş transferler - Yarı mamül, Tedarik, Satış ve Döküm için filtre uygulanmaz
   const filteredTransfers = useMemo(() => {
-    // Yarı mamül, Tedarik ve Satış için filtre uygulanmaz, tüm transferler gösterilir
-    if (isSemiFinishedUnit || unitId === 'tedarik' || unitId === 'satis' || isOutputOnlyUnit) {
+    // Yarı mamül, Tedarik, Satış ve Döküm için filtre uygulanmaz, tüm transferler gösterilir
+    if (isSemiFinishedUnit || unitId === 'tedarik' || unitId === 'satis' || unitId === 'dokum' || isOutputOnlyUnit) {
       return unitTransfers;
     }
     return filterTransfersByDate(unitTransfers);
@@ -281,7 +281,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const handleExport = useCallback(() => {
     // Filtrelenmiş verileri al (tableFilteredInfo ve tableSearchText'e göre)
     // Sadece Döküm için filtre uygulanır, diğerleri için tüm transferler
-    let dataToExport = (isInputUnit && unitId === 'dokum') ? filteredTransfers : unitTransfers;
+    // Tüm birimler için unitTransfers kullan (filtre uygulanmaz)
+    let dataToExport = unitTransfers;
     
     // Arama filtresini uygula
     if (tableSearchText) {
@@ -950,8 +951,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         </Space>
       </div>
 
-      {/* Filtreler - Sadece Döküm için (Yarı mamül, Tedarik ve Satış hariç) */}
-      {(isInputUnit && unitId === 'dokum') && (
+      {/* Tarih filtresi kaldırıldı - Tüm birimler için filtre uygulanmaz */}
         <div style={{ 
           marginTop: 0,
           marginBottom: 24,
@@ -990,7 +990,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   }}
                 >
                   <CalendarOutlined style={{ marginRight: '4px' }} />
-                  {(isInputUnit && unitId === 'dokum') ? filteredTransfers.length : unitTransfers.length} işlem
+                  {unitTransfers.length} işlem
                 </Tag>
               </Space>
             </div>
@@ -1091,8 +1091,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           </div>
         )}
 
-      {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana (Satış ve Tedarik sayfası hariç) */}
-      {unitId !== 'satis' && unitId !== 'tedarik' && (
+      {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana (Satış, Tedarik ve Döküm sayfası hariç) */}
+      {unitId !== 'satis' && unitId !== 'tedarik' && unitId !== 'dokum' && (
         <div style={{ marginTop: 24 }}>
           <Row gutter={[16, 16]} align="stretch">
           <Col xs={24} lg={12}>
