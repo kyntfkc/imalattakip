@@ -236,7 +236,12 @@ class ApiService {
         
         try {
           const error = await response.json();
-          errorMessage = error.error || error.message || errorMessage;
+          // Validasyon hatalarını kontrol et
+          if (error.errors && Array.isArray(error.errors) && error.errors.length > 0) {
+            errorMessage = error.errors.map((err: any) => err.msg || err.message).join(', ');
+          } else {
+            errorMessage = error.error || error.message || errorMessage;
+          }
         } catch {
           // JSON parse hatası
           const text = await response.text().catch(() => '');
@@ -246,7 +251,7 @@ class ApiService {
         // Status code'a göre mesaj
         if (response.status === 409) {
           errorMessage = 'Bu kullanıcı adı zaten kullanılıyor!';
-        } else if (response.status === 400) {
+        } else if (response.status === 400 && errorMessage === 'Kayıt başarısız!') {
           errorMessage = 'Geçersiz kullanıcı adı veya şifre!';
         } else if (response.status === 500) {
           errorMessage = 'Sunucu hatası! Lütfen daha sonra tekrar deneyin.';
