@@ -29,53 +29,45 @@ const Settings: React.FC = () => {
 
   return (
     <div className="fade-in" style={{ padding: '0' }}>
-      {/* Professional Header */}
+      {/* Minimal Header */}
       <Card 
         style={{ 
-          marginBottom: 24, 
-          borderRadius: '20px',
-          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+          marginBottom: 16, 
+          borderRadius: '12px',
+          background: '#ffffff',
           border: '1px solid #e5e7eb',
-          overflow: 'hidden'
+          boxShadow: 'none'
         }}
-        styles={{ body: { padding: 32 } }}
+        styles={{ body: { padding: '16px' } }}
       >
         <Row align="middle" justify="space-between">
           <Col>
-            <Space size={20} align="center">
+            <Space size={12} align="center">
               <div style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '16px',
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
                 background: '#f8fafc',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                border: '1px solid #e5e7eb'
               }}>
-                <SettingOutlined style={{ fontSize: '28px', color: '#64748b' }} />
+                <SettingOutlined style={{ fontSize: '20px', color: '#64748b' }} />
               </div>
               <div>
-                <Space direction="vertical" size={4} style={{ alignItems: 'flex-start' }}>
-                  <Space size={10} align="center">
-                    <Title level={2} style={{ margin: 0, color: '#1f2937', fontSize: '28px', fontWeight: '700' }}>
-                      Ayarlar
-                    </Title>
-                    {!isChecking && (
-                      <div style={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: '50%',
-                        backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444',
-                        boxShadow: isBackendOnline ? '0 0 8px rgba(34,197,94,0.6)' : '0 0 8px rgba(239,68,68,0.6)',
-                        border: `2px solid ${isBackendOnline ? '#dcfce7' : '#fee2e2'}`
-                      }} />
-                    )}
-                  </Space>
-                  <Text style={{ color: '#6b7280', fontSize: '16px', fontWeight: '400' }}>
-                    Sistem ve kullanıcı ayarları
-                  </Text>
+                <Space size={8} align="center">
+                  <Title level={4} style={{ margin: 0, color: '#1f2937', fontSize: '18px', fontWeight: '600' }}>
+                    Ayarlar
+                  </Title>
+                  {!isChecking && (
+                    <div style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444'
+                    }} />
+                  )}
                 </Space>
               </div>
             </Space>
