@@ -1135,39 +1135,63 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             </Col>
           ) : (
             <>
-              {/* Sol Kısım - Toplam Satış/Stok/İşlem */}
-              <Col xs={24} sm={12}>
-                <Space direction="vertical" size="small" style={{ width: '100%' }} align="start">
-                  {(() => {
-                    // Normal birimler için (Ana Kasa, Dış Kasa vb.) transferlerden hesapla
-                    const calculatedValue = unitId === 'satis' ? totalInput : 
-                                           isOutputOnlyUnit ? totalInput : 
-                                           isInputUnit ? totalInput + totalOutput : 
-                                           Math.max(0, totalInput - totalOutput); // Toplam Stok = Giriş - Çıkış
-                    const formattedValue = calculatedValue.toFixed(2).replace(/^0+(?=\d)/, '');
-                    return (
-                      <Statistic
-                        title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>
-                          {unitId === 'satis' ? 'Toplam Satış' : 
-                           isOutputOnlyUnit ? 'Toplam Giriş' : 
-                           isInputUnit ? 'Toplam İşlem' : 'Toplam Stok'}
-                        </Text>}
-                        value={formattedValue}
-                        suffix="gr"
-                        valueStyle={{ 
-                          color: '#1f2937', 
-                          fontSize: isMobile ? '22px' : '24px',
-                          fontWeight: 700
-                        }}
-                        prefix={<GoldOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
-                      />
-                    );
-                  })()}
-                </Space>
-              </Col>
-              
-              {/* Sağ Kısım - Has Karşılığı */}
-              <Col xs={24} sm={12}>
+              {/* Satış sayfası için sadece Has Karşılığı, diğerleri için Toplam Stok/İşlem + Has Karşılığı */}
+              {unitId === 'satis' ? (
+                /* Satış sayfası: Sadece Has Karşılığı göster */
+                <Col xs={24}>
+                  <Space direction="vertical" size="small" style={{ width: '100%' }} align="center">
+                    {(() => {
+                      const hasValue = filteredHasEquivalent;
+                      const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                      return (
+                        <Statistic
+                          title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
+                          value={formattedHas}
+                          suffix="gr"
+                          valueStyle={{ 
+                            color: '#059669',
+                            fontSize: isMobile ? '22px' : '24px',
+                            fontWeight: 700
+                          }}
+                          prefix={<CrownOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
+                        />
+                      );
+                    })()}
+                  </Space>
+                </Col>
+              ) : (
+                <>
+                  {/* Sol Kısım - Toplam Stok/İşlem */}
+                  <Col xs={24} sm={12}>
+                    <Space direction="vertical" size="small" style={{ width: '100%' }} align="start">
+                      {(() => {
+                        // Normal birimler için (Ana Kasa, Dış Kasa vb.) transferlerden hesapla
+                        const calculatedValue = isOutputOnlyUnit ? totalInput : 
+                                               isInputUnit ? totalInput + totalOutput : 
+                                               Math.max(0, totalInput - totalOutput); // Toplam Stok = Giriş - Çıkış
+                        const formattedValue = calculatedValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                        return (
+                          <Statistic
+                            title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>
+                              {isOutputOnlyUnit ? 'Toplam Giriş' : 
+                               isInputUnit ? 'Toplam İşlem' : 'Toplam Stok'}
+                            </Text>}
+                            value={formattedValue}
+                            suffix="gr"
+                            valueStyle={{ 
+                              color: '#1f2937', 
+                              fontSize: isMobile ? '22px' : '24px',
+                              fontWeight: 700
+                            }}
+                            prefix={<GoldOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
+                          />
+                        );
+                      })()}
+                    </Space>
+                  </Col>
+                  
+                  {/* Sağ Kısım - Has Karşılığı */}
+                  <Col xs={24} sm={12}>
                 <Space direction="vertical" size="small" style={{ width: '100%' }} align="start">
                   {(() => {
                     // Tüm birimler için Has Karşılığı - transferlerden hesaplanan değeri kullan
@@ -1190,6 +1214,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   })()}
                 </Space>
               </Col>
+                </>
+              )}
             </>
           )}
         </Row>
@@ -1325,6 +1351,40 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           <Empty description="Henüz işlem yok" />
         )}
       </Card>
+
+      {/* Satış sayfası için minimalist Toplam Satış kartı - Tüm İşlemler'in altında */}
+      {unitId === 'satis' && (
+        <div style={{ 
+          marginTop: 16,
+          padding: '16px 20px',
+          background: 'white',
+          borderRadius: '12px',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
+        }}>
+          <Space size={16} align="center" style={{ width: '100%', justifyContent: 'center' }}>
+            <GoldOutlined style={{ fontSize: '20px', color: '#64748b' }} />
+            <div style={{ textAlign: 'center' }}>
+              <Text style={{ 
+                display: 'block', 
+                fontSize: '12px', 
+                color: '#6b7280',
+                marginBottom: '4px'
+              }}>
+                Toplam Satış
+              </Text>
+              <Text strong style={{ 
+                display: 'block', 
+                fontSize: isMobile ? '24px' : '28px', 
+                color: '#1f2937',
+                fontWeight: 600
+              }}>
+                {totalInput.toFixed(2).replace(/^0+(?=\d)/, '')} gr
+              </Text>
+            </div>
+          </Space>
+        </div>
+      )}
 
       <TransferModal
         open={transferModalOpen}
