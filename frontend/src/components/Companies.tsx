@@ -191,58 +191,6 @@ const Companies: React.FC = () => {
         </Space>
       </div>
 
-      {/* İstatistikler */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={8}>
-          <Card 
-            style={{ 
-              borderRadius: '16px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <Text style={{ color: '#64748b', fontSize: '14px', fontWeight: '500' }}>Toplam Firma</Text>
-              <Text style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937' }}>
-                {companies.length}
-              </Text>
-            </Space>
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card 
-            style={{ 
-              borderRadius: '16px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <Text style={{ color: '#64748b', fontSize: '14px', fontWeight: '500' }}>Firmalar</Text>
-              <Text style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937' }}>
-                {companies.filter(c => c.type === 'company').length}
-              </Text>
-            </Space>
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card 
-            style={{ 
-              borderRadius: '16px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <Text style={{ color: '#64748b', fontSize: '14px', fontWeight: '500' }}>Kişiler</Text>
-              <Text style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937' }}>
-                {companies.filter(c => c.type === 'person').length}
-              </Text>
-            </Space>
-          </Card>
-        </Col>
-      </Row>
-
       {/* Ana İçerik */}
       <Card 
         style={{ 
