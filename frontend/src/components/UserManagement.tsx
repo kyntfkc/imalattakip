@@ -118,13 +118,45 @@ const UserManagement: React.FC = () => {
 
   const handleDeleteUser = async (userId: number) => {
     try {
+      // Kullanıcı kendisini silmeye çalışıyorsa engelle
+      if (user?.id === userId) {
+        message.error('Kendi hesabınızı silemezsiniz!');
+        return;
+      }
+
+      // Silinecek kullanıcıyı bul
+      const userToDelete = users.find(u => u.id === userId);
+      
+      // Son admin kontrolü
+      if (userToDelete?.role === 'admin') {
+        const adminUsers = users.filter(u => u.role === 'admin');
+        if (adminUsers.length <= 1) {
+          message.error('En az bir admin kullanıcı olmalıdır!');
+          return;
+        }
+      }
+
       setLoading(true);
       await apiService.deleteUser(userId);
       await loadUsers();
       message.success('Kullanıcı silindi!');
     } catch (error: any) {
       console.error('Kullanıcı silinemedi:', error);
-      message.error(error.message || 'Kullanıcı silinemedi');
+      
+      // Daha açıklayıcı hata mesajları
+      let errorMessage = 'Kullanıcı silinemedi';
+      
+      if (error.message) {
+        if (error.message.includes('500') || error.message.includes('Sunucu hatası')) {
+          errorMessage = 'Sunucu hatası! Kullanıcının bağlı olduğu veriler olabilir. Lütfen backend log\'larını kontrol edin.';
+        } else if (error.message.includes('foreign key') || error.message.includes('constraint')) {
+          errorMessage = 'Bu kullanıcı başka kayıtlarla ilişkili olduğu için silinemez. Önce bağlı verileri temizleyin.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -228,16 +260,24 @@ const UserManagement: React.FC = () => {
           </Button>
           <Popconfirm
             title="Kullanıcıyı silmek istediğinizden emin misiniz?"
-            description="Bu işlem geri alınamaz."
+            description={
+              record.id === user?.id 
+                ? "Kendi hesabınızı silemezsiniz!"
+                : record.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1
+                ? "Son admin kullanıcı silinemez!"
+                : "Bu işlem geri alınamaz."
+            }
             onConfirm={() => handleDeleteUser(record.id)}
             okText="Evet"
             cancelText="Hayır"
             okButtonProps={{ danger: true }}
+            disabled={record.id === user?.id || (record.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1)}
           >
             <Button
               danger
               size="small"
               icon={<DeleteOutlined />}
+              disabled={record.id === user?.id || (record.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1)}
             >
               Sil
             </Button>
