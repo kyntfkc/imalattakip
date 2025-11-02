@@ -91,8 +91,11 @@ const AppContent: React.FC = () => {
 
   // Mobilde menü açıkken body scroll'u engelle
   useEffect(() => {
+    // Mobilde menü açıkken scroll'u engelleme - artık scroll'a izin veriyoruz
+    // Sadece menü overlay'i kapatmak için tıklamaya izin veriyoruz
     if (isMobile && !collapsed) {
-      document.body.classList.add('menu-open');
+      // Scroll'u engellemeyelim, sadece overlay gösterelim
+      // document.body.classList.add('menu-open'); // Kaldırıldı
     } else {
       document.body.classList.remove('menu-open');
     }
@@ -443,7 +446,11 @@ const AppContent: React.FC = () => {
           style={{
             background: '#ffffff',
             borderRight: '1px solid #e5e7eb',
-            boxShadow: isMobile && !collapsed ? '4px 0 12px rgba(0, 0, 0, 0.15)' : '2px 0 8px rgba(0, 0, 0, 0.02)'
+            boxShadow: isMobile && !collapsed ? '4px 0 12px rgba(0, 0, 0, 0.15)' : '2px 0 8px rgba(0, 0, 0, 0.02)',
+            position: isMobile && !collapsed ? 'fixed' : 'relative',
+            height: isMobile && !collapsed ? '100vh' : 'auto',
+            zIndex: isMobile && !collapsed ? 999 : 'auto',
+            overflowY: isMobile && !collapsed ? 'auto' : 'visible'
           }}
           breakpoint="lg"
           onBreakpoint={(broken) => {
