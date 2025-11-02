@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Row, Col, Typography, Space, Card, Alert, Tabs } from 'antd';
-import { SettingOutlined, DatabaseOutlined, UserOutlined, DashboardOutlined, TagsOutlined, BarChartOutlined, CloudDownloadOutlined } from '@ant-design/icons';
+import { SettingOutlined, DatabaseOutlined, UserOutlined, DashboardOutlined, TagsOutlined, BarChartOutlined, CloudDownloadOutlined, MenuOutlined } from '@ant-design/icons';
 
 // Modüler bileşenler
 import { DashboardSettingsCard } from './settings/DashboardSettingsCard';
 import { CinsiSettingsCard } from './settings/CinsiSettingsCard';
 import { DataStatsCard } from './settings/DataStatsCard';
 import { BackupCard } from './settings/BackupCard';
+import MenuVisibilityCard from './settings/MenuVisibilityCard';
 
 // Hook'lar
 import { useBackendStatus } from '../hooks/useBackendStatus';
@@ -197,6 +198,16 @@ const Settings: React.FC = () => {
                 </Space>
               ),
               children: <BackupCard />
+            },
+            {
+              key: 'menu',
+              label: (
+                <Space size={8}>
+                  <MenuOutlined style={{ fontSize: '16px' }} />
+                  <span>Menü Görünürlüğü</span>
+                </Space>
+              ),
+              children: <MenuVisibilityCard />
             }
           ]}
         />

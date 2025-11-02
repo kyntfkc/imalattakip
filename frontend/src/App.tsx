@@ -25,6 +25,7 @@ import { CompanyProvider } from './context/CompanyContext';
 import { DashboardSettingsProvider } from './context/DashboardSettingsContext';
 import { CinsiSettingsProvider } from './context/CinsiSettingsContext';
 import { LogProvider } from './context/LogContext';
+import { MenuSettingsProvider, useMenuSettings } from './context/MenuSettingsContext';
 import { useBackendStatus } from './hooks/useBackendStatus';
 import Login from './components/Login';
 import TransferModal from './components/TransferModal';
@@ -53,25 +54,28 @@ type MenuItem = Required<MenuProps>['items'][number];
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <LogProvider>
-        <TransferProvider>
-          <ExternalVaultProvider>
-            <CompanyProvider>
-              <DashboardSettingsProvider>
-                <CinsiSettingsProvider>
-                  <AppContent />
-                </CinsiSettingsProvider>
-              </DashboardSettingsProvider>
-            </CompanyProvider>
-          </ExternalVaultProvider>
-        </TransferProvider>
-      </LogProvider>
+      <MenuSettingsProvider>
+        <LogProvider>
+          <TransferProvider>
+            <ExternalVaultProvider>
+              <CompanyProvider>
+                <DashboardSettingsProvider>
+                  <CinsiSettingsProvider>
+                    <AppContent />
+                  </CinsiSettingsProvider>
+                </DashboardSettingsProvider>
+              </CompanyProvider>
+            </ExternalVaultProvider>
+          </TransferProvider>
+        </LogProvider>
+      </MenuSettingsProvider>
     </AuthProvider>
   );
 };
 
 const AppContent: React.FC = () => {
   const { user, isAuthenticated, logout, isLoading } = useAuth();
+  const { settings: menuSettings, isLoading: menuSettingsLoading } = useMenuSettings();
   const { isBackendOnline, isChecking } = useBackendStatus();
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
@@ -174,118 +178,124 @@ const AppContent: React.FC = () => {
 
   const isAdmin = user?.role === 'admin';
 
+  // Menü öğelerini ayarlara göre filtrele
+  const isMenuVisible = (key: string): boolean => {
+    // Menü ayarları yüklenene kadar varsayılan olarak görünür
+    if (menuSettingsLoading) {
+      return true;
+    }
+    
+    if (key === 'user-management' || key === 'logs') {
+      // Admin-only menüler her zaman admin için görünür olmalı (rol kontrolü zaten var)
+      return isAdmin ? (menuSettings.visibleMenus[key as keyof typeof menuSettings.visibleMenus] ?? true) : false;
+    }
+    return menuSettings.visibleMenus[key as keyof typeof menuSettings.visibleMenus] ?? true;
+  };
+
   const menuItems: MenuItem[] = [
-    {
+    ...(isMenuVisible('dashboard') ? [{
       key: 'dashboard',
       icon: <HomeOutlined />,
       label: 'Dashboard'
-    },
-    {
+    }] : []),
+    ...(isMenuVisible('ana-kasa') || isMenuVisible('yarimamul') || isMenuVisible('lazer-kesim') || isMenuVisible('tezgah') || isMenuVisible('cila') ? [{
       key: 'divider-1',
       type: 'divider' as const
-    },
-    {
+    }, {
       key: 'units-group',
       label: 'ÜRETİM BİRİMLERİ',
       type: 'group' as const,
       children: [
-        {
+        ...(isMenuVisible('ana-kasa') ? [{
           key: 'ana-kasa',
           icon: <BankOutlined />,
           label: 'Ana Kasa'
-        },
-        {
+        }] : []),
+        ...(isMenuVisible('yarimamul') ? [{
           key: 'yarimamul',
           icon: <GoldOutlined />,
           label: 'Yarımamül'
-        },
-        {
+        }] : []),
+        ...(isMenuVisible('lazer-kesim') ? [{
           key: 'lazer-kesim',
           icon: <ThunderboltOutlined />,
           label: 'Lazer Kesim'
-        },
-        {
+        }] : []),
+        ...(isMenuVisible('tezgah') ? [{
           key: 'tezgah',
           icon: <ToolOutlined />,
           label: 'Tezgah'
-        },
-        {
+        }] : []),
+        ...(isMenuVisible('cila') ? [{
           key: 'cila',
           icon: <CrownOutlined />,
           label: 'Cila'
-        }
-      ]
-    },
-    {
+        }] : [])
+      ].filter(item => item !== null)
+    }] : []),
+    ...(isMenuVisible('external-vault') || isMenuVisible('dokum') || isMenuVisible('tedarik') || isMenuVisible('satis') ? [{
       key: 'divider-2',
       type: 'divider' as const
-    },
-    {
+    }, ...(isMenuVisible('external-vault') ? [{
       key: 'external-vault',
       icon: <BankOutlined />,
       label: 'Dış Kasa'
-    },
-    {
+    }] : []), ...(isMenuVisible('dokum') ? [{
       key: 'dokum',
       icon: <GoldOutlined />,
       label: 'Döküm'
-    },
-    {
+    }] : []), ...(isMenuVisible('tedarik') ? [{
       key: 'tedarik',
       icon: <GoldOutlined />,
       label: 'Tedarik'
-    },
-    {
+    }] : []), ...(isMenuVisible('satis') ? [{
       key: 'satis',
       icon: <ShoppingCartOutlined />,
       label: 'Satış'
-    },
-    {
+    }] : [])] : []),
+    ...(isMenuVisible('required-has') || isMenuVisible('reports') || isMenuVisible('companies') ? [{
       key: 'divider-3',
       type: 'divider' as const
-    },
-    {
+    }, ...(isMenuVisible('required-has') ? [{
       key: 'required-has',
       icon: <CalculatorOutlined />,
       label: 'Gereken Has'
-    },
-    {
+    }] : []), ...(isMenuVisible('reports') ? [{
       key: 'reports',
       icon: <BarChartOutlined />,
       label: 'Raporlar'
-    },
-    {
+    }] : []), ...(isMenuVisible('companies') ? [{
       key: 'companies',
       icon: <TeamOutlined />,
       label: 'Firmalar'
-    },
+    }] : [])] : []),
     // Admin-only menü öğeleri
     ...(isAdmin ? [
-      {
+      ...(isMenuVisible('logs') ? [{
         key: 'logs',
         icon: <FileTextOutlined />,
         label: 'Sistem Logları'
-      },
-      {
+      }] : []),
+      ...(isMenuVisible('settings') ? [{
         key: 'settings',
         icon: <SettingOutlined />,
         label: 'Ayarlar'
-      },
-      {
+      }] : []),
+      ...(isMenuVisible('logs') || isMenuVisible('settings') || isMenuVisible('user-management') ? [{
         key: 'divider-4',
         type: 'divider' as const
-      },
-      {
+      }] : []),
+      ...(isMenuVisible('user-management') ? [{
         key: 'user-management',
         icon: <UserOutlined />,
         label: 'Kullanıcı Yönetimi'
-      }
+      }] : [])
     ] : [
-      {
+      ...(isMenuVisible('settings') ? [{
         key: 'settings',
         icon: <SettingOutlined />,
         label: 'Ayarlar'
-      }
+      }] : [])
     ])
   ];
 

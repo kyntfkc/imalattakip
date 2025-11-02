@@ -584,6 +584,24 @@ class ApiService {
     });
   }
 
+  // Menu Settings methods (user-specific)
+  async getMenuSettings() {
+    return this.request<{ settings: any }>('/menu-settings');
+  }
+
+  async saveMenuSettings(settings: any) {
+    return this.request<{ message: string; settings: any }>('/menu-settings', {
+      method: 'POST',
+      body: JSON.stringify({ settings }),
+    });
+  }
+
+  async resetMenuSettings() {
+    return this.request<{ message: string; settings: any }>('/menu-settings/reset', {
+      method: 'POST',
+    });
+  }
+
   // Database backup
   async backupDatabase() {
     const url = `${API_BASE_URL}/backup/database`;
