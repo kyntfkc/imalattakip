@@ -108,11 +108,12 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
     }
 
     const loadSettings = async () => {
+      // Önce rol varsayılanlarını backend'den yükle (eğer kullanıcı rolü varsa)
+      let effectiveRoleDefaults = getDefaultSettings(user?.role);
+      
       try {
         setIsLoading(true);
         
-        // Önce rol varsayılanlarını backend'den yükle (eğer kullanıcı rolü varsa)
-        let effectiveRoleDefaults = getDefaultSettings(user?.role);
         if (user?.role) {
           try {
             const roleDefaultsResponse = await apiService.getRoleMenuDefaults(user.role);
@@ -124,7 +125,7 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
                 backendDefaults = roleDefaultsResponse.settings;
               }
               
-              if (backendDefaults && backendDefaults.visibleMenus) {
+              if (backendDefaults && backendDefaults.visibleMenus && typeof backendDefaults.visibleMenus === 'object') {
                 effectiveRoleDefaults = {
                   visibleMenus: {
                     ...effectiveRoleDefaults.visibleMenus,
@@ -144,17 +145,19 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
           const response = await apiService.getMenuSettings();
           if (response && response.settings && response.settings.visibleMenus && typeof response.settings.visibleMenus === 'object') {
             // Kullanıcı ayarları varsa, rol varsayılanlarını üzerine yaz
-            const allMenus = Object.keys(effectiveRoleDefaults.visibleMenus);
-            const mergedMenus: any = { ...effectiveRoleDefaults.visibleMenus }; // Önce rol varsayılanlarını kopyala
-            // Backend'den gelen kullanıcı ayarlarını üzerine yaz
-            allMenus.forEach((menuKey) => {
-              if (response.settings.visibleMenus && response.settings.visibleMenus[menuKey] !== undefined) {
-                mergedMenus[menuKey] = response.settings.visibleMenus[menuKey];
-              }
-            });
-            setSettings({ visibleMenus: mergedMenus });
-            setIsLoading(false);
-            return;
+            if (effectiveRoleDefaults && effectiveRoleDefaults.visibleMenus) {
+              const allMenus = Object.keys(effectiveRoleDefaults.visibleMenus);
+              const mergedMenus: any = { ...effectiveRoleDefaults.visibleMenus }; // Önce rol varsayılanlarını kopyala
+              // Backend'den gelen kullanıcı ayarlarını üzerine yaz
+              allMenus.forEach((menuKey) => {
+                if (response.settings.visibleMenus && response.settings.visibleMenus[menuKey] !== undefined) {
+                  mergedMenus[menuKey] = response.settings.visibleMenus[menuKey];
+                }
+              });
+              setSettings({ visibleMenus: mergedMenus });
+              setIsLoading(false);
+              return;
+            }
           }
         } catch (backendError) {
           console.log('Backend\'den menü ayarları yüklenemedi, localStorage\'dan yükleniyor...', backendError);
@@ -163,32 +166,38 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
         // Backend yoksa veya hata varsa, kullanıcı bazlı localStorage'dan yükle
         const userSpecificKey = `menu-settings-${user?.id || 'guest'}`;
         const saved = localStorage.getItem(userSpecificKey);
-        if (saved) {
+        if (saved && saved !== 'undefined' && saved.trim() !== '') {
           try {
             const parsedSettings = JSON.parse(saved);
             // Parsed settings'in doğru formatta olduğunu kontrol et
             if (parsedSettings && parsedSettings.visibleMenus && typeof parsedSettings.visibleMenus === 'object') {
               // Rol varsayılanlarını (backend'den yüklenen veya kod içi) kullan
-              const allMenus = Object.keys(effectiveRoleDefaults.visibleMenus);
-              const mergedMenus: any = { ...effectiveRoleDefaults.visibleMenus }; // Önce rol varsayılanlarını kopyala
-              // localStorage'dan gelen ayarları üzerine yaz
-              allMenus.forEach((menuKey) => {
-                if (menuKey in parsedSettings.visibleMenus) {
-                  mergedMenus[menuKey] = parsedSettings.visibleMenus[menuKey];
-                }
-              });
-              setSettings({ visibleMenus: mergedMenus });
-            } else {
-              // Geçersiz format, rol varsayılanlarını kullan
-              setSettings(effectiveRoleDefaults);
+              if (effectiveRoleDefaults && effectiveRoleDefaults.visibleMenus) {
+                const allMenus = Object.keys(effectiveRoleDefaults.visibleMenus);
+                const mergedMenus: any = { ...effectiveRoleDefaults.visibleMenus }; // Önce rol varsayılanlarını kopyala
+                // localStorage'dan gelen ayarları üzerine yaz
+                allMenus.forEach((menuKey) => {
+                  if (menuKey in parsedSettings.visibleMenus) {
+                    mergedMenus[menuKey] = parsedSettings.visibleMenus[menuKey];
+                  }
+                });
+                setSettings({ visibleMenus: mergedMenus });
+                setIsLoading(false);
+                return;
+              }
             }
           } catch (parseError) {
             console.error('localStorage parse hatası:', parseError);
-            setSettings(effectiveRoleDefaults);
+            // Parse hatası varsa, localStorage'dan temizle ve varsayılanları kullan
+            localStorage.removeItem(userSpecificKey);
           }
-        } else {
-          // Kullanıcı ayarları yoksa, rol varsayılanlarını kullan
+        }
+        
+        // Kullanıcı ayarları yoksa veya geçersizse, rol varsayılanlarını kullan
+        if (effectiveRoleDefaults && effectiveRoleDefaults.visibleMenus) {
           setSettings(effectiveRoleDefaults);
+        } else {
+          setSettings(getDefaultSettings(user?.role));
         }
       } catch (error) {
         console.error('Menü ayarları yüklenemedi:', error);
