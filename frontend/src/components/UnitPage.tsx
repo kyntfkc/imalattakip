@@ -1089,7 +1089,6 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             />
           </div>
         )}
-      </Card>
 
       {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana */}
       <Row gutter={[16, 16]}>
