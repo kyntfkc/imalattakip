@@ -90,6 +90,8 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
   const isExternalVault = unit.unitId === 'dis-kasa';
   const unitColor = unitColors[unit.unitId as keyof typeof unitColors];
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  
   return (
     <Col xs={24} sm={12} lg={8} xl={6} key={unit.unitId} ref={setNodeRef} style={style}>
       <Card
@@ -97,11 +99,11 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
         hoverable
         onClick={onClick}
         style={{ 
-          borderRadius: '20px',
+          borderRadius: isMobile ? '16px' : '20px',
           boxShadow: '0 6px 24px rgba(0, 0, 0, 0.08)',
           cursor: 'pointer',
           height: '100%',
-          minHeight: '280px',
+          minHeight: isMobile ? '240px' : '280px',
           border: 'none',
           background: 'white',
           position: 'relative',
@@ -111,7 +113,7 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
         }}
         styles={{ 
           body: { 
-            padding: '28px', 
+            padding: isMobile ? '16px' : '28px', 
             display: 'flex', 
             flexDirection: 'column', 
             height: '100%',
@@ -156,32 +158,34 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
-            gap: '18px', 
-            marginBottom: '24px' 
+            gap: isMobile ? '12px' : '18px', 
+            marginBottom: isMobile ? '16px' : '24px' 
           }}>
             <div style={{
               background: '#f8fafc',
-              borderRadius: '16px',
-              padding: '14px',
+              borderRadius: isMobile ? '12px' : '16px',
+              padding: isMobile ? '10px' : '14px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: '1px solid #e5e7eb'
+              border: '1px solid #e5e7eb',
+              flexShrink: 0
             }}>
               {getUnitIcon(unit.unitId, '#64748b')}
             </div>
-            <div>
+            <div style={{ minWidth: 0, flex: 1 }}>
               <Title level={4} style={{ 
                 margin: 0, 
                 color: '#1f2937',
-                fontSize: '20px',
-                fontWeight: '600'
+                fontSize: isMobile ? '16px' : '20px',
+                fontWeight: '600',
+                wordBreak: 'break-word'
               }}>
                 {unit.unitName}
               </Title>
               <Text style={{ 
                 color: '#6b7280', 
-                fontSize: '14px',
+                fontSize: isMobile ? '12px' : '14px',
                 fontWeight: '500'
               }}>
                 {isExternalVault ? 'Dış Kasa' : 'Üretim Birimi'}
@@ -190,20 +194,24 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
           </div>
 
           {/* Statistics */}
-          <div style={{ marginBottom: '24px' }}>
+          <div style={{ marginBottom: isMobile ? '16px' : '24px' }}>
             <div style={{ 
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center',
-              marginBottom: '16px'
+              marginBottom: isMobile ? '12px' : '16px',
+              flexWrap: 'wrap',
+              gap: '4px'
             }}>
-              <Text style={{ color: '#6b7280', fontSize: '15px', fontWeight: '500' }}>
+              <Text style={{ color: '#6b7280', fontSize: isMobile ? '13px' : '15px', fontWeight: '500', flexShrink: 0 }}>
                 Mevcut Stok
               </Text>
               <Text style={{ 
                 color: '#1f2937', 
-                fontSize: '22px', 
-                fontWeight: '600'
+                fontSize: isMobile ? '18px' : '22px', 
+                fontWeight: '600',
+                wordBreak: 'break-word',
+                textAlign: 'right'
               }}>
                 {((typeof unit?.totalStock === 'number' ? unit.totalStock : parseFloat(unit?.totalStock) || 0) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
               </Text>
@@ -213,15 +221,19 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center',
-              marginBottom: '16px'
+              marginBottom: isMobile ? '12px' : '16px',
+              flexWrap: 'wrap',
+              gap: '4px'
             }}>
-              <Text style={{ color: '#6b7280', fontSize: '15px', fontWeight: '500' }}>
+              <Text style={{ color: '#6b7280', fontSize: isMobile ? '13px' : '15px', fontWeight: '500', flexShrink: 0 }}>
                 Has Karşılığı
               </Text>
               <Text style={{ 
                 color: '#059669', 
-                fontSize: '20px', 
-                fontWeight: '600'
+                fontSize: isMobile ? '16px' : '20px', 
+                fontWeight: '600',
+                wordBreak: 'break-word',
+                textAlign: 'right'
               }}>
                 {((typeof unit?.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit?.hasEquivalent) || 0) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
               </Text>
@@ -254,15 +266,15 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
         <div style={{ marginTop: 'auto' }}>
           <Button
             type="primary"
-            size="large"
+            size={isMobile ? 'middle' : 'large'}
             block
             style={{
               background: '#f8fafc',
               border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              height: '48px',
+              borderRadius: isMobile ? '10px' : '12px',
+              height: isMobile ? '40px' : '48px',
               fontWeight: '600',
-              fontSize: '15px',
+              fontSize: isMobile ? '13px' : '15px',
               color: '#64748b',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
               transition: 'all 0.2s ease'
@@ -295,6 +307,17 @@ const UnitDashboard: React.FC = React.memo(() => {
   const [selectedUnit, setSelectedUnit] = useState<UnitSummary | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  // Responsive kontrolü
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -481,14 +504,16 @@ const UnitDashboard: React.FC = React.memo(() => {
     );
   }
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  
   return (
-    <div className="fade-in" style={{ padding: '0 8px' }}>
+    <div className="fade-in" style={{ padding: isMobile ? '8px 4px' : '0 8px' }}>
       {/* Modern Hero Section */}
       <div style={{
         background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
         borderRadius: '20px',
-        padding: '40px 32px',
-        marginBottom: '32px',
+        padding: isMobile ? '24px 16px' : '40px 32px',
+        marginBottom: isMobile ? '20px' : '32px',
         color: '#1f2937',
         position: 'relative',
         overflow: 'hidden',
@@ -522,14 +547,14 @@ const UnitDashboard: React.FC = React.memo(() => {
               <Title level={1} style={{ 
                 margin: 0, 
                 color: '#1f2937', 
-                fontSize: '36px',
+                fontSize: isMobile ? '24px' : '36px',
                 fontWeight: '700'
               }}>
                 Dashboard
               </Title>
               <Text style={{ 
                 color: '#6b7280', 
-                fontSize: '18px',
+                fontSize: window.innerWidth < 768 ? '14px' : '18px',
                 fontWeight: '400'
               }}>
                 Tüm üretim birimlerinizin anlık durumunu takip edin
@@ -537,47 +562,51 @@ const UnitDashboard: React.FC = React.memo(() => {
             </div>
             
             {/* Quick Stats */}
-            <Row gutter={[24, 20]} style={{ marginTop: '24px' }}>
+            <Row gutter={[16, 16]} style={{ marginTop: isMobile ? '16px' : '24px' }}>
               <Col xs={24} sm={12} md={12}>
                 <div style={{
                   background: 'white',
-                  borderRadius: '20px',
-                  padding: '28px',
+                  borderRadius: window.innerWidth < 768 ? '16px' : '20px',
+                  padding: window.innerWidth < 768 ? '16px' : '28px',
                   border: '1px solid #e5e7eb',
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  height: '140px',
+                  minHeight: window.innerWidth < 768 ? '100px' : '140px',
+                  height: window.innerWidth < 768 ? 'auto' : '140px',
                   display: 'flex',
                   alignItems: 'center'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '12px' : '20px', width: '100%', flexWrap: (typeof window !== 'undefined' && window.innerWidth < 480) ? 'wrap' : 'nowrap' }}>
                     <div style={{
                       background: '#f8fafc',
-                      borderRadius: '16px',
-                      padding: '16px',
+                      borderRadius: isMobile ? '12px' : '16px',
+                      padding: isMobile ? '12px' : '16px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      minWidth: '64px',
-                      height: '64px'
+                      minWidth: isMobile ? '48px' : '64px',
+                      width: isMobile ? '48px' : '64px',
+                      height: isMobile ? '48px' : '64px',
+                      flexShrink: 0
                     }}>
-                      <GoldOutlined style={{ fontSize: '28px', color: '#64748b' }} />
+                      <GoldOutlined style={{ fontSize: isMobile ? '20px' : '28px', color: '#64748b' }} />
                     </div>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <Text style={{ 
                         color: '#64748b', 
-                        fontSize: '18px', 
+                        fontSize: isMobile ? '14px' : '18px', 
                         fontWeight: '500',
                         display: 'block',
-                        marginBottom: '8px'
+                        marginBottom: window.innerWidth < 768 ? '4px' : '8px'
                       }}>
                         Toplam Stok
                       </Text>
                       <Text style={{ 
                         color: '#1f2937', 
-                        fontSize: '36px', 
+                        fontSize: isMobile ? '22px' : '36px',
                         fontWeight: '600',
                         display: 'block',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: (typeof window !== 'undefined' && window.innerWidth < 480) ? 'normal' : 'nowrap',
+                        wordBreak: 'break-word'
                       }}>
                         {(typeof totalStats.stock === 'number' ? totalStats.stock : parseFloat(totalStats.stock) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
                       </Text>
@@ -589,43 +618,47 @@ const UnitDashboard: React.FC = React.memo(() => {
               <Col xs={24} sm={12} md={12}>
                 <div style={{
                   background: 'white',
-                  borderRadius: '20px',
-                  padding: '28px',
+                  borderRadius: window.innerWidth < 768 ? '16px' : '20px',
+                  padding: window.innerWidth < 768 ? '16px' : '28px',
                   border: '1px solid #e5e7eb',
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  height: '140px',
+                  minHeight: window.innerWidth < 768 ? '100px' : '140px',
+                  height: window.innerWidth < 768 ? 'auto' : '140px',
                   display: 'flex',
                   alignItems: 'center'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '12px' : '20px', width: '100%', flexWrap: (typeof window !== 'undefined' && window.innerWidth < 480) ? 'wrap' : 'nowrap' }}>
                     <div style={{
                       background: '#f8fafc',
-                      borderRadius: '16px',
-                      padding: '16px',
+                      borderRadius: isMobile ? '12px' : '16px',
+                      padding: isMobile ? '12px' : '16px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      minWidth: '64px',
-                      height: '64px'
+                      minWidth: isMobile ? '48px' : '64px',
+                      width: isMobile ? '48px' : '64px',
+                      height: isMobile ? '48px' : '64px',
+                      flexShrink: 0
                     }}>
-                      <CrownOutlined style={{ fontSize: '28px', color: '#64748b' }} />
+                      <CrownOutlined style={{ fontSize: isMobile ? '20px' : '28px', color: '#64748b' }} />
                     </div>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <Text style={{ 
                         color: '#64748b', 
-                        fontSize: '18px', 
+                        fontSize: isMobile ? '14px' : '18px', 
                         fontWeight: '500',
                         display: 'block',
-                        marginBottom: '8px'
+                        marginBottom: window.innerWidth < 768 ? '4px' : '8px'
                       }}>
                         Has Karşılığı
                       </Text>
                       <Text style={{ 
                         color: '#1f2937', 
-                        fontSize: '36px', 
+                        fontSize: isMobile ? '22px' : '36px',
                         fontWeight: '600',
                         display: 'block',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: (typeof window !== 'undefined' && window.innerWidth < 480) ? 'normal' : 'nowrap',
+                        wordBreak: 'break-word'
                       }}>
                         {(typeof totalStats.has === 'number' ? totalStats.has : parseFloat(totalStats.has) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
                       </Text>
@@ -647,7 +680,7 @@ const UnitDashboard: React.FC = React.memo(() => {
           items={sortedUnits.map(u => u.unitId)} 
           strategy={rectSortingStrategy}
         >
-          <Row gutter={[16, 16]}>
+          <Row gutter={[isMobile ? 8 : 16, isMobile ? 12 : 16]}>
             {sortedUnits.length === 0 ? (
               <Col span={24}>
                 <Card style={{ textAlign: 'center', padding: '40px' }}>
@@ -692,7 +725,8 @@ const UnitDashboard: React.FC = React.memo(() => {
             Transfer Yap
           </Button>
         ]}
-        width={800}
+        width={isMobile ? '95%' : 800}
+        style={isMobile ? { top: 20, paddingBottom: 0 } : undefined}
       >
         {selectedUnit && (
           <div>
