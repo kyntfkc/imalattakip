@@ -1254,7 +1254,6 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
 
       {/* İşlem Geçmişi */}
       <Card
-        style={{ marginTop: 24 }}
         title={
           <Row justify="space-between" align="middle">
             <Col>
@@ -1309,6 +1308,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           </Row>
         }
         style={{ 
+          marginTop: 24,
           borderRadius: commonStyles.borderRadius,
           boxShadow: commonStyles.cardShadow
         }}
