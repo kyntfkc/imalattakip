@@ -1136,7 +1136,6 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               </Col>
             ) : (
               <>
-                <>
                 {/* Sol Kısım - Toplam Stok/İşlem */}
                 <Col xs={24} sm={12}>
                   <Space direction="vertical" size="small" style={{ width: '100%' }} align="start">
