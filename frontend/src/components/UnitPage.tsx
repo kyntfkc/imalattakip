@@ -952,8 +952,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       </div>
 
 
-      {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana (Satış, Tedarik ve Döküm sayfası hariç) */}
-      {unitId !== 'satis' && unitId !== 'tedarik' && unitId !== 'dokum' && (
+      {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana (Satış, Tedarik, Döküm, Lazer Kesim, Tezgah ve Cila sayfası hariç) */}
+      {unitId !== 'satis' && unitId !== 'tedarik' && unitId !== 'dokum' && unitId !== 'lazer-kesim' && unitId !== 'tezgah' && unitId !== 'cila' && (
         <div style={{ marginTop: 24 }}>
           <Row gutter={[16, 16]} align="stretch">
           <Col xs={24} lg={12}>
@@ -1187,10 +1187,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         )}
       </Card>
 
-      {/* Satış, Tedarik ve Döküm sayfaları için minimalist kartlar - Tüm İşlemler'in altında */}
-      {(unitId === 'satis' || unitId === 'tedarik' || unitId === 'dokum') && (
+      {/* Satış, Tedarik, Döküm, Lazer Kesim, Tezgah ve Cila sayfaları için minimalist kartlar - Tüm İşlemler'in altında */}
+      {(unitId === 'satis' || unitId === 'tedarik' || unitId === 'dokum' || unitId === 'lazer-kesim' || unitId === 'tezgah' || unitId === 'cila') && (
         <Row gutter={16} style={{ marginTop: 16 }}>
-          {/* Toplam Satış/İşlem */}
+          {/* Toplam Satış/İşlem/Fire */}
           <Col xs={24} sm={12}>
             <div style={{ 
               padding: '16px 20px',
@@ -1200,7 +1200,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
             }}>
               <Space size={16} align="center" style={{ width: '100%', justifyContent: 'center' }}>
-                <GoldOutlined style={{ fontSize: '20px', color: '#64748b' }} />
+                {hasFire ? (
+                  <ThunderboltOutlined style={{ fontSize: '20px', color: '#64748b' }} />
+                ) : (
+                  <GoldOutlined style={{ fontSize: '20px', color: '#64748b' }} />
+                )}
                 <div style={{ textAlign: 'center' }}>
                   <Text style={{ 
                     display: 'block', 
@@ -1208,15 +1212,18 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                     color: '#6b7280',
                     marginBottom: '4px'
                   }}>
-                    {unitId === 'satis' ? 'Toplam Satış' : unitId === 'dokum' ? 'Toplam İşlem' : 'Toplam İşlem'}
+                    {unitId === 'satis' ? 'Toplam Satış' : hasFire || isProcessingUnit ? 'Toplam Fire' : 'Toplam İşlem'}
                   </Text>
                   <Text strong style={{ 
                     display: 'block', 
                     fontSize: isMobile ? '24px' : '28px', 
-                    color: '#1f2937',
+                    color: hasFire && (totalInput - totalOutput > 0) ? '#ff4d4f' : '#1f2937',
                     fontWeight: 600
                   }}>
-                    {totalInput.toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                    {hasFire || isProcessingUnit ? 
+                      (Math.max(0, totalInput - totalOutput).toFixed(2).replace(/^0+(?=\d)/, '')) : 
+                      totalInput.toFixed(2).replace(/^0+(?=\d)/, '')
+                    } gr
                   </Text>
                 </div>
               </Space>
@@ -1249,7 +1256,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                     color: '#059669',
                     fontWeight: 600
                   }}>
-                    {filteredHasEquivalent.toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                    {(hasFire || isProcessingUnit ? 0 : filteredHasEquivalent).toFixed(2).replace(/^0+(?=\d)/, '')} gr
                   </Text>
                 </div>
               </Space>
