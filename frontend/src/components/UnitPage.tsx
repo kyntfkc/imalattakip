@@ -1279,7 +1279,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                       margin: 0
                     }}
                   >
-                    {(isOutputOnlyUnit || isInputUnit || unitId === 'satis' || isSemiFinishedUnit) ? filteredTransfers.length : unitTransfers.length}
+                    {(isInputUnit && unitId === 'dokum') ? filteredTransfers.length : unitTransfers.length}
                   </Tag>
                 </Space>
               </Space>
