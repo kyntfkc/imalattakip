@@ -250,23 +250,33 @@ const AppContent: React.FC = () => {
     ...(isMenuVisible('external-vault') || isMenuVisible('dokum') || isMenuVisible('tedarik') || isMenuVisible('satis') ? [{
       key: 'divider-2',
       type: 'divider' as const
-    }, ...(isMenuVisible('external-vault') ? [{
-      key: 'external-vault',
-      icon: <BankOutlined />,
-      label: 'Dış Kasa'
-    }] : []), ...(isMenuVisible('dokum') ? [{
-      key: 'dokum',
-      icon: <GoldOutlined />,
-      label: 'Döküm'
-    }] : []), ...(isMenuVisible('tedarik') ? [{
-      key: 'tedarik',
-      icon: <GoldOutlined />,
-      label: 'Tedarik'
-    }] : []), ...(isMenuVisible('satis') ? [{
-      key: 'satis',
-      icon: <ShoppingCartOutlined />,
-      label: 'Satış'
-    }] : [])] : []),
+    }, {
+      key: 'other-units-group',
+      label: 'DİĞER BİRİMLER',
+      type: 'group' as const,
+      children: [
+        ...(isMenuVisible('external-vault') ? [{
+          key: 'external-vault',
+          icon: <BankOutlined />,
+          label: 'Dış Kasa'
+        }] : []),
+        ...(isMenuVisible('dokum') ? [{
+          key: 'dokum',
+          icon: <GoldOutlined />,
+          label: 'Döküm'
+        }] : []),
+        ...(isMenuVisible('tedarik') ? [{
+          key: 'tedarik',
+          icon: <GoldOutlined />,
+          label: 'Tedarik'
+        }] : []),
+        ...(isMenuVisible('satis') ? [{
+          key: 'satis',
+          icon: <ShoppingCartOutlined />,
+          label: 'Satış'
+        }] : [])
+      ].filter(item => item !== null)
+    }] : []),
     ...(isMenuVisible('required-has') || isMenuVisible('reports') || isMenuVisible('companies') ? [{
       key: 'divider-3',
       type: 'divider' as const
