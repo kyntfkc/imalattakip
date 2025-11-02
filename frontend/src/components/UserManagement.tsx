@@ -417,7 +417,7 @@ const UserManagement: React.FC = () => {
             <Form.Item
               name="password"
               label="Şifre"
-              help="Şifre en az 8 karakter olmalı ve en az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter (!@#$%^&*(),.?\":{}|<>) içermelidir."
+              help="Şifre en az 8 karakter olmalı ve en az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter içermelidir."
               rules={[
                 { required: true, message: 'Şifre gerekli!' },
                 { min: 8, message: 'Şifre en az 8 karakter olmalı!' },
@@ -441,7 +441,7 @@ const UserManagement: React.FC = () => {
                       return Promise.reject(new Error('Şifre en az bir rakam içermeli!'));
                     }
                     if (!hasSpecialChar) {
-                      return Promise.reject(new Error('Şifre en az bir özel karakter (!@#$%^&*(),.?":{}|<>) içermeli!'));
+                      return Promise.reject(new Error('Şifre en az bir özel karakter içermeli!'));
                     }
                     return Promise.resolve();
                   }
@@ -522,7 +522,7 @@ const UserManagement: React.FC = () => {
           <Form.Item
             name="newPassword"
             label="Yeni Şifre"
-            help="Şifre en az 8 karakter olmalı ve en az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter (!@#$%^&*(),.?\":{}|<>) içermelidir."
+            help="Şifre en az 8 karakter olmalı ve en az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter içermelidir."
             rules={[
               { required: true, message: 'Yeni şifre gerekli!' },
               { min: 8, message: 'Şifre en az 8 karakter olmalı!' },
