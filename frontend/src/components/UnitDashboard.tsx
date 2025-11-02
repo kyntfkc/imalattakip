@@ -39,6 +39,7 @@ import { UnitSummary, KaratType, FIRE_UNITS, UnitType } from '../types';
 import type { ColumnsType } from 'antd/es/table';
 import TransferModal from './TransferModal';
 import { unitColors, commonStyles } from '../styles/theme';
+import { useResponsive } from '../hooks/useResponsive';
 import '../styles/animations.css';
 
 const { Title, Text } = Typography;
@@ -67,7 +68,6 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
   };
 
   const getUnitIcon = (unitId: string, color: string) => {
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const iconSize = isMobile ? '20px' : '24px';
     const icons: { [key: string]: React.ReactNode } = {
       'ana-kasa': <BankOutlined style={{ fontSize: iconSize, color }} />,
@@ -92,8 +92,6 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
   const isExternalVault = unit.unitId === 'dis-kasa';
   const unitColor = unitColors[unit.unitId as keyof typeof unitColors];
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  
   return (
     <Col xs={24} sm={12} lg={8} xl={6} key={unit.unitId} ref={setNodeRef} style={style}>
       <Card
@@ -314,17 +312,7 @@ const UnitDashboard: React.FC = React.memo(() => {
   const [selectedUnit, setSelectedUnit] = useState<UnitSummary | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
-
-  // Responsive kontrolü
-  React.useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const { isMobile } = useResponsive();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -706,6 +694,7 @@ const UnitDashboard: React.FC = React.memo(() => {
                   unit={unit}
                   index={index}
                   onClick={() => handleUnitClick(unit)}
+                  isMobile={isMobile}
                 />
               ))
             )}

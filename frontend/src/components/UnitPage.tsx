@@ -44,6 +44,7 @@ import type { ColumnsType } from 'antd/es/table';
 import TransferModal from './TransferModal';
 import { unitColors, commonStyles } from '../styles/theme';
 import { useBackendStatus } from '../hooks/useBackendStatus';
+import { useResponsive } from '../hooks/useResponsive';
 
 const { Title, Text } = Typography;
 
@@ -61,15 +62,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const [tableSearchText, setTableSearchText] = useState('');
   const [tableFilteredInfo, setTableFilteredInfo] = useState<Record<string, string[] | null>>({});
   const { isBackendOnline, isChecking } = useBackendStatus();
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
-
-  React.useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const { isMobile } = useResponsive();
 
   const unit = unitSummaries.find(u => u.unitId === unitId);
   const unitName = UNIT_NAMES[unitId];
@@ -258,7 +251,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   };
 
   const getUnitIcon = (color: string = '#1890ff') => {
-    const iconSize = typeof window !== 'undefined' && window.innerWidth < 768 ? '32px' : '36px';
+    const iconSize = isMobile ? '32px' : '36px';
     const icons: { [key: string]: React.ReactNode } = {
       'ana-kasa': <BankOutlined style={{ fontSize: iconSize, color }} />,
       'yarimamul': <GoldOutlined style={{ fontSize: iconSize, color }} />,
@@ -938,12 +931,12 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       {/* Ultra Minimal Header */}
       <div style={{ 
         marginBottom: 16, 
-        padding: typeof window !== 'undefined' && window.innerWidth < 768 ? '8px 0' : '12px 0',
+        padding: isMobile ? '8px 0' : '12px 0',
         borderBottom: '1px solid #e5e7eb'
       }}>
         <Space size={10} align="center">
           {getUnitIcon('#64748b')}
-          <Title level={4} style={{ margin: 0, color: '#1f2937', fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '16px' : '18px', fontWeight: '500', lineHeight: 1.2 }}>
+          <Title level={4} style={{ margin: 0, color: '#1f2937', fontSize: isMobile ? '16px' : '18px', fontWeight: '500', lineHeight: 1.2 }}>
             {unitName}
           </Title>
           {!isChecking && (
@@ -1131,10 +1124,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                       suffix="gr"
                       valueStyle={{ 
                         color: totalFire > 1 ? '#ff4d4f' : totalFire > 0 ? '#faad14' : '#52c41a',
-                        fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '24px' : '28px',
+                        fontSize: isMobile ? '24px' : '28px',
                         fontWeight: 700
                       }}
-                      prefix={<ThunderboltOutlined style={{ fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '18px' : '20px', color: '#64748b' }} />}
+                      prefix={<ThunderboltOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
                     />
                   );
                 })()}
@@ -1163,10 +1156,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                         suffix="gr"
                         valueStyle={{ 
                           color: '#1f2937', 
-                          fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '22px' : '24px',
+                          fontSize: isMobile ? '22px' : '24px',
                           fontWeight: 700
                         }}
-                        prefix={<GoldOutlined style={{ fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '18px' : '20px', color: '#64748b' }} />}
+                        prefix={<GoldOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
                       />
                     );
                   })()}
@@ -1188,10 +1181,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                         suffix="gr"
                         valueStyle={{ 
                           color: '#059669',
-                          fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '22px' : '24px',
+                          fontSize: isMobile ? '22px' : '24px',
                           fontWeight: 700
                         }}
-                        prefix={<CrownOutlined style={{ fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '18px' : '20px', color: '#64748b' }} />}
+                        prefix={<CrownOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
                       />
                     );
                   })()}

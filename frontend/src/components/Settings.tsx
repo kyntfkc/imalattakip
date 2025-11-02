@@ -11,6 +11,7 @@ import { BackupCard } from './settings/BackupCard';
 // Hook'lar
 import { useBackendStatus } from '../hooks/useBackendStatus';
 import { useAuth } from '../context/AuthContext';
+import { useResponsive } from '../hooks/useResponsive';
 
 const { Title, Text } = Typography;
 
@@ -18,14 +19,7 @@ const Settings: React.FC = () => {
   const { isBackendOnline, isChecking } = useBackendStatus();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('system');
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-
-  // Mobile detection
-  React.useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const { isMobile } = useResponsive();
 
   return (
     <div className="fade-in" style={{ padding: '0' }}>
