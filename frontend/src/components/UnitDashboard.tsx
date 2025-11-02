@@ -49,9 +49,10 @@ interface SortableUnitCardProps {
   unit: UnitSummary;
   index: number;
   onClick: () => void;
+  isMobile: boolean;
 }
 
-const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, index, onClick }) => {
+const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, index, onClick, isMobile }) => {
   const {
     attributes,
     listeners,
@@ -383,6 +384,7 @@ const UnitDashboard: React.FC = () => {
       .slice(0, 10);
   }, [transfers]);
 
+  // getUnitIcon - Modal ve diğer yerler için
   const getUnitIcon = (unitId: string, color: string) => {
     const icons: { [key: string]: React.ReactNode } = {
       'ana-kasa': <BankOutlined style={{ fontSize: '24px', color }} />,
@@ -392,6 +394,7 @@ const UnitDashboard: React.FC = () => {
       'cila': <CrownOutlined style={{ fontSize: '24px', color }} />,
       'dokum': <GoldOutlined style={{ fontSize: '24px', color }} />,
       'tedarik': <ToolOutlined style={{ fontSize: '24px', color }} />,
+      'satis': <ShoppingCartOutlined style={{ fontSize: '24px', color }} />,
       'dis-kasa': <BankOutlined style={{ fontSize: '24px', color }} />
     };
     return icons[unitId] || <BankOutlined style={{ fontSize: '24px', color }} />;
