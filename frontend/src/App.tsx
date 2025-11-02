@@ -224,7 +224,8 @@ const AppContent: React.FC = () => {
   }, [menuSettings, menuSettingsLoading, isAdmin, getDefaultVisibility]);
 
   // menuSettings değiştiğinde menü öğelerini yeniden hesapla
-  const menuItems: MenuItem[] = useMemo(() => [
+  const menuItems: MenuItem[] = useMemo(() => {
+    return [
     ...(isMenuVisible('dashboard') ? [{
       key: 'dashboard',
       icon: <HomeOutlined />,
@@ -337,8 +338,9 @@ const AppContent: React.FC = () => {
         key: 'settings',
         icon: <SettingOutlined />,
         label: 'Ayarlar'
-      }] : [])
-  ]), [menuSettings, menuSettingsLoading, isAdmin, isMenuVisible]);
+      }] : []);
+    }
+  }, [menuSettings, menuSettingsLoading, isAdmin, isMenuVisible]);
 
   const renderContent = () => {
     const LoadingFallback = () => (
