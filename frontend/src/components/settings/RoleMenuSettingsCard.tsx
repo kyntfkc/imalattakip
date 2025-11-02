@@ -74,6 +74,7 @@ const defaultSettingsByRole: Record<'admin' | 'user', Record<string, boolean>> =
 const RoleMenuSettingsCard: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const [activeTab, setActiveTab] = useState<'admin' | 'user'>('admin');
 
   if (!isAdmin) {
     return (
@@ -85,8 +86,6 @@ const RoleMenuSettingsCard: React.FC = () => {
       />
     );
   }
-
-  const [activeTab, setActiveTab] = useState<'admin' | 'user'>('admin');
 
   const handleToggle = async (menuKey: string, role: 'admin' | 'user', value: boolean) => {
     // Bu özellik backend'de rol bazlı ayarlar implement edildiğinde kullanılabilir
