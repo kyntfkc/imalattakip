@@ -156,29 +156,7 @@ const AppContent: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, [isMobile, collapsedRef]);
 
-  // Loading durumunda spinner göster
-  if (isLoading) {
-    return (
-      <div style={{
-        height: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: `linear-gradient(135deg, ${colors.primary.main} 0%, ${colors.secondary.main} 100%)`
-      }}>
-        <div style={{ textAlign: 'center', color: 'white' }}>
-          <CrownOutlined style={{ fontSize: 48, marginBottom: 16 }} />
-          <div style={{ fontSize: 18 }}>Yükleniyor...</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Giriş yapılmamışsa login sayfasını göster
-  if (!isAuthenticated) {
-    return <Login />;
-  }
-
+  // Admin kontrolü
   const isAdmin = user?.role === 'admin';
 
   // Rol bazlı varsayılan ayarlar (fallback için)
@@ -347,6 +325,29 @@ const AppContent: React.FC = () => {
     ])
     ];
   }, [menuSettings, menuSettingsLoading, isAdmin, isMenuVisible]);
+
+  // Loading durumunda spinner göster
+  if (isLoading) {
+    return (
+      <div style={{
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: `linear-gradient(135deg, ${colors.primary.main} 0%, ${colors.secondary.main} 100%)`
+      }}>
+        <div style={{ textAlign: 'center', color: 'white' }}>
+          <CrownOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+          <div style={{ fontSize: 18 }}>Yükleniyor...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Giriş yapılmamışsa login sayfasını göster
+  if (!isAuthenticated) {
+    return <Login />;
+  }
 
   const renderContent = () => {
     const LoadingFallback = () => (
