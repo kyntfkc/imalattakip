@@ -951,145 +951,6 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         </Space>
       </div>
 
-      {/* Tarih filtresi kaldırıldı - Tüm birimler için filtre uygulanmaz */}
-        <div style={{ 
-          marginTop: 0,
-          marginBottom: 24,
-          paddingTop: '16px',
-          paddingBottom: '16px',
-          borderTop: '1px solid #e5e7eb',
-          borderBottom: '1px solid #e5e7eb',
-          background: '#fafafa'
-        }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '16px'
-            }}>
-              <Space size={8}>
-                <FilterOutlined style={{ fontSize: '16px', color: '#64748b' }} />
-                <Text style={{ 
-                  fontSize: '15px', 
-                  fontWeight: '600',
-                  color: '#1f2937'
-                }}>
-                  Zaman Filtresi
-                </Text>
-              </Space>
-              <Space size={12}>
-                <Tag 
-                  color="blue"
-                  style={{
-                    borderRadius: '12px',
-                    padding: '4px 12px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                    margin: 0,
-                    border: 'none'
-                  }}
-                >
-                  <CalendarOutlined style={{ marginRight: '4px' }} />
-                  {unitTransfers.length} işlem
-                </Tag>
-              </Space>
-            </div>
-            <Segmented
-              value={dateFilter}
-              onChange={(value) => {
-                setDateFilter(value as typeof dateFilter);
-                // Preset filtre seçildiğinde tarih aralığını temizle
-                if (value !== 'all') {
-                  setDateRange([null, null]);
-                }
-              }}
-              options={[
-                {
-                  label: (
-                    <span style={{ 
-                      padding: '0 8px',
-                      fontWeight: 500,
-                      fontSize: '14px'
-                    }}>
-                      Tümü
-                    </span>
-                  ),
-                  value: 'all'
-                },
-                {
-                  label: (
-                    <span style={{ 
-                      padding: '0 8px',
-                      fontWeight: 500,
-                      fontSize: '14px'
-                    }}>
-                      Son Hafta
-                    </span>
-                  ),
-                  value: 'week'
-                },
-                {
-                  label: (
-                    <span style={{ 
-                      padding: '0 8px',
-                      fontWeight: 500,
-                      fontSize: '14px'
-                    }}>
-                      Son Ay
-                    </span>
-                  ),
-                  value: 'month'
-                },
-                {
-                  label: (
-                    <span style={{ 
-                      padding: '0 8px',
-                      fontWeight: 500,
-                      fontSize: '14px'
-                    }}>
-                      Son Yıl
-                    </span>
-                  ),
-                  value: 'year'
-                }
-              ]}
-              size="large"
-              className="time-filter-segmented"
-              style={{
-                width: '100%',
-                background: '#f8fafc',
-                padding: '4px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb'
-              }}
-              block
-            />
-          </div>
-        )}
-        
-        {/* Tarih Aralığı Seçici - Sadece Döküm için */}
-        {(isInputUnit && unitId === 'dokum') && (
-          <div style={{ marginTop: 16 }}>
-            <Text strong style={{ display: 'block', marginBottom: 8, fontSize: '14px' }}>
-              Tarih Aralığı
-            </Text>
-            <DatePicker.RangePicker
-              value={dateRange}
-              onChange={(dates) => {
-                setDateRange(dates as [Dayjs | null, Dayjs | null]);
-                // Tarih aralığı seçildiğinde preset filtreyi sıfırla
-                if (dates && dates[0] && dates[1]) {
-                  setDateFilter('all');
-                }
-              }}
-              format="DD.MM.YYYY"
-              placeholder={['Başlangıç Tarihi', 'Bitiş Tarihi']}
-              style={{ width: '100%' }}
-              size="large"
-              allowClear
-            />
-          </div>
-        )}
 
       {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana (Satış, Tedarik ve Döküm sayfası hariç) */}
       {unitId !== 'satis' && unitId !== 'tedarik' && unitId !== 'dokum' && (
@@ -1309,7 +1170,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         {unitTransfers.length > 0 ? (
           <Table
             columns={columns}
-            dataSource={(isInputUnit && unitId === 'dokum') ? filteredTransfers : unitTransfers}
+            dataSource={unitTransfers}
             rowKey="id"
             pagination={{
               pageSize: 20,
@@ -1326,8 +1187,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         )}
       </Card>
 
-      {/* Satış ve Tedarik sayfaları için minimalist kartlar - Tüm İşlemler'in altında */}
-      {(unitId === 'satis' || unitId === 'tedarik') && (
+      {/* Satış, Tedarik ve Döküm sayfaları için minimalist kartlar - Tüm İşlemler'in altında */}
+      {(unitId === 'satis' || unitId === 'tedarik' || unitId === 'dokum') && (
         <Row gutter={16} style={{ marginTop: 16 }}>
           {/* Toplam Satış/İşlem */}
           <Col xs={24} sm={12}>
@@ -1347,7 +1208,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                     color: '#6b7280',
                     marginBottom: '4px'
                   }}>
-                    {unitId === 'satis' ? 'Toplam Satış' : 'Toplam İşlem'}
+                    {unitId === 'satis' ? 'Toplam Satış' : unitId === 'dokum' ? 'Toplam İşlem' : 'Toplam İşlem'}
                   </Text>
                   <Text strong style={{ 
                     display: 'block', 
