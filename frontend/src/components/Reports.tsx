@@ -197,6 +197,8 @@ const Reports: React.FC = () => {
           'Tezgah': 'tezgah',
           'Cila': 'cila',
           'Döküm': 'dokum',
+          'Tedarik': 'tedarik',
+          'Satış': 'satis',
           'Dış Kasa': 'dis-kasa'
         };
         return unitIdMap[item.unit] === selectedUnit;
@@ -745,37 +747,42 @@ const Reports: React.FC = () => {
         </Space>
       </div>
 
-      {/* Kompakt Filtreler */}
+      {/* Profesyonel Filtreler */}
       <Card 
         style={{ 
           marginBottom: 16, 
           borderRadius: '8px', 
           border: '1px solid #e5e7eb', 
-          boxShadow: 'none'
+          boxShadow: 'none',
+          background: 'white'
         }}
-        styles={{ body: { padding: '16px' } }}
+        styles={{ body: { padding: '20px' } }}
         title={
           <Space size={8}>
-            <FilterOutlined style={{ color: '#64748b', fontSize: '14px' }} />
-            <span style={{ color: '#1f2937', fontWeight: '500', fontSize: '14px' }}>Filtreler</span>
+            <FilterOutlined style={{ color: '#64748b', fontSize: '16px' }} />
+            <span style={{ color: '#1f2937', fontWeight: '600', fontSize: '15px' }}>Filtreler & İşlemler</span>
           </Space>
         }
       >
-        <Row gutter={[12, 12]} align="middle">
-          <Col xs={24} sm={12} md={6}>
-            <Space direction="vertical" size={4} style={{ width: '100%' }}>
-              <Text style={{ fontSize: '12px', color: '#6b7280' }}>Tarih:</Text>
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} sm={12} lg={6}>
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Text strong style={{ fontSize: '13px', color: '#374151', display: 'block' }}>
+                <CalendarOutlined style={{ marginRight: '6px', fontSize: '12px' }} />
+                Tarih Aralığı
+              </Text>
               <Radio.Group 
                 value={dateFilter} 
                 onChange={(e) => setDateFilter(e.target.value)}
                 buttonStyle="solid"
                 size="small"
+                style={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: '4px' }}
               >
-                <Radio.Button value="all">Tümü</Radio.Button>
-                <Radio.Button value="today">Bugün</Radio.Button>
-                <Radio.Button value="week">Hafta</Radio.Button>
-                <Radio.Button value="month">Ay</Radio.Button>
-                <Radio.Button value="custom">Özel</Radio.Button>
+                <Radio.Button value="all" style={{ flex: 1, minWidth: '60px' }}>Tümü</Radio.Button>
+                <Radio.Button value="today" style={{ flex: 1, minWidth: '60px' }}>Bugün</Radio.Button>
+                <Radio.Button value="week" style={{ flex: 1, minWidth: '60px' }}>Hafta</Radio.Button>
+                <Radio.Button value="month" style={{ flex: 1, minWidth: '60px' }}>Ay</Radio.Button>
+                <Radio.Button value="custom" style={{ flex: 1, minWidth: '60px' }}>Özel</Radio.Button>
               </Radio.Group>
               {dateFilter === 'custom' && (
                 <RangePicker 
@@ -783,22 +790,29 @@ const Reports: React.FC = () => {
                   onChange={(dates) => setCustomDateRange(dates as [Dayjs, Dayjs])}
                   style={{ width: '100%' }}
                   format="DD.MM.YYYY"
-                  placeholder={['Başlangıç', 'Bitiş']}
+                  placeholder={['Başlangıç Tarihi', 'Bitiş Tarihi']}
                   size="small"
                 />
               )}
             </Space>
           </Col>
 
-          <Col xs={24} sm={12} md={5}>
-            <Space direction="vertical" size={4} style={{ width: '100%' }}>
-              <Text style={{ fontSize: '12px', color: '#6b7280' }}>Birim:</Text>
+          <Col xs={24} sm={12} lg={5}>
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Text strong style={{ fontSize: '13px', color: '#374151', display: 'block' }}>
+                <BankOutlined style={{ marginRight: '6px', fontSize: '12px' }} />
+                Birim Seçimi
+              </Text>
               <Select 
                 value={selectedUnit} 
                 onChange={setSelectedUnit}
                 style={{ width: '100%' }}
                 size="small"
                 placeholder="Tüm birimler"
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                }
               >
                 <Option value="all">Tüm Birimler</Option>
                 <Option value="ana-kasa">Ana Kasa</Option>
@@ -807,15 +821,20 @@ const Reports: React.FC = () => {
                 <Option value="tezgah">Tezgah</Option>
                 <Option value="cila">Cila</Option>
                 <Option value="dokum">Döküm</Option>
+                <Option value="tedarik">Tedarik</Option>
+                <Option value="satis">Satış</Option>
                 <Option value="dis-kasa">Dış Kasa</Option>
               </Select>
             </Space>
           </Col>
 
-          <Col xs={24} sm={12} md={6}>
-            <Space direction="vertical" size={4} style={{ width: '100%' }}>
-              <Text style={{ fontSize: '12px', color: '#6b7280' }}>İşlemler:</Text>
-              <Space style={{ width: '100%' }}>
+          <Col xs={24} sm={12} lg={6}>
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Text strong style={{ fontSize: '13px', color: '#374151', display: 'block' }}>
+                <ReloadOutlined style={{ marginRight: '6px', fontSize: '12px' }} />
+                İşlemler
+              </Text>
+              <Space style={{ width: '100%' }} size={8}>
                 <Button 
                   icon={<ReloadOutlined />}
                   onClick={handleResetFilters}
@@ -837,10 +856,13 @@ const Reports: React.FC = () => {
             </Space>
           </Col>
 
-          <Col xs={24} sm={12} md={7}>
-            <Space direction="vertical" size={4} style={{ width: '100%' }}>
-              <Text style={{ fontSize: '12px', color: '#6b7280' }}>Dışa Aktarma:</Text>
-              <Space style={{ width: '100%' }}>
+          <Col xs={24} sm={12} lg={7}>
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Text strong style={{ fontSize: '13px', color: '#374151', display: 'block' }}>
+                <ExportOutlined style={{ marginRight: '6px', fontSize: '12px' }} />
+                Dışa Aktarma
+              </Text>
+              <Space style={{ width: '100%' }} size={8}>
                 <Button 
                   type="primary" 
                   icon={<FileExcelOutlined />}
@@ -901,6 +923,8 @@ const Reports: React.FC = () => {
                     {selectedUnit === 'tezgah' && 'Tezgah'}
                     {selectedUnit === 'cila' && 'Cila'}
                     {selectedUnit === 'dokum' && 'Döküm'}
+                    {selectedUnit === 'tedarik' && 'Tedarik'}
+                    {selectedUnit === 'satis' && 'Satış'}
                     {selectedUnit === 'dis-kasa' && 'Dış Kasa'}
                   </Tag>
                 )}
