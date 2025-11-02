@@ -254,16 +254,17 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   };
 
   const getUnitIcon = (color: string = '#1890ff') => {
+    const iconSize = typeof window !== 'undefined' && window.innerWidth < 768 ? '32px' : '36px';
     const icons: { [key: string]: React.ReactNode } = {
-      'ana-kasa': <BankOutlined style={{ fontSize: '48px', color }} />,
-      'yarimamul': <GoldOutlined style={{ fontSize: '48px', color }} />,
-      'lazer-kesim': <ThunderboltOutlined style={{ fontSize: '48px', color }} />,
-      'tezgah': <ToolOutlined style={{ fontSize: '48px', color }} />,
-      'cila': <CrownOutlined style={{ fontSize: '48px', color }} />,
-      'dokum': <GoldOutlined style={{ fontSize: '48px', color }} />,
-      'tedarik': <ToolOutlined style={{ fontSize: '48px', color }} />
+      'ana-kasa': <BankOutlined style={{ fontSize: iconSize, color }} />,
+      'yarimamul': <GoldOutlined style={{ fontSize: iconSize, color }} />,
+      'lazer-kesim': <ThunderboltOutlined style={{ fontSize: iconSize, color }} />,
+      'tezgah': <ToolOutlined style={{ fontSize: iconSize, color }} />,
+      'cila': <CrownOutlined style={{ fontSize: iconSize, color }} />,
+      'dokum': <GoldOutlined style={{ fontSize: iconSize, color }} />,
+      'tedarik': <ToolOutlined style={{ fontSize: iconSize, color }} />
     };
-    return icons[unitId] || <BankOutlined style={{ fontSize: '48px', color }} />;
+    return icons[unitId] || <BankOutlined style={{ fontSize: iconSize, color }} />;
   };
 
   const getFireColor = (fire: number) => {
