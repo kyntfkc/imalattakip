@@ -283,7 +283,9 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
 
   // Rol varsayılanlarını yükle (sadece admin)
   const loadRoleDefaults = useCallback(async (role: 'admin' | 'user'): Promise<MenuSettings | null> => {
-    return await loadRoleDefaultsFromBackend(role);
+    // loadRoleDefaults sadece admin tarafından çağrılıyor (MenuVisibilityCard.tsx'te)
+    // Bu yüzden isAdmin = true olarak gönderebiliriz
+    return await loadRoleDefaultsFromBackend(role, true);
   }, [loadRoleDefaultsFromBackend]);
 
   // settings varsa onu kullan, yoksa ve loading bitmişse roleDefaults kullan
