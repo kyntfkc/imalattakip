@@ -50,6 +50,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { useTransfers } from '../context/TransferContext';
 import { useExternalVault } from '../context/ExternalVaultContext';
 import { commonStyles } from '../styles/theme';
+import { FIRE_UNITS, UNIT_NAMES, KARAT_HAS_RATIOS } from '../types';
 import dayjs, { Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import '../styles/animations.css';
@@ -89,6 +90,21 @@ interface KaratReport {
   totalStock: number;
   hasEquivalent: number;
   percentage: number;
+}
+
+interface FireReportData {
+  key: string;
+  unit: string;
+  totalInput: number;
+  totalOutput: number;
+  fireAmount: number;
+  fireByKarat: {
+    '14K': number;
+    '18K': number;
+    '22K': number;
+    '24K': number;
+  };
+  lastUpdate: string;
 }
 
 type DateFilterType = 'all' | 'today' | 'week' | 'month' | 'custom';
@@ -226,6 +242,58 @@ const Reports: React.FC = () => {
       percentage: totalStock > 0 ? (totals.stock / totalStock) * 100 : 0
     }));
   }, [unitSummaries, externalVaultStockByKarat]);
+
+  // Fire bazlı analiz verilerini hazırla - sadece lazer kesim, tezgah, cila birimleri
+  const fireData: FireReportData[] = useMemo(() => {
+    const fireUnits = unitSummaries.filter(unit => FIRE_UNITS.includes(unit.unitId));
+    
+    return fireUnits.map((unit, index) => {
+      // Birim transferlerini filtrele
+      const unitTransfers = filteredTransfers.filter(
+        t => t.fromUnit === unit.unitId || t.toUnit === unit.unitId
+      );
+
+      // Ayar bazlı fire hesapla
+      const fireByKarat: { '14K': number; '18K': number; '22K': number; '24K': number } = {
+        '14K': 0,
+        '18K': 0,
+        '22K': 0,
+        '24K': 0
+      };
+
+      let totalInput = 0;
+      let totalOutput = 0;
+
+      // Her ayar için giriş ve çıkışları hesapla
+      Object.entries(unit.stockByKarat).forEach(([karat, stock]) => {
+        const karatKey = karat as keyof typeof fireByKarat;
+        if (fireByKarat[karatKey] !== undefined) {
+          const input = safeNumber(stock.totalInput);
+          const output = safeNumber(stock.totalOutput);
+          fireByKarat[karatKey] = Math.max(0, input - output);
+          totalInput += input;
+          totalOutput += output;
+        }
+      });
+
+      // Son işlem tarihini bul
+      const lastTransfer = unitTransfers.length > 0 
+        ? unitTransfers.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+        : null;
+
+      return {
+        key: String(index + 1),
+        unit: unit.unitName,
+        totalInput: totalInput,
+        totalOutput: totalOutput,
+        fireAmount: Math.max(0, totalInput - totalOutput),
+        fireByKarat,
+        lastUpdate: lastTransfer 
+          ? dayjs(lastTransfer.date).format('DD.MM.YYYY HH:mm')
+          : '-'
+      };
+    });
+  }, [unitSummaries, filteredTransfers]);
 
   // Gelişmiş kolonlar
   const columns: ColumnsType<ReportData> = [
@@ -370,6 +438,134 @@ const Reports: React.FC = () => {
         );
       },
       sorter: (a, b) => a.percentage - b.percentage
+    }
+  ];
+
+  const fireColumns: ColumnsType<FireReportData> = [
+    {
+      title: 'Birim',
+      dataIndex: 'unit',
+      key: 'unit',
+      render: (text: string) => (
+        <Space>
+          <Badge 
+            status="error" 
+            text={
+              <Space>
+                <FireOutlined style={{ color: '#ff4d4f' }} />
+                <Text strong style={{ color: '#1f2937' }}>{text}</Text>
+              </Space>
+            }
+          />
+        </Space>
+      )
+    },
+    {
+      title: 'Toplam Giriş (gr)',
+      dataIndex: 'totalInput',
+      key: 'totalInput',
+      render: (value: number) => {
+        const safeValue = safeNumber(value);
+        return (
+          <Text style={{ color: '#1890ff', fontSize: '16px' }}>
+            {safeToFixed(safeValue, 2)}
+          </Text>
+        );
+      },
+      sorter: (a, b) => a.totalInput - b.totalInput
+    },
+    {
+      title: 'Toplam Çıkış (gr)',
+      dataIndex: 'totalOutput',
+      key: 'totalOutput',
+      render: (value: number) => {
+        const safeValue = safeNumber(value);
+        return (
+          <Text style={{ color: '#52c41a', fontSize: '16px' }}>
+            {safeToFixed(safeValue, 2)}
+          </Text>
+        );
+      },
+      sorter: (a, b) => a.totalOutput - b.totalOutput
+    },
+    {
+      title: 'Fire Miktarı (gr)',
+      dataIndex: 'fireAmount',
+      key: 'fireAmount',
+      render: (value: number) => {
+        const safeValue = safeNumber(value);
+        return (
+          <Tag 
+            color={safeValue === 0 ? 'success' : safeValue > 10 ? 'error' : 'warning'}
+            style={{ fontSize: '14px', padding: '4px 12px', fontWeight: '600' }}
+          >
+            <FireOutlined /> {safeToFixed(safeValue, 2)}
+          </Tag>
+        );
+      },
+      sorter: (a, b) => a.fireAmount - b.fireAmount
+    },
+    {
+      title: '14K Fire',
+      key: 'fire14K',
+      render: (_, record) => {
+        const fire14K = safeNumber(record.fireByKarat['14K']);
+        return (
+          <Text style={{ color: fire14K > 0 ? '#ff4d4f' : '#8c8c8c', fontSize: '14px' }}>
+            {safeToFixed(fire14K, 2)}
+          </Text>
+        );
+      },
+      sorter: (a, b) => a.fireByKarat['14K'] - b.fireByKarat['14K']
+    },
+    {
+      title: '18K Fire',
+      key: 'fire18K',
+      render: (_, record) => {
+        const fire18K = safeNumber(record.fireByKarat['18K']);
+        return (
+          <Text style={{ color: fire18K > 0 ? '#ff4d4f' : '#8c8c8c', fontSize: '14px' }}>
+            {safeToFixed(fire18K, 2)}
+          </Text>
+        );
+      },
+      sorter: (a, b) => a.fireByKarat['18K'] - b.fireByKarat['18K']
+    },
+    {
+      title: '22K Fire',
+      key: 'fire22K',
+      render: (_, record) => {
+        const fire22K = safeNumber(record.fireByKarat['22K']);
+        return (
+          <Text style={{ color: fire22K > 0 ? '#ff4d4f' : '#8c8c8c', fontSize: '14px' }}>
+            {safeToFixed(fire22K, 2)}
+          </Text>
+        );
+      },
+      sorter: (a, b) => a.fireByKarat['22K'] - b.fireByKarat['22K']
+    },
+    {
+      title: '24K Fire',
+      key: 'fire24K',
+      render: (_, record) => {
+        const fire24K = safeNumber(record.fireByKarat['24K']);
+        return (
+          <Text style={{ color: fire24K > 0 ? '#ff4d4f' : '#8c8c8c', fontSize: '14px' }}>
+            {safeToFixed(fire24K, 2)}
+          </Text>
+        );
+      },
+      sorter: (a, b) => a.fireByKarat['24K'] - b.fireByKarat['24K']
+    },
+    {
+      title: 'Son Güncelleme',
+      dataIndex: 'lastUpdate',
+      key: 'lastUpdate',
+      render: (text: string) => (
+        <Text type="secondary" style={{ fontSize: '13px' }}>
+          {text}
+        </Text>
+      )
     }
   ];
 
@@ -962,6 +1158,29 @@ const Reports: React.FC = () => {
                   />
                 ) : (
                   <Empty description="Ayar bazlı veri bulunamadı" />
+                )
+              )
+            },
+            {
+              key: 'fire',
+              label: (
+                <Space>
+                  <FireOutlined />
+                  <span>Fire Bazlı Analiz</span>
+                </Space>
+              ),
+              children: (
+                fireData.length > 0 ? (
+                  <Table
+                    columns={fireColumns}
+                    dataSource={fireData}
+                    pagination={false}
+                    scroll={{ x: 1000 }}
+                    size="large"
+                    style={{ borderRadius: '8px' }}
+                  />
+                ) : (
+                  <Empty description="Fire bazlı veri bulunamadı" />
                 )
               )
             }
