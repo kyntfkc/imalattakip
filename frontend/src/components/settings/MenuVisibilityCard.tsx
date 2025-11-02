@@ -457,5 +457,3 @@ const MenuVisibilityCard: React.FC = () => {
 };
 
 export default MenuVisibilityCard;
-
-// Trigger rebuild
