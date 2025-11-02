@@ -603,7 +603,7 @@ class ApiService {
   }
 
   // Role-based menu defaults (admin only)
-  async getRoleMenuDefaults(role?: 'admin' | 'user') {
+  async getRoleMenuDefaults(role?: 'admin' | 'user'): Promise<{ settings: any } | { defaults: Record<string, any> }> {
     if (role) {
       return this.request<{ settings: any }>(`/menu-settings/role-defaults/${role}`);
     }
