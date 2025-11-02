@@ -304,7 +304,7 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
   );
 });
 
-const UnitDashboard: React.FC = React.memo(() => {
+const UnitDashboard: React.FC = () => {
   const { unitSummaries, transfers, deleteTransfer, isLoading } = useTransfers();
   const { totalStock: externalVaultStock, totalHas: externalVaultHas, stockByKarat: externalVaultStockByKarat } = useExternalVault();
   const { settings, updateUnitOrder } = useDashboardSettings();
@@ -905,6 +905,6 @@ const UnitDashboard: React.FC = React.memo(() => {
       />
     </div>
   );
-});
+};
 
 export default UnitDashboard;
