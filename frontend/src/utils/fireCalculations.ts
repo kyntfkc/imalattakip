@@ -151,7 +151,31 @@ export const calculateUnitSummaries = (transfers: Transfer[]): UnitSummary[] => 
   const stocks = calculateUnitStocks(transfers);
   const summaryMap = new Map<UnitType, UnitSummary>();
 
-  // Her birim için özet oluştur
+  // Tüm birimler için başlangıç özeti oluştur (transfer olmasa bile)
+  // Bu sayede dashboard'da tüm birimler görünür
+  Object.values(UNIT_NAMES).forEach((_, index) => {
+    const unitId = Object.keys(UNIT_NAMES)[index] as UnitType;
+    if (unitId !== 'dis-kasa') { // Dış Kasa ayrı hesaplanıyor
+      if (!summaryMap.has(unitId)) {
+        summaryMap.set(unitId, {
+          unitId: unitId,
+          unitName: UNIT_NAMES[unitId],
+          totalStock: 0,
+          totalFire: 0,
+          hasEquivalent: 0,
+          stockByKarat: {
+            '14K': { totalInput: 0, totalOutput: 0, currentStock: 0, fire: 0, hasEquivalent: 0 },
+            '18K': { totalInput: 0, totalOutput: 0, currentStock: 0, fire: 0, hasEquivalent: 0 },
+            '22K': { totalInput: 0, totalOutput: 0, currentStock: 0, fire: 0, hasEquivalent: 0 },
+            '24K': { totalInput: 0, totalOutput: 0, currentStock: 0, fire: 0, hasEquivalent: 0 }
+          },
+          lastUpdate: new Date().toISOString()
+        });
+      }
+    }
+  });
+
+  // Her transfer için stok bilgilerini güncelle
   stocks.forEach((stock) => {
     if (!summaryMap.has(stock.unitId)) {
       summaryMap.set(stock.unitId, {
