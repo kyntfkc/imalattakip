@@ -102,8 +102,11 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
     try {
       setIsLoading(true);
 
+      // Normalize role: Backend'de 'normal_user', frontend'de 'user' olarak kullanılıyor
+      const normalizedRole = user.role === 'normal_user' ? 'user' : user.role;
+
       // 1. Rol varsayılanlarını yükle
-      const roleDefaultsData = await loadRoleDefaultsFromBackend(user.role as 'admin' | 'user');
+      const roleDefaultsData = await loadRoleDefaultsFromBackend(normalizedRole as 'admin' | 'user');
       
       // Eğer backend'de yoksa, kod içi varsayılanları kullan
       const defaultRoleSettings: MenuSettings = {
@@ -142,9 +145,11 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
             ...userOverrides.visibleMenus,
           },
         };
+        console.log('📋 Menü ayarları yüklendi (Rol varsayılanları + Kullanıcı override\'ları):', mergedSettings);
         setSettings(mergedSettings);
       } else {
         // Kullanıcı override'ları yoksa, sadece rol varsayılanlarını kullan
+        console.log('📋 Menü ayarları yüklendi (Sadece rol varsayılanları):', effectiveRoleDefaults);
         setSettings(effectiveRoleDefaults);
       }
 
