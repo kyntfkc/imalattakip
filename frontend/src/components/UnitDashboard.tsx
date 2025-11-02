@@ -554,7 +554,7 @@ const UnitDashboard: React.FC = React.memo(() => {
               </Title>
               <Text style={{ 
                 color: '#6b7280', 
-                fontSize: window.innerWidth < 768 ? '14px' : '18px',
+                fontSize: isMobile ? '14px' : '18px',
                 fontWeight: '400'
               }}>
                 Tüm üretim birimlerinizin anlık durumunu takip edin
@@ -566,12 +566,12 @@ const UnitDashboard: React.FC = React.memo(() => {
               <Col xs={24} sm={12} md={12}>
                 <div style={{
                   background: 'white',
-                  borderRadius: window.innerWidth < 768 ? '16px' : '20px',
-                  padding: window.innerWidth < 768 ? '16px' : '28px',
+                  borderRadius: isMobile ? '16px' : '20px',
+                  padding: isMobile ? '16px' : '28px',
                   border: '1px solid #e5e7eb',
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  minHeight: window.innerWidth < 768 ? '100px' : '140px',
-                  height: window.innerWidth < 768 ? 'auto' : '140px',
+                  minHeight: isMobile ? '100px' : '140px',
+                  height: isMobile ? 'auto' : '140px',
                   display: 'flex',
                   alignItems: 'center'
                 }}>
@@ -596,7 +596,7 @@ const UnitDashboard: React.FC = React.memo(() => {
                         fontSize: isMobile ? '14px' : '18px', 
                         fontWeight: '500',
                         display: 'block',
-                        marginBottom: window.innerWidth < 768 ? '4px' : '8px'
+                        marginBottom: isMobile ? '4px' : '8px'
                       }}>
                         Toplam Stok
                       </Text>
@@ -618,12 +618,12 @@ const UnitDashboard: React.FC = React.memo(() => {
               <Col xs={24} sm={12} md={12}>
                 <div style={{
                   background: 'white',
-                  borderRadius: window.innerWidth < 768 ? '16px' : '20px',
-                  padding: window.innerWidth < 768 ? '16px' : '28px',
+                  borderRadius: isMobile ? '16px' : '20px',
+                  padding: isMobile ? '16px' : '28px',
                   border: '1px solid #e5e7eb',
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  minHeight: window.innerWidth < 768 ? '100px' : '140px',
-                  height: window.innerWidth < 768 ? 'auto' : '140px',
+                  minHeight: isMobile ? '100px' : '140px',
+                  height: isMobile ? 'auto' : '140px',
                   display: 'flex',
                   alignItems: 'center'
                 }}>
@@ -648,7 +648,7 @@ const UnitDashboard: React.FC = React.memo(() => {
                         fontSize: isMobile ? '14px' : '18px', 
                         fontWeight: '500',
                         display: 'block',
-                        marginBottom: window.innerWidth < 768 ? '4px' : '8px'
+                        marginBottom: isMobile ? '4px' : '8px'
                       }}>
                         Has Karşılığı
                       </Text>
