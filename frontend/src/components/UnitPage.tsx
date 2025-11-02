@@ -956,9 +956,12 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       {(isOutputOnlyUnit || unitId === 'satis' || isInputUnit || isSemiFinishedUnit) && (
         <div style={{ 
           marginTop: 0,
-          marginBottom: 16,
+          marginBottom: 24,
           paddingTop: '16px',
-          borderTop: '1px solid #e5e7eb'
+          paddingBottom: '16px',
+          borderTop: '1px solid #e5e7eb',
+          borderBottom: '1px solid #e5e7eb',
+          background: '#fafafa'
         }}>
             <div style={{
               display: 'flex',
@@ -1091,7 +1094,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         )}
 
       {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana */}
-      <Row gutter={[16, 16]} align="stretch">
+      <div style={{ marginTop: 24 }}>
+        <Row gutter={[16, 16]} align="stretch">
         <Col xs={24} lg={12}>
           <Card 
             className="card-hover"
@@ -1240,7 +1244,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             </Card>
           </Col>
         )}
-      </Row>
+        </Row>
+      </div>
 
       {/* İşlem Geçmişi */}
       <Card
