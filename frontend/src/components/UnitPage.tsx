@@ -1078,86 +1078,87 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         </div>
       )}
 
-      {/* İşlem Geçmişi */}
-      <Card
-        title={
-          <Row justify="space-between" align="middle">
-            <Col>
-              <Space size={12} align="center">
-                <div style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '8px',
-                  background: unitColor.gradient,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <HistoryOutlined style={{ color: '#ffffff', fontSize: '18px' }} />
-                </div>
-                <Space size={8} align="center">
-                  <Text strong style={{ fontSize: '16px' }}>Tüm İşlemler</Text>
-                  <Tag 
-                    color={unitColor.primary} 
-                    style={{ 
-                      borderRadius: '10px',
-                      fontSize: '12px',
-                      padding: '2px 8px',
-                      margin: 0
-                    }}
-                  >
-                    {(isInputUnit && unitId === 'dokum') ? filteredTransfers.length : unitTransfers.length}
-                  </Tag>
-                </Space>
-              </Space>
-            </Col>
-            <Col>
-              <Space size={8}>
-                <Button
-                  icon={<FilterOutlined />}
-                  onClick={handleResetFilters}
-                  size="small"
-                  disabled={Object.keys(tableFilteredInfo).length === 0 && !tableSearchText && dateFilter === 'all' && !dateRange[0] && !dateRange[1]}
-                >
-                  Filtreleri Temizle
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<DownloadOutlined />}
-                  onClick={handleExport}
-                  size="small"
-                >
-                  Dışa Aktar
-                </Button>
-              </Space>
-            </Col>
-          </Row>
-        }
-        style={{ 
-          marginTop: 24,
-          borderRadius: commonStyles.borderRadius,
-          boxShadow: commonStyles.cardShadow
-        }}
-      >
-        {unitTransfers.length > 0 ? (
-          <Table
-            columns={columns}
-            dataSource={unitTransfers}
-            rowKey="id"
-            pagination={{
-              pageSize: 20,
-              showSizeChanger: true,
-              showTotal: (total) => `Toplam ${total} işlem`
-            }}
-            scroll={{ x: 1000 }}
-            onChange={(pagination, filters, sorter) => {
-              setTableFilteredInfo(filters as Record<string, string[] | null>);
-            }}
-          />
-        ) : (
-          <Empty description="Henüz işlem yok" />
-        )}
-      </Card>
+      {/* İşlem Geçmişi - Minimalist */}
+      <div style={{ marginTop: 16 }}>
+        <div 
+          style={{ 
+            borderRadius: '6px',
+            border: '1px solid #e5e7eb',
+            background: 'white'
+          }}
+        >
+          {/* Minimalist Header */}
+          <div style={{ 
+            padding: '12px 16px', 
+            borderBottom: '1px solid #f0f0f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Space size={8} align="center">
+              <HistoryOutlined style={{ fontSize: '14px', color: '#64748b' }} />
+              <Text strong style={{ fontSize: '13px', color: '#1f2937' }}>Tüm İşlemler</Text>
+              <Tag 
+                style={{ 
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  padding: '2px 6px',
+                  margin: 0,
+                  background: '#f3f4f6',
+                  border: 'none',
+                  color: '#6b7280'
+                }}
+              >
+                {(isInputUnit && unitId === 'dokum') ? filteredTransfers.length : unitTransfers.length}
+              </Tag>
+            </Space>
+            <Space size={6}>
+              <Button
+                icon={<FilterOutlined />}
+                onClick={handleResetFilters}
+                size="small"
+                disabled={Object.keys(tableFilteredInfo).length === 0 && !tableSearchText && dateFilter === 'all' && !dateRange[0] && !dateRange[1]}
+                style={{ fontSize: '12px', height: '28px', padding: '0 10px' }}
+              >
+                Temizle
+              </Button>
+              <Button
+                type="primary"
+                icon={<DownloadOutlined />}
+                onClick={handleExport}
+                size="small"
+                style={{ fontSize: '12px', height: '28px', padding: '0 10px' }}
+              >
+                Dışa Aktar
+              </Button>
+            </Space>
+          </div>
+          
+          {/* Table Content */}
+          <div style={{ padding: '12px' }}>
+            {unitTransfers.length > 0 ? (
+              <Table
+                columns={columns}
+                dataSource={unitTransfers}
+                rowKey="id"
+                pagination={{
+                  pageSize: 20,
+                  showSizeChanger: true,
+                  showTotal: (total) => `Toplam ${total} işlem`,
+                  size: 'small'
+                }}
+                scroll={{ x: 1000 }}
+                size="small"
+                onChange={(pagination, filters, sorter) => {
+                  setTableFilteredInfo(filters as Record<string, string[] | null>);
+                }}
+              />
+            ) : (
+              <Empty description="Henüz işlem yok" style={{ margin: '20px 0' }} />
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Satış, Tedarik, Döküm, Lazer Kesim, Tezgah ve Cila sayfaları için minimalist kartlar - Tüm İşlemler'in altında */}
       {(unitId === 'satis' || unitId === 'tedarik' || unitId === 'dokum' || unitId === 'lazer-kesim' || unitId === 'tezgah' || unitId === 'cila') && (
