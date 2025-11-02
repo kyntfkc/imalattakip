@@ -62,10 +62,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Fallback: localStorage'dan yükle
           const savedUser = localStorage.getItem('user');
           if (savedUser) {
-            setUser(JSON.parse(savedUser));
-            const token = localStorage.getItem('authToken');
-            if (token) {
-              socketService.connect(token);
+            try {
+              const parsedUser = JSON.parse(savedUser);
+              setUser(parsedUser);
+              const token = localStorage.getItem('authToken');
+              if (token) {
+                socketService.connect(token);
+              }
+            } catch (parseError) {
+              console.error('User JSON parse hatası:', parseError);
+              // Geçersiz JSON varsa temizle
+              localStorage.removeItem('user');
+              localStorage.removeItem('authToken');
             }
           }
         }
@@ -74,10 +82,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Fallback: localStorage'dan yükle
         const savedUser = localStorage.getItem('user');
         if (savedUser) {
-          setUser(JSON.parse(savedUser));
-          const token = localStorage.getItem('authToken');
-          if (token) {
-            socketService.connect(token);
+          try {
+            const parsedUser = JSON.parse(savedUser);
+            setUser(parsedUser);
+            const token = localStorage.getItem('authToken');
+            if (token) {
+              socketService.connect(token);
+            }
+          } catch (parseError) {
+            console.error('User JSON parse hatası:', parseError);
+            // Geçersiz JSON varsa temizle
+            localStorage.removeItem('user');
+            localStorage.removeItem('authToken');
           }
         }
       } finally {

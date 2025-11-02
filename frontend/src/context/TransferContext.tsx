@@ -172,6 +172,11 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
         notes: transfer.notes
       });
       
+      // Karat kontrolü
+      if (!transfer.karat || typeof transfer.karat !== 'string') {
+        throw new Error('Geçersiz karat değeri');
+      }
+
       const response = await apiService.createTransfer({
         fromUnit: transfer.fromUnit,
         toUnit: transfer.toUnit,
@@ -225,7 +230,25 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
 
   // Backend'de transfer güncelle
   const updateTransfer = useCallback(async (id: string, transfer: Omit<Transfer, 'id' | 'date'>) => {
+    // Orijinal transfer'i sakla (hata durumunda geri almak için)
+    const originalTransfer = transfers.find(t => t.id === id);
+    if (!originalTransfer) {
+      throw new Error('Transfer bulunamadı');
+    }
+
+    // Karat kontrolü
+    if (!transfer.karat || typeof transfer.karat !== 'string') {
+      throw new Error('Geçersiz karat değeri');
+    }
+
     try {
+      // Optimistik update
+      setTransfers(prev => prev.map(t => 
+        t.id === id 
+          ? { ...t, ...transfer, user: 'Mevcut Kullanıcı' }
+          : t
+      ));
+
       await apiService.updateTransfer(parseInt(id), {
         fromUnit: transfer.fromUnit,
         toUnit: transfer.toUnit,
@@ -234,27 +257,60 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
         notes: transfer.notes
       });
 
-      setTransfers(prev => prev.map(t => 
-        t.id === id 
-          ? { ...t, ...transfer, user: 'Mevcut Kullanıcı' }
-          : t
-      ));
+      // Backend'den güncel veriyi çek (socket event ile otomatik güncellenir)
+      const backendTransfers = await apiService.getTransfers();
+      const formattedTransfers: Transfer[] = backendTransfers.map((t: any) => ({
+        id: t.id.toString(),
+        fromUnit: t.from_unit,
+        toUnit: t.to_unit,
+        amount: t.amount,
+        karat: `${t.karat}K` as any,
+        notes: t.notes || '',
+        date: new Date(t.created_at).toISOString(),
+        user: t.user_name || 'Bilinmeyen',
+        cinsi: (t.cinsi && String(t.cinsi).trim()) ? String(t.cinsi).trim() : undefined
+      }));
+      setTransfers(formattedTransfers);
     } catch (error) {
       console.error('Transfer güncellenemedi:', error);
+      // Hata durumunda orijinal transfer'i geri yükle
+      if (originalTransfer) {
+        setTransfers(prev => prev.map(t => 
+          t.id === id ? originalTransfer : t
+        ));
+      }
       throw error;
     }
-  }, []);
+  }, [transfers]);
 
   // Tüm transferleri temizle
   const clearAllTransfers = useCallback(async () => {
+    const originalTransfers = [...transfers]; // Yedekle (hata durumunda geri almak için)
+    
     try {
       // Backend'de tek tek sil (bulk delete endpoint'i yok)
-      for (const transfer of transfers) {
-        await apiService.deleteTransfer(parseInt(transfer.id));
+      const deletePromises = transfers.map(transfer => 
+        apiService.deleteTransfer(parseInt(transfer.id)).catch(error => {
+          console.error(`Transfer ${transfer.id} silinemedi:`, error);
+          return { failed: true, id: transfer.id };
+        })
+      );
+      
+      const results = await Promise.all(deletePromises);
+      const failedDeletes = results.filter((r: any) => r?.failed);
+      
+      if (failedDeletes.length > 0) {
+        // Bazı transferler silinemediyse hata ver
+        const failedIds = failedDeletes.map((r: any) => r.id).join(', ');
+        throw new Error(`${failedDeletes.length} transfer silinemedi (ID: ${failedIds})`);
       }
+      
+      // Tüm transferler başarıyla silindi
       setTransfers([]);
     } catch (error) {
       console.error('Transferler temizlenemedi:', error);
+      // Hata durumunda orijinal listeyi geri yükle
+      setTransfers(originalTransfers);
       throw error;
     }
   }, [transfers]);

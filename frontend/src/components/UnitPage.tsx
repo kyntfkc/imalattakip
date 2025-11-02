@@ -157,6 +157,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       
       transfers.forEach(t => {
         if (t.toUnit === unitId || t.fromUnit === unitId) {
+          // Karat değeri geçerlilik kontrolü
+          if (!t.karat || typeof t.karat !== 'string') {
+            return; // Geçersiz karat değerini atla
+          }
           const key = t.karat;
           if (!stockByKarat.has(key)) {
             stockByKarat.set(key, { input: 0, output: 0 });
@@ -175,6 +179,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       // Her karat için mevcut stokun has karşılığını hesapla
       return Array.from(stockByKarat.entries()).reduce((sum, [karat, stock]) => {
         const currentStock = stock.input - stock.output;
+        // Karat değeri geçerlilik kontrolü
+        if (!karat || typeof karat !== 'string') {
+          return sum;
+        }
         const karatMultiplier = KARAT_HAS_RATIOS[karat as keyof typeof KARAT_HAS_RATIOS] || 0;
         return sum + (Math.max(0, currentStock) * karatMultiplier);
       }, 0);
@@ -186,6 +194,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     
     transfers.forEach(t => {
       if (t.toUnit === unitId || t.fromUnit === unitId) {
+        // Karat değeri geçerlilik kontrolü
+        if (!t.karat || typeof t.karat !== 'string') {
+          return; // Geçersiz karat değerini atla
+        }
         const key = t.karat;
         if (!stockByKarat.has(key)) {
           stockByKarat.set(key, { input: 0, output: 0 });
@@ -204,6 +216,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     // Her karat için mevcut stokun has karşılığını hesapla
     return Array.from(stockByKarat.entries()).reduce((sum, [karat, stock]) => {
       const currentStock = Math.max(0, stock.input - stock.output);
+      // Karat değeri geçerlilik kontrolü
+      if (!karat || typeof karat !== 'string') {
+        return sum;
+      }
       const karatMultiplier = KARAT_HAS_RATIOS[karat as keyof typeof KARAT_HAS_RATIOS] || 0;
       return sum + (currentStock * karatMultiplier);
     }, 0);
