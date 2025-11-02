@@ -301,7 +301,7 @@ const ExternalVault: React.FC = () => {
       </Row>
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} lg={16}>
+        <Col xs={24} lg={24}>
           <Card 
             title={
               <Space>
