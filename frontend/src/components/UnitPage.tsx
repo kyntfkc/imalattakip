@@ -287,7 +287,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
 
   const handleExport = useCallback(() => {
     // Filtrelenmiş verileri al (tableFilteredInfo ve tableSearchText'e göre)
-    let dataToExport = (isOutputOnlyUnit || isInputUnit || unitId === 'satis' || isSemiFinishedUnit) ? filteredTransfers : unitTransfers;
+    // Sadece Döküm için filtre uygulanır, diğerleri için tüm transferler
+    let dataToExport = (isInputUnit && unitId === 'dokum') ? filteredTransfers : unitTransfers;
     
     // Arama filtresini uygula
     if (tableSearchText) {
@@ -1314,7 +1315,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         {unitTransfers.length > 0 ? (
           <Table
             columns={columns}
-            dataSource={(isOutputOnlyUnit || isInputUnit || unitId === 'satis' || isSemiFinishedUnit) ? filteredTransfers : unitTransfers}
+            dataSource={(isInputUnit && unitId === 'dokum') ? filteredTransfers : unitTransfers}
             rowKey="id"
             pagination={{
               pageSize: 20,
