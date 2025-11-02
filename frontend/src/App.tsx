@@ -208,8 +208,8 @@ const AppContent: React.FC = () => {
       }
     }
     
-    // Menü ayarları yüklenene kadar rol bazlı varsayılan değerleri kullan
-    if (menuSettingsLoading) {
+    // Menü ayarları yüklenene kadar veya settings undefined ise rol bazlı varsayılan değerleri kullan
+    if (menuSettingsLoading || !menuSettings || !menuSettings.visibleMenus) {
       return getDefaultVisibility(key);
     }
     
