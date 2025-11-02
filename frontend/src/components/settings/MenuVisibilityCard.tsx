@@ -95,10 +95,17 @@ const MenuVisibilityCard: React.FC = () => {
         try {
           setLoadingRoleDefaults(true);
           const response = await apiService.getRoleMenuDefaults();
-          if (response.defaults) {
+          // response type check
+          if ('defaults' in response && response.defaults) {
             setRoleDefaults({
               admin: response.defaults.admin || defaultSettingsByRole.admin,
               user: response.defaults.user || defaultSettingsByRole.user
+            });
+          } else {
+            // Fallback to default settings
+            setRoleDefaults({
+              admin: defaultSettingsByRole.admin,
+              user: defaultSettingsByRole.user
             });
           }
         } catch (error) {
