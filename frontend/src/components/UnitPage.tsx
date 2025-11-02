@@ -61,6 +61,15 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const [tableSearchText, setTableSearchText] = useState('');
   const [tableFilteredInfo, setTableFilteredInfo] = useState<Record<string, string[] | null>>({});
   const { isBackendOnline, isChecking } = useBackendStatus();
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const unit = unitSummaries.find(u => u.unitId === unitId);
   const unitName = UNIT_NAMES[unitId];
@@ -923,21 +932,21 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       {/* Professional Header */}
       <Card 
         style={{ 
-          marginBottom: 24, 
-          borderRadius: '20px',
+          marginBottom: 20, 
+          borderRadius: '16px',
           background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
           border: '1px solid #e5e7eb',
           overflow: 'hidden'
         }}
-        styles={{ body: { padding: 32 } }}
+        styles={{ body: { padding: typeof window !== 'undefined' && window.innerWidth < 768 ? '16px' : '20px' } }}
       >
         <Row align="middle" justify="space-between">
           <Col>
-            <Space size={20} align="center">
+            <Space size={typeof window !== 'undefined' && window.innerWidth < 768 ? '12px' : '16px'} align="center">
               <div style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '16px',
+                width: '48px',
+                height: '48px',
+                borderRadius: '12px',
                 background: '#f8fafc',
                 display: 'flex',
                 alignItems: 'center',
@@ -950,21 +959,21 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               <div>
                 <Space direction="vertical" size={4} style={{ alignItems: 'flex-start' }}>
                   <Space size={10} align="center">
-                    <Title level={2} style={{ margin: 0, color: '#1f2937', fontSize: '28px', fontWeight: '700' }}>
+                    <Title level={2} style={{ margin: 0, color: '#1f2937', fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '20px' : '24px', fontWeight: '700', lineHeight: 1.2 }}>
                       {unitName}
                     </Title>
                     {!isChecking && (
                       <div style={{
-                        width: 12,
-                        height: 12,
+                        width: 10,
+                        height: 10,
                         borderRadius: '50%',
                         backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444',
-                        boxShadow: isBackendOnline ? '0 0 8px rgba(34,197,94,0.6)' : '0 0 8px rgba(239,68,68,0.6)',
+                        boxShadow: isBackendOnline ? '0 0 6px rgba(34,197,94,0.6)' : '0 0 6px rgba(239,68,68,0.6)',
                         border: `2px solid ${isBackendOnline ? '#dcfce7' : '#fee2e2'}`
                       }} />
                     )}
                   </Space>
-                  <Text style={{ color: '#6b7280', fontSize: '16px', fontWeight: '400' }}>
+                  <Text style={{ color: '#6b7280', fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '12px' : '14px', fontWeight: '400' }}>
                     Birim Detay Sayfası
                   </Text>
                 </Space>
@@ -974,15 +983,15 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           <Col>
             <Button
               type="primary"
-              size="large"
+              size={typeof window !== 'undefined' && window.innerWidth < 768 ? 'middle' : 'large'}
               icon={<PlusOutlined />}
               onClick={() => setTransferModalOpen(true)}
               style={{
-                height: '44px',
-                padding: '0 24px',
-                fontSize: '14px',
+                height: typeof window !== 'undefined' && window.innerWidth < 768 ? '36px' : '40px',
+                padding: '0 16px',
+                fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '12px' : '13px',
                 fontWeight: 600,
-                borderRadius: '12px'
+                borderRadius: '10px'
               }}
             >
               Yeni Transfer
@@ -993,8 +1002,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         {/* Filtreler - Satış, output-only, input ve yarı mamül birimler için */}
         {(isOutputOnlyUnit || unitId === 'satis' || isInputUnit || isSemiFinishedUnit) && (
           <div style={{ 
-            marginTop: '24px',
-            paddingTop: '24px',
+            marginTop: '20px',
+            paddingTop: '20px',
             borderTop: '1px solid #e5e7eb'
           }}>
             <div style={{
@@ -1132,12 +1141,12 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       <Card 
         className="card-hover"
         style={{ 
-          borderRadius: '20px',
+          borderRadius: '16px',
           border: '1px solid #e5e7eb',
           background: 'white',
           overflow: 'hidden',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-          marginBottom: 20
+          marginBottom: 16
         }}
       >
         <Row gutter={16}>
@@ -1155,10 +1164,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                       suffix="gr"
                       valueStyle={{ 
                         color: totalFire > 1 ? '#ff4d4f' : totalFire > 0 ? '#faad14' : '#52c41a',
-                        fontSize: '32px',
+                        fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '24px' : '28px',
                         fontWeight: 700
                       }}
-                      prefix={<ThunderboltOutlined style={{ fontSize: '24px', color: '#64748b' }} />}
+                      prefix={<ThunderboltOutlined style={{ fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '18px' : '20px', color: '#64748b' }} />}
                     />
                   );
                 })()}
@@ -1187,10 +1196,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                         suffix="gr"
                         valueStyle={{ 
                           color: '#1f2937', 
-                          fontSize: '28px',
+                          fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '22px' : '24px',
                           fontWeight: 700
                         }}
-                        prefix={<GoldOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
+                        prefix={<GoldOutlined style={{ fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '18px' : '20px', color: '#64748b' }} />}
                       />
                     );
                   })()}
@@ -1212,10 +1221,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                         suffix="gr"
                         valueStyle={{ 
                           color: '#059669',
-                          fontSize: '28px',
+                          fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '22px' : '24px',
                           fontWeight: 700
                         }}
-                        prefix={<CrownOutlined style={{ fontSize: '20px', color: '#64748b' }} />}
+                        prefix={<CrownOutlined style={{ fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '18px' : '20px', color: '#64748b' }} />}
                       />
                     );
                   })()}
@@ -1246,7 +1255,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             </Space>
           }
           style={{ 
-            marginBottom: 20, 
+            marginBottom: 16, 
             borderRadius: commonStyles.borderRadius,
             boxShadow: commonStyles.cardShadow 
           }}
