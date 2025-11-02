@@ -338,8 +338,8 @@ const AppContent: React.FC = () => {
         key: 'settings',
         icon: <SettingOutlined />,
         label: 'Ayarlar'
-      }] : []);
-    }
+      }] : [])
+    ]);
   }, [menuSettings, menuSettingsLoading, isAdmin, isMenuVisible]);
 
   const renderContent = () => {
