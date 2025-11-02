@@ -996,7 +996,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   }}
                 >
                   <CalendarOutlined style={{ marginRight: '4px' }} />
-                  {filteredTransfers.length} işlem
+                  {(isInputUnit && unitId === 'dokum') ? filteredTransfers.length : unitTransfers.length} işlem
                 </Tag>
               </Space>
             </div>
