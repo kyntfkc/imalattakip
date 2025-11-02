@@ -287,7 +287,7 @@ const MenuVisibilityCard: React.FC = () => {
                                     const isVisible = currentDefaults.visibleMenus?.[item.key] ?? true;
                                     
                                     return (
-                                      <Col xs={24} sm={12} md={8} lg={6} key={item.key}>
+                                      <Col xs={24} sm={24} md={12} lg={8} xl={6} key={item.key}>
                                         <Card
                                           size="small"
                                           style={{
@@ -297,26 +297,34 @@ const MenuVisibilityCard: React.FC = () => {
                                           }}
                                           styles={{ body: { padding: '10px' } }}
                                         >
-                                          <Space direction="vertical" size={6} style={{ width: '100%' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                              <Space size={4}>
-                                                {isVisible ? (
-                                                  <EyeOutlined style={{ color: '#22c55e', fontSize: '12px' }} />
-                                                ) : (
-                                                  <EyeInvisibleOutlined style={{ color: '#ef4444', fontSize: '12px' }} />
-                                                )}
-                                                <Text style={{ fontSize: '12px', color: '#1f2937' }}>
-                                                  {item.label}
-                                                </Text>
-                                              </Space>
-                                              <Switch
-                                                checked={isVisible}
-                                                onChange={() => handleRoleDefaultToggle(item.key, 'admin')}
-                                                size="small"
-                                                disabled={loadingRoleDefaults}
-                                              />
+                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', width: '100%' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1, minWidth: 0 }}>
+                                              {isVisible ? (
+                                                <EyeOutlined style={{ color: '#22c55e', fontSize: '12px', flexShrink: 0 }} />
+                                              ) : (
+                                                <EyeInvisibleOutlined style={{ color: '#ef4444', fontSize: '12px', flexShrink: 0 }} />
+                                              )}
+                                              <Text 
+                                                style={{ 
+                                                  fontSize: '12px', 
+                                                  color: '#1f2937',
+                                                  whiteSpace: 'nowrap',
+                                                  overflow: 'hidden',
+                                                  textOverflow: 'ellipsis',
+                                                  flex: 1
+                                                }}
+                                              >
+                                                {item.label}
+                                              </Text>
                                             </div>
-                                          </Space>
+                                            <Switch
+                                              checked={isVisible}
+                                              onChange={() => handleRoleDefaultToggle(item.key, 'admin')}
+                                              size="small"
+                                              disabled={loadingRoleDefaults}
+                                              style={{ flexShrink: 0 }}
+                                            />
+                                          </div>
                                         </Card>
                                       </Col>
                                     );
@@ -349,7 +357,7 @@ const MenuVisibilityCard: React.FC = () => {
                                   const isAdminOnly = item.category.includes('Admin');
                                   
                                   return (
-                                    <Col xs={24} sm={12} md={8} lg={6} key={item.key}>
+                                    <Col xs={24} sm={24} md={12} lg={8} xl={6} key={item.key}>
                                       <Card
                                         size="small"
                                         style={{
@@ -359,23 +367,33 @@ const MenuVisibilityCard: React.FC = () => {
                                         }}
                                         styles={{ body: { padding: '10px' } }}
                                       >
-                                        <Space direction="vertical" size={6} style={{ width: '100%' }}>
-                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <Space size={4}>
+                                        <div style={{ width: '100%' }}>
+                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', width: '100%', marginBottom: isAdminOnly ? '4px' : 0 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1, minWidth: 0 }}>
                                               {isVisible ? (
-                                                <EyeOutlined style={{ color: '#22c55e', fontSize: '12px' }} />
+                                                <EyeOutlined style={{ color: '#22c55e', fontSize: '12px', flexShrink: 0 }} />
                                               ) : (
-                                                <EyeInvisibleOutlined style={{ color: '#ef4444', fontSize: '12px' }} />
+                                                <EyeInvisibleOutlined style={{ color: '#ef4444', fontSize: '12px', flexShrink: 0 }} />
                                               )}
-                                              <Text style={{ fontSize: '12px', color: '#1f2937' }}>
+                                              <Text 
+                                                style={{ 
+                                                  fontSize: '12px', 
+                                                  color: '#1f2937',
+                                                  whiteSpace: 'nowrap',
+                                                  overflow: 'hidden',
+                                                  textOverflow: 'ellipsis',
+                                                  flex: 1
+                                                }}
+                                              >
                                                 {item.label}
                                               </Text>
-                                            </Space>
+                                            </div>
                                             <Switch
                                               checked={isVisible}
                                               onChange={() => handleRoleDefaultToggle(item.key, 'user')}
                                               size="small"
                                               disabled={loadingRoleDefaults || isAdminOnly}
+                                              style={{ flexShrink: 0 }}
                                             />
                                           </div>
                                           {isAdminOnly && (
@@ -383,7 +401,7 @@ const MenuVisibilityCard: React.FC = () => {
                                               Sadece admin
                                             </Text>
                                           )}
-                                        </Space>
+                                        </div>
                                       </Card>
                                     </Col>
                                   );
@@ -413,7 +431,7 @@ const MenuVisibilityCard: React.FC = () => {
                   const isAdminOnly = item.category.includes('Admin');
                   
                   return (
-                    <Col xs={24} sm={12} md={8} lg={6} key={item.key}>
+                    <Col xs={24} sm={24} md={12} lg={8} xl={6} key={item.key}>
                       <Card
                         size="small"
                         style={{
@@ -423,26 +441,34 @@ const MenuVisibilityCard: React.FC = () => {
                         }}
                         styles={{ body: { padding: '12px' } }}
                       >
-                        <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Space>
-                              {isVisible ? (
-                                <EyeOutlined style={{ color: '#22c55e', fontSize: '14px' }} />
-                              ) : (
-                                <EyeInvisibleOutlined style={{ color: '#ef4444', fontSize: '14px' }} />
-                              )}
-                              <Text style={{ fontSize: '13px', color: '#1f2937' }}>
-                                {item.label}
-                              </Text>
-                            </Space>
-                            <Switch
-                              checked={isVisible}
-                              onChange={() => handleToggle(item.key)}
-                              disabled={isLoading || (isAdminOnly && !isAdmin)}
-                              size="small"
-                            />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', width: '100%' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+                            {isVisible ? (
+                              <EyeOutlined style={{ color: '#22c55e', fontSize: '14px', flexShrink: 0 }} />
+                            ) : (
+                              <EyeInvisibleOutlined style={{ color: '#ef4444', fontSize: '14px', flexShrink: 0 }} />
+                            )}
+                            <Text 
+                              style={{ 
+                                fontSize: '13px', 
+                                color: '#1f2937',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                flex: 1
+                              }}
+                            >
+                              {item.label}
+                            </Text>
                           </div>
-                        </Space>
+                          <Switch
+                            checked={isVisible}
+                            onChange={() => handleToggle(item.key)}
+                            disabled={isLoading || (isAdminOnly && !isAdmin)}
+                            size="small"
+                            style={{ flexShrink: 0 }}
+                          />
+                        </div>
                       </Card>
                     </Col>
                   );
