@@ -930,53 +930,45 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
 
   return (
     <div className="fade-in">
-      {/* Professional Header */}
+      {/* Minimal Header */}
       <Card 
         style={{ 
-          marginBottom: 20, 
-          borderRadius: '16px',
-          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+          marginBottom: 16, 
+          borderRadius: '12px',
+          background: '#ffffff',
           border: '1px solid #e5e7eb',
-          overflow: 'hidden'
+          boxShadow: 'none'
         }}
-        styles={{ body: { padding: typeof window !== 'undefined' && window.innerWidth < 768 ? '16px' : '20px' } }}
+        styles={{ body: { padding: typeof window !== 'undefined' && window.innerWidth < 768 ? '12px' : '16px' } }}
       >
         <Row align="middle" justify="space-between">
           <Col>
-            <Space size={typeof window !== 'undefined' && window.innerWidth < 768 ? 12 : 16} align="center">
+            <Space size={typeof window !== 'undefined' && window.innerWidth < 768 ? 10 : 12} align="center">
               <div style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '12px',
+                width: typeof window !== 'undefined' && window.innerWidth < 768 ? '36px' : '40px',
+                height: typeof window !== 'undefined' && window.innerWidth < 768 ? '36px' : '40px',
+                borderRadius: '8px',
                 background: '#f8fafc',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                border: '1px solid #e5e7eb'
               }}>
                 {getUnitIcon('#64748b')}
               </div>
               <div>
-                <Space direction="vertical" size={4} style={{ alignItems: 'flex-start' }}>
-                  <Space size={10} align="center">
-                    <Title level={2} style={{ margin: 0, color: '#1f2937', fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '20px' : '24px', fontWeight: '700', lineHeight: 1.2 }}>
-                      {unitName}
-                    </Title>
-                    {!isChecking && (
-                      <div style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444',
-                        boxShadow: isBackendOnline ? '0 0 6px rgba(34,197,94,0.6)' : '0 0 6px rgba(239,68,68,0.6)',
-                        border: `2px solid ${isBackendOnline ? '#dcfce7' : '#fee2e2'}`
-                      }} />
-                    )}
-                  </Space>
-                  <Text style={{ color: '#6b7280', fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '12px' : '14px', fontWeight: '400' }}>
-                    Birim Detay Sayfası
-                  </Text>
+                <Space size={8} align="center">
+                  <Title level={4} style={{ margin: 0, color: '#1f2937', fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '16px' : '18px', fontWeight: '600', lineHeight: 1.2 }}>
+                    {unitName}
+                  </Title>
+                  {!isChecking && (
+                    <div style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444'
+                    }} />
+                  )}
                 </Space>
               </div>
             </Space>
@@ -984,15 +976,15 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           <Col>
             <Button
               type="primary"
-              size={typeof window !== 'undefined' && window.innerWidth < 768 ? 'middle' : 'large'}
+              size={typeof window !== 'undefined' && window.innerWidth < 768 ? 'small' : 'middle'}
               icon={<PlusOutlined />}
               onClick={() => setTransferModalOpen(true)}
               style={{
-                height: typeof window !== 'undefined' && window.innerWidth < 768 ? '36px' : '40px',
-                padding: '0 16px',
+                height: typeof window !== 'undefined' && window.innerWidth < 768 ? '32px' : '36px',
+                padding: '0 14px',
                 fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '12px' : '13px',
-                fontWeight: 600,
-                borderRadius: '10px'
+                fontWeight: 500,
+                borderRadius: '8px'
               }}
             >
               Yeni Transfer

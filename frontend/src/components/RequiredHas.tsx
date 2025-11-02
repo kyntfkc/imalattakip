@@ -251,33 +251,33 @@ const RequiredHas: React.FC = () => {
 
   return (
     <div className="fade-in" style={{ padding: '0 8px' }}>
-      {/* Professional Header */}
+      {/* Minimal Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        borderRadius: '20px',
-        padding: '32px',
-        marginBottom: '24px',
-        border: '1px solid #e5e7eb'
+        background: '#ffffff',
+        borderRadius: '12px',
+        padding: '16px',
+        marginBottom: '16px',
+        border: '1px solid #e5e7eb',
+        boxShadow: 'none'
       }}>
-        <Space align="center" size={20}>
+        <Space align="center" size={12}>
           <div style={{
             background: '#f8fafc',
-            borderRadius: '16px',
-            padding: '12px',
+            borderRadius: '8px',
+            padding: '8px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            border: '1px solid #e5e7eb'
+            border: '1px solid #e5e7eb',
+            width: '40px',
+            height: '40px'
           }}>
-            <CalculatorOutlined style={{ fontSize: '32px', color: '#64748b' }} />
+            <CalculatorOutlined style={{ fontSize: '20px', color: '#64748b' }} />
           </div>
           <div>
-            <Title level={2} style={{ margin: 0, color: '#1f2937', fontSize: '28px', fontWeight: '700' }}>
+            <Title level={4} style={{ margin: 0, color: '#1f2937', fontSize: '18px', fontWeight: '600' }}>
               Gereken Has
             </Title>
-            <Text style={{ color: '#6b7280', fontSize: '16px', fontWeight: '400' }}>
-              Giriş/Çıkış kayıtları ve alınacak has takibi
-            </Text>
           </div>
         </Space>
       </div>
