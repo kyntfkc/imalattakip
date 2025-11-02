@@ -30,26 +30,51 @@ interface MenuSettingsContextType {
   isLoading: boolean;
 }
 
-const defaultSettings: MenuSettings = {
-  visibleMenus: {
-    dashboard: true,
-    'ana-kasa': true,
-    'yarimamul': true,
-    'lazer-kesim': true,
-    'tezgah': true,
-    'cila': true,
-    'external-vault': true,
-    'dokum': true,
-    'tedarik': true,
-    'satis': true,
-    'required-has': true,
-    'reports': true,
-    'companies': true,
-    'logs': true,
-    'settings': true,
-    'user-management': true,
+// Rol bazlı varsayılan ayarlar
+const defaultSettingsByRole: Record<'admin' | 'user', MenuSettings> = {
+  admin: {
+    visibleMenus: {
+      dashboard: true,
+      'ana-kasa': true,
+      'yarimamul': true,
+      'lazer-kesim': true,
+      'tezgah': true,
+      'cila': true,
+      'external-vault': true,
+      'dokum': true,
+      'tedarik': true,
+      'satis': true,
+      'required-has': true,
+      'reports': true,
+      'companies': true,
+      'logs': true,
+      'settings': true,
+      'user-management': true,
+    },
+  },
+  user: {
+    visibleMenus: {
+      dashboard: true,
+      'ana-kasa': true,
+      'yarimamul': true,
+      'lazer-kesim': true,
+      'tezgah': true,
+      'cila': true,
+      'external-vault': true,
+      'dokum': true,
+      'tedarik': true,
+      'satis': true,
+      'required-has': true,
+      'reports': true,
+      'companies': true,
+      'logs': false, // User için varsayılan olarak gizli
+      'settings': true,
+      'user-management': false, // User için varsayılan olarak gizli
+    },
   },
 };
+
+const defaultSettings: MenuSettings = defaultSettingsByRole.admin;
 
 const MenuSettingsContext = createContext<MenuSettingsContextType | undefined>(undefined);
 
@@ -67,7 +92,11 @@ interface MenuSettingsProviderProps {
 
 export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ children }) => {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
-  const [settings, setSettings] = useState<MenuSettings>(defaultSettings);
+  // Rol bazlı varsayılan ayarları kullan
+  const getDefaultSettings = (role?: 'admin' | 'user'): MenuSettings => {
+    return defaultSettingsByRole[role || 'user'];
+  };
+  const [settings, setSettings] = useState<MenuSettings>(getDefaultSettings(user?.role));
   const [isLoading, setIsLoading] = useState(true);
 
   // Backend'den verileri yükle - sadece authenticated olduğunda
@@ -84,9 +113,10 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
         try {
           const response = await apiService.getMenuSettings();
           if (response.settings && response.settings.visibleMenus) {
-            // Eksik menü öğelerini varsayılan ayarlardan ekle
-            const allMenus = Object.keys(defaultSettings.visibleMenus);
-            const mergedMenus: any = { ...defaultSettings.visibleMenus };
+            // Eksik menü öğelerini rol bazlı varsayılan ayarlardan ekle
+            const roleDefaults = getDefaultSettings(user?.role);
+            const allMenus = Object.keys(roleDefaults.visibleMenus);
+            const mergedMenus: any = { ...roleDefaults.visibleMenus };
             allMenus.forEach((menuKey) => {
               if (response.settings.visibleMenus[menuKey] !== undefined) {
                 mergedMenus[menuKey] = response.settings.visibleMenus[menuKey];
@@ -115,14 +145,15 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
             setSettings({ visibleMenus: mergedMenus });
           } catch (parseError) {
             console.error('localStorage parse hatası:', parseError);
-            setSettings(defaultSettings);
+            setSettings(getDefaultSettings(user?.role));
           }
         } else {
-          setSettings(defaultSettings);
+          // Kullanıcı rolüne göre varsayılan ayarları kullan
+          setSettings(getDefaultSettings(user?.role));
         }
       } catch (error) {
         console.error('Menü ayarları yüklenemedi:', error);
-        setSettings(defaultSettings);
+        setSettings(getDefaultSettings(user?.role));
       } finally {
         setIsLoading(false);
       }
@@ -168,7 +199,9 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
   };
 
   const resetToDefaults = async () => {
-    setSettings(defaultSettings);
+    // Kullanıcı rolüne göre varsayılan ayarları kullan
+    const roleBasedDefaults = getDefaultSettings(user?.role);
+    setSettings(roleBasedDefaults);
     
     try {
       // Backend'e sıfırla
@@ -181,7 +214,7 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
       // Kullanıcı bazlı localStorage'a kaydet
       if (user?.id) {
         const userSpecificKey = `menu-settings-${user.id}`;
-        localStorage.setItem(userSpecificKey, JSON.stringify(defaultSettings));
+        localStorage.setItem(userSpecificKey, JSON.stringify(roleBasedDefaults));
       }
     } catch (error) {
       console.error('Menü ayarları sıfırlanamadı:', error);

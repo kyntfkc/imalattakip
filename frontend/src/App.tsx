@@ -185,10 +185,17 @@ const AppContent: React.FC = () => {
       return true;
     }
     
+    // Admin-only menüler için rol kontrolü
     if (key === 'user-management' || key === 'logs') {
-      // Admin-only menüler her zaman admin için görünür olmalı (rol kontrolü zaten var)
-      return isAdmin ? (menuSettings.visibleMenus[key as keyof typeof menuSettings.visibleMenus] ?? true) : false;
+      // Admin-only menüler sadece admin için görünür
+      if (!isAdmin) {
+        return false;
+      }
+      // Admin ise, ayarlara göre kontrol et
+      return menuSettings.visibleMenus[key as keyof typeof menuSettings.visibleMenus] ?? true;
     }
+    
+    // Diğer menüler için ayarlara göre kontrol et
     return menuSettings.visibleMenus[key as keyof typeof menuSettings.visibleMenus] ?? true;
   };
 

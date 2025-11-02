@@ -8,6 +8,7 @@ import { CinsiSettingsCard } from './settings/CinsiSettingsCard';
 import { DataStatsCard } from './settings/DataStatsCard';
 import { BackupCard } from './settings/BackupCard';
 import MenuVisibilityCard from './settings/MenuVisibilityCard';
+import RoleMenuSettingsCard from './settings/RoleMenuSettingsCard';
 
 // Hook'lar
 import { useBackendStatus } from '../hooks/useBackendStatus';
@@ -208,6 +209,16 @@ const Settings: React.FC = () => {
                 </Space>
               ),
               children: <MenuVisibilityCard />
+            },
+            {
+              key: 'role-menu',
+              label: (
+                <Space size={8}>
+                  <MenuOutlined style={{ fontSize: '16px' }} />
+                  <span>Rol Bazlı Ayarlar</span>
+                </Space>
+              ),
+              children: <RoleMenuSettingsCard />
             }
           ]}
         />
