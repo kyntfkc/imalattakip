@@ -376,12 +376,12 @@ const UnitDashboard: React.FC = React.memo(() => {
   }, [sortedUnits, updateUnitOrder]);
 
   // Seçili birim için son 10 işlemi getir
-  const getRecentTransactions = (unitId: string) => {
+  const getRecentTransactions = useCallback((unitId: string) => {
     return transfers
       .filter(t => t.fromUnit === unitId || t.toUnit === unitId)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 10);
-  };
+  }, [transfers]);
 
   const getUnitIcon = (unitId: string, color: string) => {
     const icons: { [key: string]: React.ReactNode } = {
