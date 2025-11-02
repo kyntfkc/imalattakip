@@ -296,22 +296,27 @@ const AppContent: React.FC = () => {
         }] : [])
       ].filter(item => item !== null)
     }] : []),
-    ...(isMenuVisible('required-has') || isMenuVisible('reports') || isMenuVisible('companies') ? [{
-      key: 'divider-3',
-      type: 'divider' as const
-    }, ...(isMenuVisible('required-has') ? [{
-      key: 'required-has',
-      icon: <CalculatorOutlined />,
-      label: 'Gereken Has'
-    }] : []), ...(isMenuVisible('reports') ? [{
-      key: 'reports',
-      icon: <BarChartOutlined />,
-      label: 'Raporlar'
-    }] : []), ...(isMenuVisible('companies') ? [{
-      key: 'companies',
-      icon: <TeamOutlined />,
-      label: 'Firmalar'
-    }] : [])] : []),
+    ...(isMenuVisible('required-has') || isMenuVisible('reports') || isMenuVisible('companies') ? [
+      {
+        key: 'divider-3',
+        type: 'divider' as const
+      },
+      ...(isMenuVisible('required-has') ? [{
+        key: 'required-has',
+        icon: <CalculatorOutlined />,
+        label: 'Gereken Has'
+      }] : []),
+      ...(isMenuVisible('reports') ? [{
+        key: 'reports',
+        icon: <BarChartOutlined />,
+        label: 'Raporlar'
+      }] : []),
+      ...(isMenuVisible('companies') ? [{
+        key: 'companies',
+        icon: <TeamOutlined />,
+        label: 'Firmalar'
+      }] : [])
+    ] : []),
     // Admin-only menü öğeleri
     ...(isAdmin ? [
       ...(isMenuVisible('logs') ? [{
