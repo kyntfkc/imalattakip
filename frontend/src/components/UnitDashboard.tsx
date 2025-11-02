@@ -503,8 +503,6 @@ const UnitDashboard: React.FC = React.memo(() => {
       </div>
     );
   }
-
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   
   return (
     <div className="fade-in" style={{ padding: isMobile ? '8px 4px' : '0 8px' }}>
