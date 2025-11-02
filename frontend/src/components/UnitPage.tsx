@@ -943,7 +943,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       >
         <Row align="middle" justify="space-between">
           <Col>
-            <Space size={typeof window !== 'undefined' && window.innerWidth < 768 ? '12px' : '16px'} align="center">
+            <Space size={typeof window !== 'undefined' && window.innerWidth < 768 ? 12 : 16} align="center">
               <div style={{
                 width: '48px',
                 height: '48px',
