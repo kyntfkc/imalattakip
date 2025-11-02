@@ -1091,118 +1091,110 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           </div>
         )}
 
-      {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana */}
-      <div style={{ marginTop: 24 }}>
-        <Row gutter={[16, 16]} align="stretch">
-        <Col xs={24} lg={12}>
-          <Card 
-            className="card-hover"
-            style={{ 
-              borderRadius: '16px',
-              border: '1px solid #e5e7eb',
-              background: 'white',
-              overflow: 'hidden',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
-            styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '20px' } }}
-          >
-        <Row gutter={16} align="middle">
-          {/* Fire birimleri için sadece Toplam Fire göster */}
-          {hasFire || isProcessingUnit ? (
-            <Col xs={24} style={{ textAlign: 'center' }}>
-              <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                {(() => {
-                  const totalFire = Math.max(0, totalInput - totalOutput);
-                  const formattedFire = totalFire.toFixed(2).replace(/^0+(?=\d)/, '');
-                  return (
-                    <Statistic
-                      title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Toplam Fire</Text>}
-                      value={formattedFire}
-                      suffix="gr"
-                      valueStyle={{ 
-                        color: totalFire > 1 ? '#ff4d4f' : totalFire > 0 ? '#faad14' : '#52c41a',
-                        fontSize: isMobile ? '24px' : '28px',
-                        fontWeight: 700
-                      }}
-                      prefix={<ThunderboltOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
-                    />
-                  );
-                })()}
-              </Space>
-            </Col>
-          ) : (
-            <>
-              {/* Satış sayfası için üstte hiçbir şey gösterme (altta gösterilecek), diğerleri için Toplam Stok/İşlem + Has Karşılığı */}
-              {unitId === 'satis' ? (
-                /* Satış sayfası: Üstte boş göster (altta minimalist kartlar gösterilecek) */
-                <Col xs={24}>
-                  <div style={{ display: 'none' }}></div>
-                </Col>
-              ) : (
-                <>
-                  {/* Sol Kısım - Toplam Stok/İşlem */}
-                  <Col xs={24} sm={12}>
-                    <Space direction="vertical" size="small" style={{ width: '100%' }} align="start">
-                      {(() => {
-                        // Normal birimler için (Ana Kasa, Dış Kasa vb.) transferlerden hesapla
-                        const calculatedValue = isOutputOnlyUnit ? totalInput : 
-                                               isInputUnit ? totalInput + totalOutput : 
-                                               Math.max(0, totalInput - totalOutput); // Toplam Stok = Giriş - Çıkış
-                        const formattedValue = calculatedValue.toFixed(2).replace(/^0+(?=\d)/, '');
-                        return (
-                          <Statistic
-                            title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>
-                              {isOutputOnlyUnit ? 'Toplam Giriş' : 
-                               isInputUnit ? 'Toplam İşlem' : 'Toplam Stok'}
-                            </Text>}
-                            value={formattedValue}
-                            suffix="gr"
-                            valueStyle={{ 
-                              color: '#1f2937', 
-                              fontSize: isMobile ? '22px' : '24px',
-                              fontWeight: 700
-                            }}
-                            prefix={<GoldOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
-                          />
-                        );
-                      })()}
-                    </Space>
-                  </Col>
-                  
-                  {/* Sağ Kısım - Has Karşılığı */}
-                  <Col xs={24} sm={12}>
-                <Space direction="vertical" size="small" style={{ width: '100%' }} align="start">
+      {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana (Satış sayfası hariç) */}
+      {unitId !== 'satis' && (
+        <div style={{ marginTop: 24 }}>
+          <Row gutter={[16, 16]} align="stretch">
+          <Col xs={24} lg={12}>
+            <Card 
+              className="card-hover"
+              style={{ 
+                borderRadius: '16px',
+                border: '1px solid #e5e7eb',
+                background: 'white',
+                overflow: 'hidden',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+              styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '20px' } }}
+            >
+          <Row gutter={16} align="middle">
+            {/* Fire birimleri için sadece Toplam Fire göster */}
+            {hasFire || isProcessingUnit ? (
+              <Col xs={24} style={{ textAlign: 'center' }}>
+                <Space direction="vertical" size="small" style={{ width: '100%' }}>
                   {(() => {
-                    // Tüm birimler için Has Karşılığı - transferlerden hesaplanan değeri kullan
-                    // Fire birimlerinde has karşılığı 0 olduğu için sadece stok tutan birimler için göster
-                    const hasValue = hasFire || isProcessingUnit ? 0 : filteredHasEquivalent;
-                    const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                    const totalFire = Math.max(0, totalInput - totalOutput);
+                    const formattedFire = totalFire.toFixed(2).replace(/^0+(?=\d)/, '');
                     return (
                       <Statistic
-                        title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
-                        value={formattedHas}
+                        title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Toplam Fire</Text>}
+                        value={formattedFire}
                         suffix="gr"
                         valueStyle={{ 
-                          color: '#059669',
-                          fontSize: isMobile ? '22px' : '24px',
+                          color: totalFire > 1 ? '#ff4d4f' : totalFire > 0 ? '#faad14' : '#52c41a',
+                          fontSize: isMobile ? '24px' : '28px',
                           fontWeight: 700
                         }}
-                        prefix={<CrownOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
+                        prefix={<ThunderboltOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
                       />
                     );
                   })()}
                 </Space>
               </Col>
-                </>
-              )}
-            </>
-          )}
-        </Row>
-          </Card>
-        </Col>
+            ) : (
+              <>
+                <>
+                {/* Sol Kısım - Toplam Stok/İşlem */}
+                <Col xs={24} sm={12}>
+                  <Space direction="vertical" size="small" style={{ width: '100%' }} align="start">
+                    {(() => {
+                      // Normal birimler için (Ana Kasa, Dış Kasa vb.) transferlerden hesapla
+                      const calculatedValue = isOutputOnlyUnit ? totalInput : 
+                                             isInputUnit ? totalInput + totalOutput : 
+                                             Math.max(0, totalInput - totalOutput); // Toplam Stok = Giriş - Çıkış
+                      const formattedValue = calculatedValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                      return (
+                        <Statistic
+                          title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>
+                            {isOutputOnlyUnit ? 'Toplam Giriş' : 
+                             isInputUnit ? 'Toplam İşlem' : 'Toplam Stok'}
+                          </Text>}
+                          value={formattedValue}
+                          suffix="gr"
+                          valueStyle={{ 
+                            color: '#1f2937', 
+                            fontSize: isMobile ? '22px' : '24px',
+                            fontWeight: 700
+                          }}
+                          prefix={<GoldOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
+                        />
+                      );
+                    })()}
+                  </Space>
+                </Col>
+                
+                {/* Sağ Kısım - Has Karşılığı */}
+                <Col xs={24} sm={12}>
+                  <Space direction="vertical" size="small" style={{ width: '100%' }} align="start">
+                    {(() => {
+                      // Tüm birimler için Has Karşılığı - transferlerden hesaplanan değeri kullan
+                      // Fire birimlerinde has karşılığı 0 olduğu için sadece stok tutan birimler için göster
+                      const hasValue = hasFire || isProcessingUnit ? 0 : filteredHasEquivalent;
+                      const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                      return (
+                        <Statistic
+                          title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
+                          value={formattedHas}
+                          suffix="gr"
+                          valueStyle={{ 
+                            color: '#059669',
+                            fontSize: isMobile ? '22px' : '24px',
+                            fontWeight: 700
+                          }}
+                          prefix={<CrownOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
+                        />
+                      );
+                    })()}
+                  </Space>
+                </Col>
+              </>
+            )}
+          </Row>
+            </Card>
+          </Col>
 
         {/* Cinsi Bazlı Stok Dağılımı - Sadece stok tutan birimler için (fire birimleri hariç) */}
         {((!isProcessingUnit && !isOutputOnlyUnit && !isInputUnit && !hasFire) || isSemiFinishedUnit) && (
@@ -1247,11 +1239,12 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           ) : (
             <Empty description="Bu birimde henüz stok yok" />
           )}
-            </Card>
-          </Col>
-        )}
-        </Row>
-      </div>
+              </Card>
+            </Col>
+          )}
+          </Row>
+        </div>
+      )}
 
       {/* İşlem Geçmişi */}
       <Card
