@@ -95,19 +95,22 @@ const MenuVisibilityCard: React.FC = () => {
         try {
           setLoadingRoleDefaults(true);
           const response = await apiService.getRoleMenuDefaults();
-          // response type check
-          if ('defaults' in response && response.defaults) {
-            setRoleDefaults({
-              admin: response.defaults.admin || defaultSettingsByRole.admin,
-              user: response.defaults.user || defaultSettingsByRole.user
-            });
-          } else {
-            // Fallback to default settings
-            setRoleDefaults({
-              admin: defaultSettingsByRole.admin,
-              user: defaultSettingsByRole.user
-            });
+          // Type guard for response
+          if (response && typeof response === 'object' && 'defaults' in response) {
+            const defaultsResponse = response as { defaults: Record<string, any> };
+            if (defaultsResponse.defaults) {
+              setRoleDefaults({
+                admin: defaultsResponse.defaults.admin || defaultSettingsByRole.admin,
+                user: defaultsResponse.defaults.user || defaultSettingsByRole.user
+              });
+              return;
+            }
           }
+          // Fallback to default settings
+          setRoleDefaults({
+            admin: defaultSettingsByRole.admin,
+            user: defaultSettingsByRole.user
+          });
         } catch (error) {
           console.error('Rol varsayılanları yüklenemedi:', error);
           setRoleDefaults({
