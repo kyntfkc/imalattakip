@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy, useEffect, useRef } from 'react';
+import React, { useState, Suspense, lazy, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Layout, Menu, Card, Row, Col, Typography, Space, Button, Dropdown, Avatar } from 'antd';
 import type { MenuProps } from 'antd';
 import {
@@ -199,7 +199,7 @@ const AppContent: React.FC = () => {
   };
 
   // Menü öğelerini ayarlara göre filtrele
-  const isMenuVisible = (key: string): boolean => {
+  const isMenuVisible = useCallback((key: string): boolean => {
     // Admin-only menüler için rol kontrolü
     if (key === 'user-management' || key === 'logs') {
       // Admin-only menüler sadece admin için görünür
@@ -221,9 +221,10 @@ const AppContent: React.FC = () => {
     
     // Ayar yoksa varsayılan değeri kullan
     return visibility !== undefined ? visibility : getDefaultVisibility(key);
-  };
+  }, [menuSettings, menuSettingsLoading, isAdmin]);
 
-  const menuItems: MenuItem[] = [
+  // menuSettings değiştiğinde menü öğelerini yeniden hesapla
+  const menuItems: MenuItem[] = useMemo(() => [
     ...(isMenuVisible('dashboard') ? [{
       key: 'dashboard',
       icon: <HomeOutlined />,
@@ -337,8 +338,7 @@ const AppContent: React.FC = () => {
         icon: <SettingOutlined />,
         label: 'Ayarlar'
       }] : [])
-    ])
-  ];
+    ]), [menuSettings, menuSettingsLoading, isAdmin, isMenuVisible]);
 
   const renderContent = () => {
     const LoadingFallback = () => (
