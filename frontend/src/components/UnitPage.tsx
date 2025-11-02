@@ -1091,7 +1091,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         )}
 
       {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana */}
-      <Row gutter={[16, 16]}>
+      <Row gutter={[16, 16]} align="stretch">
         <Col xs={24} lg={12}>
           <Card 
             className="card-hover"
@@ -1101,10 +1101,13 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               background: 'white',
               overflow: 'hidden',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-              height: '100%'
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
             }}
+            styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '20px' } }}
           >
-        <Row gutter={16}>
+        <Row gutter={16} align="middle">
           {/* Fire birimleri için sadece Toplam Fire göster */}
           {hasFire || isProcessingUnit ? (
             <Col xs={24} style={{ textAlign: 'center' }}>
@@ -1132,7 +1135,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             <>
               {/* Sol Kısım - Toplam Satış/Stok/İşlem */}
               <Col xs={24} sm={12}>
-                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                <Space direction="vertical" size="small" style={{ width: '100%' }} align="start">
                   {(() => {
                     // Normal birimler için (Ana Kasa, Dış Kasa vb.) transferlerden hesapla
                     const calculatedValue = unitId === 'satis' ? totalInput : 
@@ -1163,7 +1166,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               
               {/* Sağ Kısım - Has Karşılığı */}
               <Col xs={24} sm={12}>
-                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                <Space direction="vertical" size="small" style={{ width: '100%' }} align="start">
                   {(() => {
                     // Tüm birimler için Has Karşılığı - transferlerden hesaplanan değeri kullan
                     // Fire birimlerinde has karşılığı 0 olduğu için sadece stok tutan birimler için göster
@@ -1214,7 +1217,13 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               style={{ 
                 borderRadius: commonStyles.borderRadius,
                 boxShadow: commonStyles.cardShadow,
-                height: '100%'
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+              styles={{ 
+                body: { flex: 1, padding: '20px' },
+                header: { padding: '16px 20px', borderBottom: '1px solid #f0f0f0' }
               }}
             >
           {cinsiData.length > 0 ? (
