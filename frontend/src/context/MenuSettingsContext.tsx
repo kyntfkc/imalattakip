@@ -60,8 +60,14 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
   const [roleDefaults, setRoleDefaults] = useState<MenuSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Rol varsayılanlarını backend'den yükle
-  const loadRoleDefaultsFromBackend = useCallback(async (role: 'admin' | 'user'): Promise<MenuSettings | null> => {
+  // Rol varsayılanlarını backend'den yükle (sadece admin için)
+  const loadRoleDefaultsFromBackend = useCallback(async (role: 'admin' | 'user', isAdmin: boolean): Promise<MenuSettings | null> => {
+    // Normal kullanıcılar için backend'den rol varsayılanlarını yükleme
+    // (endpoint sadece admin'lere açık)
+    if (!isAdmin) {
+      return null;
+    }
+    
     try {
       const response = await apiService.getRoleMenuDefaults(role);
       
@@ -73,6 +79,7 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
       
       return null;
     } catch (error) {
+      // 403 hatası normal kullanıcılar için beklenen bir durum
       console.log(`Rol varsayılanları yüklenemedi (${role}):`, error);
       return null;
     }
@@ -106,9 +113,10 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
       // user.role type is 'admin' | 'user' but backend can return 'normal_user'
       const userRole = user.role as 'admin' | 'user' | 'normal_user';
       const normalizedRole = userRole === 'normal_user' ? 'user' : (userRole === 'admin' ? 'admin' : 'user');
+      const isAdmin = userRole === 'admin';
 
-      // 1. Rol varsayılanlarını yükle
-      const roleDefaultsData = await loadRoleDefaultsFromBackend(normalizedRole as 'admin' | 'user');
+      // 1. Rol varsayılanlarını yükle (sadece admin için backend'den, normal kullanıcılar için kod içi varsayılanlar)
+      const roleDefaultsData = await loadRoleDefaultsFromBackend(normalizedRole as 'admin' | 'user', isAdmin);
       
       // Eğer backend'de yoksa, kod içi varsayılanları kullan
       const defaultRoleSettings: MenuSettings = {
