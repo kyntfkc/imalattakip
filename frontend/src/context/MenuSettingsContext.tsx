@@ -98,6 +98,7 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
   };
   const [settings, setSettings] = useState<MenuSettings>(getDefaultSettings(user?.role));
   const [isLoading, setIsLoading] = useState(true);
+  const [roleDefaultsFromBackend, setRoleDefaultsFromBackend] = useState<MenuSettings | null>(null);
 
   // Backend'den verileri yükle - sadece authenticated olduğunda
   useEffect(() => {
@@ -109,15 +110,43 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
     const loadSettings = async () => {
       try {
         setIsLoading(true);
-        // Önce backend'den yükle (kullanıcı bazlı)
+        
+        // Önce rol varsayılanlarını backend'den yükle (eğer kullanıcı rolü varsa)
+        let effectiveRoleDefaults = getDefaultSettings(user?.role);
+        if (user?.role) {
+          try {
+            const roleDefaultsResponse = await apiService.getRoleMenuDefaults(user.role);
+            if (roleDefaultsResponse) {
+              let backendDefaults: any = null;
+              if ('defaults' in roleDefaultsResponse && roleDefaultsResponse.defaults) {
+                backendDefaults = roleDefaultsResponse.defaults;
+              } else if ('settings' in roleDefaultsResponse && roleDefaultsResponse.settings) {
+                backendDefaults = roleDefaultsResponse.settings;
+              }
+              
+              if (backendDefaults && backendDefaults.visibleMenus) {
+                effectiveRoleDefaults = {
+                  visibleMenus: {
+                    ...effectiveRoleDefaults.visibleMenus,
+                    ...backendDefaults.visibleMenus
+                  }
+                };
+                setRoleDefaultsFromBackend(effectiveRoleDefaults);
+              }
+            }
+          } catch (roleDefaultsError) {
+            console.log('Rol varsayılanları yüklenemedi, kod içi varsayılanlar kullanılıyor:', roleDefaultsError);
+          }
+        }
+        
+        // Sonra kullanıcı özel ayarlarını backend'den yükle
         try {
           const response = await apiService.getMenuSettings();
           if (response && response.settings && response.settings.visibleMenus && typeof response.settings.visibleMenus === 'object') {
-            // Eksik menü öğelerini rol bazlı varsayılan ayarlardan ekle
-            const roleDefaults = getDefaultSettings(user?.role);
-            const allMenus = Object.keys(roleDefaults.visibleMenus);
-            const mergedMenus: any = { ...roleDefaults.visibleMenus }; // Önce varsayılanları kopyala
-            // Backend'den gelen ayarları üzerine yaz
+            // Kullanıcı ayarları varsa, rol varsayılanlarını üzerine yaz
+            const allMenus = Object.keys(effectiveRoleDefaults.visibleMenus);
+            const mergedMenus: any = { ...effectiveRoleDefaults.visibleMenus }; // Önce rol varsayılanlarını kopyala
+            // Backend'den gelen kullanıcı ayarlarını üzerine yaz
             allMenus.forEach((menuKey) => {
               if (response.settings.visibleMenus && response.settings.visibleMenus[menuKey] !== undefined) {
                 mergedMenus[menuKey] = response.settings.visibleMenus[menuKey];
@@ -139,10 +168,9 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
             const parsedSettings = JSON.parse(saved);
             // Parsed settings'in doğru formatta olduğunu kontrol et
             if (parsedSettings && parsedSettings.visibleMenus && typeof parsedSettings.visibleMenus === 'object') {
-              // Rol bazlı varsayılan ayarları kullan
-              const roleDefaults = getDefaultSettings(user?.role);
-              const allMenus = Object.keys(roleDefaults.visibleMenus);
-              const mergedMenus: any = { ...roleDefaults.visibleMenus }; // Önce varsayılanları kopyala
+              // Rol varsayılanlarını (backend'den yüklenen veya kod içi) kullan
+              const allMenus = Object.keys(effectiveRoleDefaults.visibleMenus);
+              const mergedMenus: any = { ...effectiveRoleDefaults.visibleMenus }; // Önce rol varsayılanlarını kopyala
               // localStorage'dan gelen ayarları üzerine yaz
               allMenus.forEach((menuKey) => {
                 if (menuKey in parsedSettings.visibleMenus) {
@@ -151,19 +179,20 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
               });
               setSettings({ visibleMenus: mergedMenus });
             } else {
-              // Geçersiz format, varsayılan ayarları kullan
-              setSettings(getDefaultSettings(user?.role));
+              // Geçersiz format, rol varsayılanlarını kullan
+              setSettings(effectiveRoleDefaults);
             }
           } catch (parseError) {
             console.error('localStorage parse hatası:', parseError);
-            setSettings(getDefaultSettings(user?.role));
+            setSettings(effectiveRoleDefaults);
           }
         } else {
-          // Kullanıcı rolüne göre varsayılan ayarları kullan
-          setSettings(getDefaultSettings(user?.role));
+          // Kullanıcı ayarları yoksa, rol varsayılanlarını kullan
+          setSettings(effectiveRoleDefaults);
         }
       } catch (error) {
         console.error('Menü ayarları yüklenemedi:', error);
+        // Hata durumunda kod içi varsayılanları kullan
         setSettings(getDefaultSettings(user?.role));
       } finally {
         setIsLoading(false);
@@ -171,7 +200,7 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
     };
 
     loadSettings();
-  }, [isAuthenticated, authLoading, user?.id]);
+  }, [isAuthenticated, authLoading, user?.id, user?.role]);
 
   // LocalStorage'a da kaydet (backup olarak) - kullanıcı bazlı
   useEffect(() => {
@@ -210,8 +239,8 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
   };
 
   const resetToDefaults = async () => {
-    // Kullanıcı rolüne göre varsayılan ayarları kullan
-    const roleBasedDefaults = getDefaultSettings(user?.role);
+    // Backend'den yüklenen rol varsayılanlarını kullan (yoksa kod içi varsayılanlar)
+    const roleBasedDefaults = roleDefaultsFromBackend || getDefaultSettings(user?.role);
     setSettings(roleBasedDefaults);
     
     try {
