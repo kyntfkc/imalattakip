@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Switch, Space, Typography, Button, message, Collapse, Alert, Tabs } from 'antd';
-import { MenuOutlined, ReloadOutlined, EyeOutlined, EyeInvisibleOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
+import { MenuOutlined, ReloadOutlined, EyeOutlined, EyeInvisibleOutlined, SettingOutlined, UserOutlined, SaveOutlined } from '@ant-design/icons';
 import { useMenuSettings, MenuSettings } from '../../context/MenuSettingsContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -64,6 +64,8 @@ const MenuVisibilityCard: React.FC = () => {
   const [userRoleDefaults, setUserRoleDefaults] = useState<MenuSettings | null>(null);
   const [loadingRoleDefaults, setLoadingRoleDefaults] = useState(false);
   const [activeTab, setActiveTab] = useState('personal');
+  const [savingRoleDefaults, setSavingRoleDefaults] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Admin ise, kullanıcı rolü varsayılanlarını yükle
   useEffect(() => {
@@ -140,7 +142,7 @@ const MenuVisibilityCard: React.FC = () => {
     }
   };
 
-  const handleRoleDefaultToggle = async (menuKey: string) => {
+  const handleRoleDefaultToggle = (menuKey: string) => {
     if (!userRoleDefaults) return;
     
     const newRoleDefaults: MenuSettings = {
@@ -150,14 +152,21 @@ const MenuVisibilityCard: React.FC = () => {
       },
     };
     setUserRoleDefaults(newRoleDefaults);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSaveRoleDefaults = async () => {
+    if (!userRoleDefaults) return;
     
     try {
-      await updateRoleDefaults('user', newRoleDefaults);
-      message.success('Kullanıcı rolü varsayılan ayarları güncellendi');
+      setSavingRoleDefaults(true);
+      await updateRoleDefaults('user', userRoleDefaults);
+      message.success('Kullanıcı rolü varsayılan ayarları kaydedildi');
+      setHasUnsavedChanges(false);
     } catch (error) {
-      message.error('Rol varsayılanları güncellenemedi');
-      // Hata durumunda geri al
-      setUserRoleDefaults(userRoleDefaults);
+      message.error('Rol varsayılanları kaydedilemedi');
+    } finally {
+      setSavingRoleDefaults(false);
     }
   };
 
@@ -171,34 +180,36 @@ const MenuVisibilityCard: React.FC = () => {
   };
 
   const handleResetRoleDefaults = async () => {
-    const defaultUserSettings: MenuSettings = {
-      visibleMenus: {
-        dashboard: true,
-        'ana-kasa': true,
-        'yarimamul': true,
-        'lazer-kesim': true,
-        'tezgah': true,
-        'cila': true,
-        'external-vault': true,
-        'dokum': true,
-        'tedarik': true,
-        'satis': true,
-        'required-has': true,
-        'reports': true,
-        'companies': true,
-        'logs': false,
-        'settings': true,
-        'user-management': false,
+      const defaultUserSettings: MenuSettings = {
+        visibleMenus: {
+          dashboard: true,
+          'ana-kasa': true,
+          'yarimamul': true,
+          'lazer-kesim': true,
+          'tezgah': true,
+          'cila': true,
+          'external-vault': true,
+          'dokum': true,
+          'tedarik': true,
+          'satis': true,
+          'required-has': true,
+          'reports': true,
+          'companies': true,
+          'logs': false,
+          'settings': true,
+          'user-management': false,
+        }
+      };
+      setUserRoleDefaults(defaultUserSettings);
+      setHasUnsavedChanges(true);
+      
+      try {
+        await updateRoleDefaults('user', defaultUserSettings);
+        message.success('Kullanıcı rolü varsayılan ayarları sıfırlandı ve kaydedildi');
+        setHasUnsavedChanges(false);
+      } catch (error) {
+        message.error('Rol varsayılanları sıfırlanamadı');
       }
-    };
-    setUserRoleDefaults(defaultUserSettings);
-    
-    try {
-      await updateRoleDefaults('user', defaultUserSettings);
-      message.success('Kullanıcı rolü varsayılan ayarları sıfırlandı');
-    } catch (error) {
-      message.error('Rol varsayılanları sıfırlanamadı');
-    }
   };
 
   const renderMenuSettings = (currentSettings: MenuSettings | null, onToggle: (key: string) => void, isRoleDefaults: boolean = false) => {
@@ -351,19 +362,41 @@ const MenuVisibilityCard: React.FC = () => {
                         Kullanıcı Rolü Varsayılan Ayarları
                       </Title>
                     </Space>
-                    <Button
-                      icon={<ReloadOutlined />}
-                      onClick={handleResetRoleDefaults}
-                      size="small"
-                      disabled={loadingRoleDefaults}
-                    >
-                      Varsayılana Sıfırla
-                    </Button>
+                    <Space>
+                      <Button
+                        type="primary"
+                        icon={<SaveOutlined />}
+                        onClick={handleSaveRoleDefaults}
+                        size="small"
+                        disabled={loadingRoleDefaults || savingRoleDefaults || !hasUnsavedChanges}
+                        loading={savingRoleDefaults}
+                      >
+                        Kaydet
+                      </Button>
+                      <Button
+                        icon={<ReloadOutlined />}
+                        onClick={handleResetRoleDefaults}
+                        size="small"
+                        disabled={loadingRoleDefaults || savingRoleDefaults}
+                      >
+                        Varsayılana Sıfırla
+                      </Button>
+                    </Space>
                   </div>
 
                   <Text type="secondary" style={{ fontSize: '13px' }}>
-                    Kullanıcı rolündeki kullanıcıların hangi sayfaları görebileceğini ayarlayın.
+                    Kullanıcı rolündeki kullanıcıların hangi sayfaları görebileceğini ayarlayın. Değişiklikleri kaydetmek için "Kaydet" butonuna basın.
                   </Text>
+                  {hasUnsavedChanges && (
+                    <Alert
+                      message="Kaydedilmemiş değişiklikler var"
+                      description="Yaptığınız değişiklikleri kaydetmek için 'Kaydet' butonuna basın."
+                      type="warning"
+                      showIcon
+                      closable={false}
+                      style={{ marginBottom: 16 }}
+                    />
+                  )}
 
                   {loadingRoleDefaults ? (
                     <div style={{ textAlign: 'center', padding: '40px' }}>
