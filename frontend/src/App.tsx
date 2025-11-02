@@ -183,23 +183,27 @@ const AppContent: React.FC = () => {
 
   // Menü öğelerini ayarlara göre filtrele
   const isMenuVisible = (key: string): boolean => {
-    // Menü ayarları yüklenene kadar varsayılan olarak görünür
-    if (menuSettingsLoading) {
-      return true;
-    }
-    
     // Admin-only menüler için rol kontrolü
     if (key === 'user-management' || key === 'logs') {
       // Admin-only menüler sadece admin için görünür
       if (!isAdmin) {
         return false;
       }
-      // Admin ise, ayarlara göre kontrol et
-      return menuSettings.visibleMenus[key as keyof typeof menuSettings.visibleMenus] ?? true;
     }
     
-    // Diğer menüler için ayarlara göre kontrol et
-    return menuSettings.visibleMenus[key as keyof typeof menuSettings.visibleMenus] ?? true;
+    // Menü ayarları yüklenene kadar varsayılan olarak görünür
+    if (menuSettingsLoading) {
+      return true;
+    }
+    
+    // Ayarlara göre kontrol et - eğer false ise kesinlikle gizle
+    const visibility = menuSettings.visibleMenus[key as keyof typeof menuSettings.visibleMenus];
+    if (visibility === false) {
+      return false;
+    }
+    
+    // Ayar yoksa veya true ise görünür (varsayılan)
+    return visibility !== undefined ? visibility : true;
   };
 
   const menuItems: MenuItem[] = [
