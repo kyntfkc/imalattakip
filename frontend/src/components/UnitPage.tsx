@@ -130,10 +130,14 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transfers, unitId]);
 
-  // Filtrelenmiş transferler
+  // Filtrelenmiş transferler - Yarı mamül, Tedarik ve Satış için filtre uygulanmaz
   const filteredTransfers = useMemo(() => {
+    // Yarı mamül, Tedarik ve Satış için filtre uygulanmaz, tüm transferler gösterilir
+    if (isSemiFinishedUnit || unitId === 'tedarik' || unitId === 'satis' || isOutputOnlyUnit) {
+      return unitTransfers;
+    }
     return filterTransfersByDate(unitTransfers);
-  }, [unitTransfers, dateFilter, dateRange]);
+  }, [unitTransfers, dateFilter, dateRange, isSemiFinishedUnit, unitId, isOutputOnlyUnit]);
 
   // OUTPUT_ONLY_UNITS, FIRE_UNITS, PROCESSING_UNITS, INPUT_UNITS ve SEMI_FINISHED_UNITS için toplam giriş hesapla
   const totalInput = useMemo(() => {
@@ -952,8 +956,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         </Space>
       </div>
 
-      {/* Filtreler - Satış, output-only, input ve yarı mamül birimler için */}
-      {(isOutputOnlyUnit || unitId === 'satis' || isInputUnit || isSemiFinishedUnit) && (
+      {/* Filtreler - Sadece Döküm için (Yarı mamül, Tedarik ve Satış hariç) */}
+      {(isInputUnit && unitId === 'dokum') && (
         <div style={{ 
           marginTop: 0,
           marginBottom: 24,
@@ -1069,8 +1073,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           </div>
         )}
         
-        {/* Tarih Aralığı Seçici */}
-        {(isOutputOnlyUnit || isInputUnit || unitId === 'satis' || isSemiFinishedUnit) && (
+        {/* Tarih Aralığı Seçici - Sadece Döküm için */}
+        {(isInputUnit && unitId === 'dokum') && (
           <div style={{ marginTop: 16 }}>
             <Text strong style={{ display: 'block', marginBottom: 8, fontSize: '14px' }}>
               Tarih Aralığı
