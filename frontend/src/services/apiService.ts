@@ -602,6 +602,21 @@ class ApiService {
     });
   }
 
+  // Role-based menu defaults (admin only)
+  async getRoleMenuDefaults(role?: 'admin' | 'user') {
+    if (role) {
+      return this.request<{ settings: any }>(`/menu-settings/role-defaults/${role}`);
+    }
+    return this.request<{ defaults: Record<string, any> }>('/menu-settings/role-defaults');
+  }
+
+  async saveRoleMenuDefaults(role: 'admin' | 'user', settings: any) {
+    return this.request<{ message: string; settings: any }>(`/menu-settings/role-defaults/${role}`, {
+      method: 'POST',
+      body: JSON.stringify({ settings }),
+    });
+  }
+
   // Database backup
   async backupDatabase() {
     const url = `${API_BASE_URL}/backup/database`;
