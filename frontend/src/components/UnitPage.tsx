@@ -952,132 +952,128 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       </div>
 
 
-      {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Alt Üste (Satış, Tedarik, Döküm, Lazer Kesim, Tezgah ve Cila sayfası hariç) */}
+      {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Minimalist Kompakt (Satış, Tedarik, Döküm, Lazer Kesim, Tezgah ve Cila sayfası hariç) */}
       {unitId !== 'satis' && unitId !== 'tedarik' && unitId !== 'dokum' && unitId !== 'lazer-kesim' && unitId !== 'tezgah' && unitId !== 'cila' && (
-        <div style={{ marginTop: 24 }}>
-          {/* İstatistikler Kartı - Kompakt */}
-          <Card 
+        <div style={{ marginTop: 16 }}>
+          {/* İstatistikler Kartı - Ultra Kompakt */}
+          <div 
             style={{ 
-              borderRadius: '8px',
+              borderRadius: '6px',
               border: '1px solid #e5e7eb',
               background: 'white',
-              boxShadow: 'none',
-              marginBottom: 16
+              padding: '12px 16px',
+              marginBottom: 12
             }}
-            styles={{ body: { padding: '16px' } }}
           >
-            <Row gutter={[24, 16]}>
+            <Row gutter={[16, 0]}>
               {/* Fire birimleri için sadece Toplam Fire göster */}
               {hasFire || isProcessingUnit ? (
                 <Col xs={24} style={{ textAlign: 'center' }}>
-                  <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                    {(() => {
-                      const totalFire = Math.max(0, totalInput - totalOutput);
-                      const formattedFire = totalFire.toFixed(2).replace(/^0+(?=\d)/, '');
-                      return (
-                        <Statistic
-                          title={<Text style={{ fontSize: '12px', color: '#6b7280' }}>Toplam Fire</Text>}
-                          value={formattedFire}
-                          suffix="gr"
-                          valueStyle={{ 
-                            color: totalFire > 1 ? '#ff4d4f' : totalFire > 0 ? '#faad14' : '#52c41a',
-                            fontSize: isMobile ? '20px' : '24px',
-                            fontWeight: 600
-                          }}
-                          prefix={<ThunderboltOutlined style={{ fontSize: isMobile ? '16px' : '18px', color: '#64748b' }} />}
-                        />
-                      );
-                    })()}
+                  <Space size={8} align="center">
+                    <ThunderboltOutlined style={{ fontSize: '14px', color: '#64748b' }} />
+                    <div style={{ textAlign: 'left' }}>
+                      <Text style={{ fontSize: '11px', color: '#9ca3af', display: 'block', lineHeight: '1.2' }}>Toplam Fire</Text>
+                      <Text style={{ 
+                        fontSize: isMobile ? '16px' : '18px',
+                        fontWeight: 600,
+                        color: '#1f2937',
+                        display: 'block'
+                      }}>
+                        {(() => {
+                          const totalFire = Math.max(0, totalInput - totalOutput);
+                          return totalFire.toFixed(2).replace(/^0+(?=\d)/, '');
+                        })()} gr
+                      </Text>
+                    </div>
                   </Space>
                 </Col>
               ) : (
                 <>
                   {/* Sol Kısım - Toplam Stok/İşlem */}
                   <Col xs={24} sm={12}>
-                    <Space direction="vertical" size={4} style={{ width: '100%' }} align="start">
-                      {(() => {
-                        const calculatedValue = isOutputOnlyUnit ? totalInput : 
-                                               isInputUnit ? totalInput + totalOutput : 
-                                               Math.max(0, totalInput - totalOutput);
-                        const formattedValue = calculatedValue.toFixed(2).replace(/^0+(?=\d)/, '');
-                        return (
-                          <Statistic
-                            title={<Text style={{ fontSize: '12px', color: '#6b7280' }}>
-                              {isOutputOnlyUnit ? 'Toplam Giriş' : 
-                               isInputUnit ? 'Toplam İşlem' : 'Toplam Stok'}
-                            </Text>}
-                            value={formattedValue}
-                            suffix="gr"
-                            valueStyle={{ 
-                              color: '#1f2937', 
-                              fontSize: isMobile ? '18px' : '20px',
-                              fontWeight: 600
-                            }}
-                            prefix={<GoldOutlined style={{ fontSize: isMobile ? '16px' : '18px', color: '#64748b' }} />}
-                          />
-                        );
-                      })()}
+                    <Space size={8} align="start" style={{ width: '100%' }}>
+                      <GoldOutlined style={{ fontSize: '14px', color: '#64748b' }} />
+                      <div style={{ flex: 1 }}>
+                        <Text style={{ fontSize: '11px', color: '#9ca3af', display: 'block', lineHeight: '1.2' }}>
+                          {isOutputOnlyUnit ? 'Toplam Giriş' : 
+                           isInputUnit ? 'Toplam İşlem' : 'Toplam Stok'}
+                        </Text>
+                        <Text style={{ 
+                          fontSize: isMobile ? '16px' : '18px',
+                          fontWeight: 600,
+                          color: '#1f2937',
+                          display: 'block'
+                        }}>
+                          {(() => {
+                            const calculatedValue = isOutputOnlyUnit ? totalInput : 
+                                                   isInputUnit ? totalInput + totalOutput : 
+                                                   Math.max(0, totalInput - totalOutput);
+                            return calculatedValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                          })()} gr
+                        </Text>
+                      </div>
                     </Space>
                   </Col>
                   
                   {/* Sağ Kısım - Has Karşılığı */}
                   <Col xs={24} sm={12}>
-                    <Space direction="vertical" size={4} style={{ width: '100%' }} align="start">
-                      {(() => {
-                        const hasValue = hasFire || isProcessingUnit ? 0 : filteredHasEquivalent;
-                        const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
-                        return (
-                          <Statistic
-                            title={<Text style={{ fontSize: '12px', color: '#6b7280' }}>Has Karşılığı</Text>}
-                            value={formattedHas}
-                            suffix="gr"
-                            valueStyle={{ 
-                              color: '#059669',
-                              fontSize: isMobile ? '18px' : '20px',
-                              fontWeight: 600
-                            }}
-                            prefix={<CrownOutlined style={{ fontSize: isMobile ? '16px' : '18px', color: '#64748b' }} />}
-                          />
-                        );
-                      })()}
+                    <Space size={8} align="start" style={{ width: '100%' }}>
+                      <CrownOutlined style={{ fontSize: '14px', color: '#64748b' }} />
+                      <div style={{ flex: 1 }}>
+                        <Text style={{ fontSize: '11px', color: '#9ca3af', display: 'block', lineHeight: '1.2' }}>Has Karşılığı</Text>
+                        <Text style={{ 
+                          fontSize: isMobile ? '16px' : '18px',
+                          fontWeight: 600,
+                          color: '#059669',
+                          display: 'block'
+                        }}>
+                          {(() => {
+                            const hasValue = hasFire || isProcessingUnit ? 0 : filteredHasEquivalent;
+                            return hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
+                          })()} gr
+                        </Text>
+                      </div>
                     </Space>
                   </Col>
                 </>
               )}
             </Row>
-          </Card>
+          </div>
 
-          {/* Cinsi Bazlı Stok Dağılımı - Sadece stok tutan birimler için (fire birimleri hariç) */}
+          {/* Cinsi Bazlı Stok Dağılımı - Minimalist */}
           {((!isProcessingUnit && !isOutputOnlyUnit && !isInputUnit && !hasFire) || isSemiFinishedUnit) && (
-            <Card 
-              title={
-                <Space size={8}>
-                  <GoldOutlined style={{ fontSize: '16px', color: '#64748b' }} />
-                  <Text strong style={{ fontSize: '14px' }}>Cinsi Bazlı Stok Dağılımı</Text>
-                </Space>
-              }
+            <div 
               style={{ 
-                borderRadius: '8px',
+                borderRadius: '6px',
                 border: '1px solid #e5e7eb',
-                boxShadow: 'none'
-              }}
-              styles={{ 
-                body: { padding: '16px' },
-                header: { padding: '12px 16px', borderBottom: '1px solid #f0f0f0' }
+                background: 'white'
               }}
             >
-              {cinsiData.length > 0 ? (
-                <Table
-                  columns={cinsiColumns}
-                  dataSource={cinsiData}
-                  pagination={false}
-                  size="small"
-                  rowKey="cinsi"
-                />
-              ) : (
-                <Empty description="Bu birimde henüz stok yok" />
-              )}
-            </Card>
+              <div style={{ 
+                padding: '10px 16px', 
+                borderBottom: '1px solid #f0f0f0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <GoldOutlined style={{ fontSize: '14px', color: '#64748b' }} />
+                <Text strong style={{ fontSize: '13px', color: '#1f2937' }}>Cinsi Bazlı Stok Dağılımı</Text>
+              </div>
+              <div style={{ padding: '12px' }}>
+                {cinsiData.length > 0 ? (
+                  <Table
+                    columns={cinsiColumns}
+                    dataSource={cinsiData}
+                    pagination={false}
+                    size="small"
+                    rowKey="cinsi"
+                    style={{ margin: 0 }}
+                  />
+                ) : (
+                  <Empty description="Bu birimde henüz stok yok" style={{ margin: '12px 0' }} />
+                )}
+              </div>
+            </div>
           )}
         </div>
       )}
