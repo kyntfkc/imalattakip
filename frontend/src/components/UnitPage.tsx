@@ -114,7 +114,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     }
 
     return filtered;
-  };
+  }, [dateFilter, dateRange]);
 
   // Bu birime ait işlemleri getir
   const unitTransfers = useMemo(() => {
