@@ -197,7 +197,11 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
 
   // Menü görünürlüğünü değiştir (kullanıcı override)
   const toggleMenuVisibility = useCallback(async (menuKey: keyof MenuSettings['visibleMenus']) => {
-    if (!settings) return;
+    if (!settings) {
+      // Eğer settings yoksa, önce ayarları yükle
+      await loadSettings();
+      return;
+    }
 
     const newSettings: MenuSettings = {
       visibleMenus: {
@@ -221,7 +225,7 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
       // Hata durumunda geri al
       setSettings(settings);
     }
-  }, [settings, user?.id]);
+  }, [settings, user?.id, loadSettings]);
 
   // Kullanıcı ayarlarını rol varsayılanlarına sıfırla
   const resetToRoleDefaults = useCallback(async () => {
@@ -267,32 +271,35 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
     return await loadRoleDefaultsFromBackend(role);
   }, [loadRoleDefaultsFromBackend]);
 
-  // settings null ise fallback kullan
-  const effectiveSettings: MenuSettings = settings || {
-    visibleMenus: {
-      dashboard: true,
-      'ana-kasa': true,
-      'yarimamul': true,
-      'lazer-kesim': true,
-      'tezgah': true,
-      'cila': true,
-      'external-vault': true,
-      'dokum': true,
-      'tedarik': true,
-      'satis': true,
-      'required-has': true,
-      'reports': true,
-      'companies': true,
-      'logs': user?.role === 'admin',
-      'settings': true,
-      'user-management': user?.role === 'admin',
-    },
-  };
+  // settings varsa onu kullan, yoksa ve loading bitmişse roleDefaults kullan
+  // Loading bitmemişse null döndür (menüler görünmesin)
+  const effectiveSettings: MenuSettings | null = settings || (!isLoading && roleDefaults) || null;
 
   return (
     <MenuSettingsContext.Provider
       value={{
-        settings: effectiveSettings,
+        settings: effectiveSettings || {
+          // Bu fallback sadece TypeScript tip hatası için - asla kullanılmamalı
+          // çünkü App.tsx'te isMenuVisible null kontrolü yapıyor
+          visibleMenus: {
+            dashboard: false,
+            'ana-kasa': false,
+            'yarimamul': false,
+            'lazer-kesim': false,
+            'tezgah': false,
+            'cila': false,
+            'external-vault': false,
+            'dokum': false,
+            'tedarik': false,
+            'satis': false,
+            'required-has': false,
+            'reports': false,
+            'companies': false,
+            'logs': false,
+            'settings': false,
+            'user-management': false,
+          },
+        },
         roleDefaults,
         isLoading,
         toggleMenuVisibility,
