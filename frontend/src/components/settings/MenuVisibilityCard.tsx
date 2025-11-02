@@ -32,46 +32,6 @@ const menuItems: MenuItem[] = [
   { key: 'user-management', label: 'Kullanıcı Yönetimi', category: 'Sistem (Admin)' },
 ];
 
-// Rol bazlı varsayılan ayarlar (Context'ten alınamadığı için burada tanımlıyoruz)
-const defaultSettingsByRole: Record<'admin' | 'user', Record<string, boolean>> = {
-  admin: {
-    dashboard: true,
-    'ana-kasa': true,
-    'yarimamul': true,
-    'lazer-kesim': true,
-    'tezgah': true,
-    'cila': true,
-    'external-vault': true,
-    'dokum': true,
-    'tedarik': true,
-    'satis': true,
-    'required-has': true,
-    'reports': true,
-    'companies': true,
-    'logs': true,
-    'settings': true,
-    'user-management': true,
-  },
-  user: {
-    dashboard: true,
-    'ana-kasa': true,
-    'yarimamul': true,
-    'lazer-kesim': true,
-    'tezgah': true,
-    'cila': true,
-    'external-vault': true,
-    'dokum': true,
-    'tedarik': true,
-    'satis': true,
-    'required-has': true,
-    'reports': true,
-    'companies': true,
-    'logs': false,
-    'settings': true,
-    'user-management': false,
-  },
-};
-
 // Rol bazlı varsayılan ayarlar (display için)
 const defaultSettingsByRole: Record<'admin' | 'user', { visibleMenus: Record<string, boolean> }> = {
   admin: {
