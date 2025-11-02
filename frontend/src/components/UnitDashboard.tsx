@@ -177,7 +177,6 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
             <div style={{ minWidth: 0, flex: 1 }}>
               <Title level={4} style={{ 
                 margin: 0, 
-                marginBottom: '2px',
                 color: '#1f2937',
                 fontSize: isMobile ? '14px' : '16px',
                 fontWeight: '600',
@@ -186,13 +185,6 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
               }}>
                 {unit.unitName}
               </Title>
-              <Text style={{ 
-                color: '#6b7280', 
-                fontSize: isMobile ? '11px' : '12px',
-                fontWeight: '500'
-              }}>
-                {isExternalVault ? 'Dış Kasa' : 'Üretim Birimi'}
-              </Text>
             </div>
           </div>
 
