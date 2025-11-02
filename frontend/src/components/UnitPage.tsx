@@ -1091,8 +1091,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           </div>
         )}
 
-      {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana (Satış sayfası hariç) */}
-      {unitId !== 'satis' && (
+      {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana (Satış ve Tedarik sayfası hariç) */}
+      {unitId !== 'satis' && unitId !== 'tedarik' && (
         <div style={{ marginTop: 24 }}>
           <Row gutter={[16, 16]} align="stretch">
           <Col xs={24} lg={12}>
@@ -1326,10 +1326,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         )}
       </Card>
 
-      {/* Satış sayfası için minimalist Toplam Satış ve Has Karşılığı kartları - Tüm İşlemler'in altında */}
-      {unitId === 'satis' && (
+      {/* Satış ve Tedarik sayfaları için minimalist kartlar - Tüm İşlemler'in altında */}
+      {(unitId === 'satis' || unitId === 'tedarik') && (
         <Row gutter={16} style={{ marginTop: 16 }}>
-          {/* Toplam Satış */}
+          {/* Toplam Satış/İşlem */}
           <Col xs={24} sm={12}>
             <div style={{ 
               padding: '16px 20px',
@@ -1347,7 +1347,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                     color: '#6b7280',
                     marginBottom: '4px'
                   }}>
-                    Toplam Satış
+                    {unitId === 'satis' ? 'Toplam Satış' : 'Toplam İşlem'}
                   </Text>
                   <Text strong style={{ 
                     display: 'block', 
