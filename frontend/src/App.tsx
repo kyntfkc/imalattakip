@@ -159,47 +159,24 @@ const AppContent: React.FC = () => {
   // Admin kontrolü
   const isAdmin = user?.role === 'admin';
 
-  // Rol bazlı varsayılan ayarlar (fallback için)
-  const getDefaultVisibility = useCallback((key: string): boolean => {
-    const defaultSettings = {
-      admin: {
-        dashboard: true, 'ana-kasa': true, 'yarimamul': true, 'lazer-kesim': true, 'tezgah': true, 'cila': true,
-        'external-vault': true, 'dokum': true, 'tedarik': true, 'satis': true,
-        'required-has': true, 'reports': true, 'companies': true, 'logs': true, 'settings': true, 'user-management': true,
-      },
-      user: {
-        dashboard: true, 'ana-kasa': true, 'yarimamul': true, 'lazer-kesim': true, 'tezgah': true, 'cila': true,
-        'external-vault': true, 'dokum': true, 'tedarik': true, 'satis': true,
-        'required-has': true, 'reports': true, 'companies': true, 'logs': false, 'settings': true, 'user-management': false,
-      },
-    };
-    return defaultSettings[isAdmin ? 'admin' : 'user'][key as keyof typeof defaultSettings.admin] ?? true;
-  }, [isAdmin]);
-
   // Menü öğelerini ayarlara göre filtrele
   const isMenuVisible = useCallback((key: string): boolean => {
-    // Admin-only menüler için rol kontrolü
+    // Admin-only menüler için rol kontrolü (her zaman geçerli)
     if (key === 'user-management' || key === 'logs') {
-      // Admin-only menüler sadece admin için görünür
       if (!isAdmin) {
         return false;
       }
     }
     
-    // Menü ayarları yüklenene kadar veya settings undefined ise rol bazlı varsayılan değerleri kullan
+    // Ayarlar yüklenene kadar false döndür (menüler gizli kalır)
     if (menuSettingsLoading || !menuSettings || !menuSettings.visibleMenus) {
-      return getDefaultVisibility(key);
-    }
-    
-    // Ayarlara göre kontrol et - eğer false ise kesinlikle gizle
-    const visibility = menuSettings.visibleMenus[key as keyof typeof menuSettings.visibleMenus];
-    if (visibility === false) {
       return false;
     }
     
-    // Ayar yoksa varsayılan değeri kullan
-    return visibility !== undefined ? visibility : getDefaultVisibility(key);
-  }, [menuSettings, menuSettingsLoading, isAdmin, getDefaultVisibility]);
+    // Ayarlara göre kontrol et
+    const visibility = menuSettings.visibleMenus[key as keyof typeof menuSettings.visibleMenus];
+    return visibility === true;
+  }, [menuSettings, menuSettingsLoading, isAdmin]);
 
   // menuSettings değiştiğinde menü öğelerini yeniden hesapla
   const menuItems: MenuItem[] = useMemo(() => {

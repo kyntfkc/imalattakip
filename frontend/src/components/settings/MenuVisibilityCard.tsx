@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Switch, Space, Typography, Row, Col, Divider, Button, message, Collapse, Alert, Tabs } from 'antd';
+import { Card, Switch, Space, Typography, Button, message, Collapse, Alert, Tabs } from 'antd';
 import { MenuOutlined, ReloadOutlined, EyeOutlined, EyeInvisibleOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
-import { useMenuSettings } from '../../context/MenuSettingsContext';
+import { useMenuSettings, MenuSettings } from '../../context/MenuSettingsContext';
 import { useAuth } from '../../context/AuthContext';
-import { apiService } from '../../services/apiService';
 
 const { Title, Text } = Typography;
 const { Panel } = Collapse;
@@ -49,33 +48,39 @@ const getGroupedMenus = (isAdmin: boolean) => {
 };
 
 const MenuVisibilityCard: React.FC = () => {
-  const { settings, toggleMenuVisibility, resetToDefaults, isLoading } = useMenuSettings();
+  const { 
+    settings, 
+    roleDefaults, 
+    toggleMenuVisibility, 
+    resetToRoleDefaults, 
+    updateRoleDefaults,
+    loadRoleDefaults,
+    isLoading 
+  } = useMenuSettings();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const groupedMenus = getGroupedMenus(isAdmin);
   
-  // Rol varsayılanları için state (sadece admin)
-  const [roleDefaults, setRoleDefaults] = useState<any>(null);
+  const [userRoleDefaults, setUserRoleDefaults] = useState<MenuSettings | null>(null);
   const [loadingRoleDefaults, setLoadingRoleDefaults] = useState(false);
   const [activeTab, setActiveTab] = useState('personal');
 
+  // Admin ise, kullanıcı rolü varsayılanlarını yükle
   useEffect(() => {
     if (isAdmin) {
-      loadRoleDefaults();
+      loadUserRoleDefaults();
     }
   }, [isAdmin]);
 
-  const loadRoleDefaults = async () => {
+  const loadUserRoleDefaults = async () => {
     try {
       setLoadingRoleDefaults(true);
-      const response = await apiService.getRoleMenuDefaults('user');
-      if ('defaults' in response && response.defaults) {
-        setRoleDefaults(response.defaults);
-      } else if ('settings' in response && response.settings) {
-        setRoleDefaults(response.settings);
+      const defaults = await loadRoleDefaults('user');
+      if (defaults) {
+        setUserRoleDefaults(defaults);
       } else {
         // Varsayılan değerleri kullan
-        const defaultUserSettings = {
+        const defaultUserSettings: MenuSettings = {
           visibleMenus: {
             dashboard: true,
             'ana-kasa': true,
@@ -95,12 +100,12 @@ const MenuVisibilityCard: React.FC = () => {
             'user-management': false,
           }
         };
-        setRoleDefaults(defaultUserSettings);
+        setUserRoleDefaults(defaultUserSettings);
       }
     } catch (error) {
       console.error('Rol varsayılanları yüklenemedi:', error);
       // Varsayılan değerleri kullan
-      const defaultUserSettings = {
+      const defaultUserSettings: MenuSettings = {
         visibleMenus: {
           dashboard: true,
           'ana-kasa': true,
@@ -120,7 +125,7 @@ const MenuVisibilityCard: React.FC = () => {
           'user-management': false,
         }
       };
-      setRoleDefaults(defaultUserSettings);
+      setUserRoleDefaults(defaultUserSettings);
     } finally {
       setLoadingRoleDefaults(false);
     }
@@ -128,45 +133,45 @@ const MenuVisibilityCard: React.FC = () => {
 
   const handleToggle = async (menuKey: string) => {
     try {
-      await toggleMenuVisibility(menuKey as any);
+      await toggleMenuVisibility(menuKey as keyof MenuSettings['visibleMenus']);
+      message.success('Menü görünürlüğü güncellendi');
     } catch (error) {
       message.error('Görünürlük güncellenemedi');
     }
   };
 
   const handleRoleDefaultToggle = async (menuKey: string) => {
-    if (!roleDefaults || !roleDefaults.visibleMenus) return;
+    if (!userRoleDefaults) return;
     
-    const newRoleDefaults = {
-      ...roleDefaults,
+    const newRoleDefaults: MenuSettings = {
       visibleMenus: {
-        ...roleDefaults.visibleMenus,
-        [menuKey]: !roleDefaults.visibleMenus[menuKey],
+        ...userRoleDefaults.visibleMenus,
+        [menuKey]: !userRoleDefaults.visibleMenus[menuKey as keyof MenuSettings['visibleMenus']],
       },
     };
-    setRoleDefaults(newRoleDefaults);
+    setUserRoleDefaults(newRoleDefaults);
     
     try {
-      await apiService.saveRoleMenuDefaults('user', newRoleDefaults);
+      await updateRoleDefaults('user', newRoleDefaults);
       message.success('Kullanıcı rolü varsayılan ayarları güncellendi');
     } catch (error) {
       message.error('Rol varsayılanları güncellenemedi');
       // Hata durumunda geri al
-      setRoleDefaults(roleDefaults);
+      setUserRoleDefaults(userRoleDefaults);
     }
   };
 
   const handleReset = async () => {
     try {
-      await resetToDefaults();
-      message.success('Menü görünürlük ayarları varsayılan değerlere sıfırlandı');
+      await resetToRoleDefaults();
+      message.success('Menü görünürlük ayarları rol varsayılanlarına sıfırlandı');
     } catch (error) {
       message.error('Ayarlar sıfırlanamadı');
     }
   };
 
   const handleResetRoleDefaults = async () => {
-    const defaultUserSettings = {
+    const defaultUserSettings: MenuSettings = {
       visibleMenus: {
         dashboard: true,
         'ana-kasa': true,
@@ -186,17 +191,25 @@ const MenuVisibilityCard: React.FC = () => {
         'user-management': false,
       }
     };
-    setRoleDefaults(defaultUserSettings);
+    setUserRoleDefaults(defaultUserSettings);
     
     try {
-      await apiService.saveRoleMenuDefaults('user', defaultUserSettings);
+      await updateRoleDefaults('user', defaultUserSettings);
       message.success('Kullanıcı rolü varsayılan ayarları sıfırlandı');
     } catch (error) {
       message.error('Rol varsayılanları sıfırlanamadı');
     }
   };
 
-  const renderMenuSettings = (currentSettings: any, onToggle: (key: string) => void, isRoleDefaults: boolean = false) => {
+  const renderMenuSettings = (currentSettings: MenuSettings | null, onToggle: (key: string) => void, isRoleDefaults: boolean = false) => {
+    if (!currentSettings) {
+      return (
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <Text type="secondary">Yükleniyor...</Text>
+        </div>
+      );
+    }
+
     // Rol varsayılanları için admin-only menüleri filtrele
     const menusToUse = isRoleDefaults 
       ? getGroupedMenus(false) // Kullanıcı menüleri (admin-only hariç)
@@ -219,7 +232,7 @@ const MenuVisibilityCard: React.FC = () => {
           >
             <Space direction="vertical" size={12} style={{ width: '100%' }}>
               {items.map((item) => {
-                const isVisible = currentSettings?.visibleMenus?.[item.key as keyof typeof currentSettings.visibleMenus] ?? true;
+                const isVisible = currentSettings.visibleMenus[item.key as keyof MenuSettings['visibleMenus']] ?? false;
                 const isAdminOnly = item.category.includes('Admin');
                 
                 return (
@@ -302,12 +315,12 @@ const MenuVisibilityCard: React.FC = () => {
                       size="small"
                       disabled={isLoading}
                     >
-                      Varsayılana Sıfırla
+                      Rol Varsayılanlarına Sıfırla
                     </Button>
                   </div>
 
                   <Text type="secondary" style={{ fontSize: '13px' }}>
-                    Sol menüde görünmesini istediğiniz sayfaları seçin.
+                    Sol menüde görünmesini istediğiniz sayfaları seçin. Rol varsayılanlarından farklı ayarlar yapabilirsiniz.
                   </Text>
 
                   {renderMenuSettings(settings, handleToggle, false)}
@@ -326,7 +339,7 @@ const MenuVisibilityCard: React.FC = () => {
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
                   <Alert
                     message="Rol Varsayılanları"
-                    description="Bu ayarlar kullanıcı rolündeki tüm kullanıcılar için varsayılan menü görünürlüğünü belirler. Yeni kullanıcılar veya ayarlarını sıfırlayan kullanıcılar bu ayarları kullanır."
+                    description="Bu ayarlar kullanıcı rolündeki tüm kullanıcılar için varsayılan menü görünürlüğünü belirler. Yeni kullanıcılar veya ayarlarını sıfırlayan kullanıcılar bu ayarları kullanır. Mevcut kullanıcıların özel ayarları varsa, onlar önceliklidir."
                     type="info"
                     showIcon
                     style={{ marginBottom: 16 }}
@@ -357,7 +370,7 @@ const MenuVisibilityCard: React.FC = () => {
                       <Text type="secondary">Yükleniyor...</Text>
                     </div>
                   ) : (
-                    renderMenuSettings(roleDefaults, handleRoleDefaultToggle, true)
+                    renderMenuSettings(userRoleDefaults, handleRoleDefaultToggle, true)
                   )}
                 </Space>
               ),
@@ -379,12 +392,12 @@ const MenuVisibilityCard: React.FC = () => {
               size="small"
               disabled={isLoading}
             >
-              Varsayılana Sıfırla
+              Rol Varsayılanlarına Sıfırla
             </Button>
           </div>
 
           <Text type="secondary" style={{ fontSize: '13px' }}>
-            Sol menüde görünmesini istediğiniz sayfaları seçin.
+            Sol menüde görünmesini istediğiniz sayfaları seçin. Rol varsayılanlarından farklı ayarlar yapabilirsiniz.
           </Text>
 
           {renderMenuSettings(settings, handleToggle, false)}

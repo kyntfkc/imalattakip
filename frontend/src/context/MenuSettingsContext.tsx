@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { apiService } from '../services/apiService';
 import { useAuth } from './AuthContext';
 
-interface MenuSettings {
+export interface MenuSettings {
   visibleMenus: {
     dashboard: boolean;
     'ana-kasa': boolean;
@@ -24,57 +24,21 @@ interface MenuSettings {
 }
 
 interface MenuSettingsContextType {
+  // Aktif menü ayarları (rol varsayılanları + kullanıcı override'ları)
   settings: MenuSettings;
-  toggleMenuVisibility: (menuKey: keyof MenuSettings['visibleMenus']) => Promise<void>;
-  resetToDefaults: () => Promise<void>;
+  // Rol varsayılanları (sadece admin görebilir)
+  roleDefaults: MenuSettings | null;
+  // Ayarları yükleme durumu
   isLoading: boolean;
+  // Menü görünürlüğünü değiştir (kullanıcı override)
+  toggleMenuVisibility: (menuKey: keyof MenuSettings['visibleMenus']) => Promise<void>;
+  // Kullanıcı ayarlarını rol varsayılanlarına sıfırla
+  resetToRoleDefaults: () => Promise<void>;
+  // Rol varsayılanlarını güncelle (sadece admin)
+  updateRoleDefaults: (role: 'admin' | 'user', newDefaults: MenuSettings) => Promise<void>;
+  // Rol varsayılanlarını yükle (sadece admin)
+  loadRoleDefaults: (role: 'admin' | 'user') => Promise<MenuSettings | null>;
 }
-
-// Rol bazlı varsayılan ayarlar
-const defaultSettingsByRole: Record<'admin' | 'user', MenuSettings> = {
-  admin: {
-    visibleMenus: {
-      dashboard: true,
-      'ana-kasa': true,
-      'yarimamul': true,
-      'lazer-kesim': true,
-      'tezgah': true,
-      'cila': true,
-      'external-vault': true,
-      'dokum': true,
-      'tedarik': true,
-      'satis': true,
-      'required-has': true,
-      'reports': true,
-      'companies': true,
-      'logs': true,
-      'settings': true,
-      'user-management': true,
-    },
-  },
-  user: {
-    visibleMenus: {
-      dashboard: true,
-      'ana-kasa': true,
-      'yarimamul': true,
-      'lazer-kesim': true,
-      'tezgah': true,
-      'cila': true,
-      'external-vault': true,
-      'dokum': true,
-      'tedarik': true,
-      'satis': true,
-      'required-has': true,
-      'reports': true,
-      'companies': true,
-      'logs': false, // User için varsayılan olarak gizli
-      'settings': true,
-      'user-management': false, // User için varsayılan olarak gizli
-    },
-  },
-};
-
-const defaultSettings: MenuSettings = defaultSettingsByRole.admin;
 
 const MenuSettingsContext = createContext<MenuSettingsContextType | undefined>(undefined);
 
@@ -92,195 +56,252 @@ interface MenuSettingsProviderProps {
 
 export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ children }) => {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
-  // Rol bazlı varsayılan ayarları kullan
-  const getDefaultSettings = (role?: 'admin' | 'user'): MenuSettings => {
-    return defaultSettingsByRole[role || 'user'];
-  };
-  const [settings, setSettings] = useState<MenuSettings>(getDefaultSettings(user?.role));
+  const [settings, setSettings] = useState<MenuSettings | null>(null);
+  const [roleDefaults, setRoleDefaults] = useState<MenuSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [roleDefaultsFromBackend, setRoleDefaultsFromBackend] = useState<MenuSettings | null>(null);
 
-  // Backend'den verileri yükle - sadece authenticated olduğunda
+  // Rol varsayılanlarını backend'den yükle
+  const loadRoleDefaultsFromBackend = useCallback(async (role: 'admin' | 'user'): Promise<MenuSettings | null> => {
+    try {
+      const response = await apiService.getRoleMenuDefaults(role);
+      
+      if ('defaults' in response && response.defaults?.visibleMenus) {
+        return response.defaults as MenuSettings;
+      } else if ('settings' in response && response.settings?.visibleMenus) {
+        return response.settings as MenuSettings;
+      }
+      
+      return null;
+    } catch (error) {
+      console.log(`Rol varsayılanları yüklenemedi (${role}):`, error);
+      return null;
+    }
+  }, []);
+
+  // Kullanıcı override ayarlarını backend'den yükle
+  const loadUserOverrides = useCallback(async (): Promise<MenuSettings | null> => {
+    try {
+      const response = await apiService.getMenuSettings();
+      if (response?.settings?.visibleMenus) {
+        return response.settings as MenuSettings;
+      }
+      return null;
+    } catch (error) {
+      console.log('Kullanıcı ayarları yüklenemedi:', error);
+      return null;
+    }
+  }, []);
+
+  // Ayarları yükle: Rol varsayılanları + Kullanıcı override'ları
+  const loadSettings = useCallback(async () => {
+    if (!user?.role) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // 1. Rol varsayılanlarını yükle
+      const roleDefaultsData = await loadRoleDefaultsFromBackend(user.role as 'admin' | 'user');
+      
+      // Eğer backend'de yoksa, kod içi varsayılanları kullan
+      const defaultRoleSettings: MenuSettings = {
+        visibleMenus: {
+          dashboard: true,
+          'ana-kasa': true,
+          'yarimamul': true,
+          'lazer-kesim': true,
+          'tezgah': true,
+          'cila': true,
+          'external-vault': true,
+          'dokum': true,
+          'tedarik': true,
+          'satis': true,
+          'required-has': true,
+          'reports': true,
+          'companies': true,
+          'logs': user.role === 'admin',
+          'settings': true,
+          'user-management': user.role === 'admin',
+        },
+      };
+
+      const effectiveRoleDefaults = roleDefaultsData || defaultRoleSettings;
+      setRoleDefaults(effectiveRoleDefaults);
+
+      // 2. Kullanıcı override ayarlarını yükle
+      const userOverrides = await loadUserOverrides();
+
+      // 3. Birleştir: Rol varsayılanları + Kullanıcı override'ları
+      if (userOverrides) {
+        // Kullanıcı override'ları varsa, bunları rol varsayılanlarının üzerine yaz
+        const mergedSettings: MenuSettings = {
+          visibleMenus: {
+            ...effectiveRoleDefaults.visibleMenus,
+            ...userOverrides.visibleMenus,
+          },
+        };
+        setSettings(mergedSettings);
+      } else {
+        // Kullanıcı override'ları yoksa, sadece rol varsayılanlarını kullan
+        setSettings(effectiveRoleDefaults);
+      }
+
+      // 4. localStorage'a backup olarak kaydet
+      if (user?.id) {
+        const currentSettings = userOverrides 
+          ? { visibleMenus: { ...effectiveRoleDefaults.visibleMenus, ...userOverrides.visibleMenus } }
+          : effectiveRoleDefaults;
+        localStorage.setItem(`menu-settings-${user.id}`, JSON.stringify(currentSettings));
+      }
+    } catch (error) {
+      console.error('Ayarlar yüklenemedi:', error);
+      // Hata durumunda varsayılan ayarları kullan
+      const fallbackSettings: MenuSettings = {
+        visibleMenus: {
+          dashboard: true,
+          'ana-kasa': true,
+          'yarimamul': true,
+          'lazer-kesim': true,
+          'tezgah': true,
+          'cila': true,
+          'external-vault': true,
+          'dokum': true,
+          'tedarik': true,
+          'satis': true,
+          'required-has': true,
+          'reports': true,
+          'companies': true,
+          'logs': user?.role === 'admin',
+          'settings': true,
+          'user-management': user?.role === 'admin',
+        },
+      };
+      setSettings(fallbackSettings);
+      setRoleDefaults(fallbackSettings);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.role, user?.id, loadRoleDefaultsFromBackend, loadUserOverrides]);
+
+  // Kullanıcı giriş yaptığında ayarları yükle
   useEffect(() => {
     if (authLoading || !isAuthenticated) {
       setIsLoading(authLoading);
       return;
     }
 
-    const loadSettings = async () => {
-      // Önce rol varsayılanlarını backend'den yükle (eğer kullanıcı rolü varsa)
-      let effectiveRoleDefaults = getDefaultSettings(user?.role);
-      
-      try {
-        setIsLoading(true);
-        
-        if (user?.role) {
-          try {
-            const roleDefaultsResponse = await apiService.getRoleMenuDefaults(user.role);
-            if (roleDefaultsResponse) {
-              let backendDefaults: any = null;
-              if ('defaults' in roleDefaultsResponse && roleDefaultsResponse.defaults) {
-                backendDefaults = roleDefaultsResponse.defaults;
-              } else if ('settings' in roleDefaultsResponse && roleDefaultsResponse.settings) {
-                backendDefaults = roleDefaultsResponse.settings;
-              }
-              
-              if (backendDefaults && backendDefaults.visibleMenus && typeof backendDefaults.visibleMenus === 'object') {
-                effectiveRoleDefaults = {
-                  visibleMenus: {
-                    ...effectiveRoleDefaults.visibleMenus,
-                    ...backendDefaults.visibleMenus
-                  }
-                };
-                setRoleDefaultsFromBackend(effectiveRoleDefaults);
-              }
-            }
-          } catch (roleDefaultsError) {
-            console.log('Rol varsayılanları yüklenemedi, kod içi varsayılanlar kullanılıyor:', roleDefaultsError);
-          }
-        }
-        
-        // Sonra kullanıcı özel ayarlarını backend'den yükle
-        try {
-          const response = await apiService.getMenuSettings();
-          if (response && response.settings && response.settings.visibleMenus && typeof response.settings.visibleMenus === 'object') {
-            // Kullanıcı ayarları varsa, rol varsayılanlarını üzerine yaz
-            if (effectiveRoleDefaults && effectiveRoleDefaults.visibleMenus) {
-              const allMenus = Object.keys(effectiveRoleDefaults.visibleMenus);
-              const mergedMenus: any = { ...effectiveRoleDefaults.visibleMenus }; // Önce rol varsayılanlarını kopyala
-              // Backend'den gelen kullanıcı ayarlarını üzerine yaz
-              allMenus.forEach((menuKey) => {
-                if (response.settings.visibleMenus && response.settings.visibleMenus[menuKey] !== undefined) {
-                  mergedMenus[menuKey] = response.settings.visibleMenus[menuKey];
-                }
-              });
-              setSettings({ visibleMenus: mergedMenus });
-              setIsLoading(false);
-              return;
-            }
-          }
-        } catch (backendError) {
-          console.log('Backend\'den menü ayarları yüklenemedi, localStorage\'dan yükleniyor...', backendError);
-        }
-        
-        // Backend yoksa veya hata varsa, kullanıcı bazlı localStorage'dan yükle
-        const userSpecificKey = `menu-settings-${user?.id || 'guest'}`;
-        const saved = localStorage.getItem(userSpecificKey);
-        if (saved && saved !== 'undefined' && saved.trim() !== '') {
-          try {
-            const parsedSettings = JSON.parse(saved);
-            // Parsed settings'in doğru formatta olduğunu kontrol et
-            if (parsedSettings && parsedSettings.visibleMenus && typeof parsedSettings.visibleMenus === 'object') {
-              // Rol varsayılanlarını (backend'den yüklenen veya kod içi) kullan
-              if (effectiveRoleDefaults && effectiveRoleDefaults.visibleMenus) {
-                const allMenus = Object.keys(effectiveRoleDefaults.visibleMenus);
-                const mergedMenus: any = { ...effectiveRoleDefaults.visibleMenus }; // Önce rol varsayılanlarını kopyala
-                // localStorage'dan gelen ayarları üzerine yaz
-                allMenus.forEach((menuKey) => {
-                  if (menuKey in parsedSettings.visibleMenus) {
-                    mergedMenus[menuKey] = parsedSettings.visibleMenus[menuKey];
-                  }
-                });
-                setSettings({ visibleMenus: mergedMenus });
-                setIsLoading(false);
-                return;
-              }
-            }
-          } catch (parseError) {
-            console.error('localStorage parse hatası:', parseError);
-            // Parse hatası varsa, localStorage'dan temizle ve varsayılanları kullan
-            localStorage.removeItem(userSpecificKey);
-          }
-        }
-        
-        // Kullanıcı ayarları yoksa veya geçersizse, rol varsayılanlarını kullan
-        if (effectiveRoleDefaults && effectiveRoleDefaults.visibleMenus) {
-          setSettings(effectiveRoleDefaults);
-        } else {
-          setSettings(getDefaultSettings(user?.role));
-        }
-      } catch (error) {
-        console.error('Menü ayarları yüklenemedi:', error);
-        // Hata durumunda kod içi varsayılanları kullan
-        setSettings(getDefaultSettings(user?.role));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadSettings();
-  }, [isAuthenticated, authLoading, user?.id, user?.role]);
+  }, [authLoading, isAuthenticated, loadSettings]);
 
-  // LocalStorage'a da kaydet (backup olarak) - kullanıcı bazlı
-  useEffect(() => {
-    if (!isLoading && user?.id) {
-      const userSpecificKey = `menu-settings-${user.id}`;
-      localStorage.setItem(userSpecificKey, JSON.stringify(settings));
-    }
-  }, [settings, isLoading, user?.id]);
+  // Menü görünürlüğünü değiştir (kullanıcı override)
+  const toggleMenuVisibility = useCallback(async (menuKey: keyof MenuSettings['visibleMenus']) => {
+    if (!settings) return;
 
-  const toggleMenuVisibility = async (menuKey: keyof MenuSettings['visibleMenus']) => {
-    const newSettings = {
-      ...settings,
+    const newSettings: MenuSettings = {
       visibleMenus: {
         ...settings.visibleMenus,
         [menuKey]: !settings.visibleMenus[menuKey],
       },
     };
-    setSettings(newSettings);
-    
-    try {
-      // Önce backend'e kaydet (kullanıcı bazlı)
-      try {
-        await apiService.saveMenuSettings(newSettings);
-      } catch (backendError) {
-        console.log('Backend\'e kaydedilemedi, localStorage\'a kaydediliyor...', backendError);
-      }
-      
-      // Kullanıcı bazlı localStorage'a kaydet (backup)
-      if (user?.id) {
-        const userSpecificKey = `menu-settings-${user.id}`;
-        localStorage.setItem(userSpecificKey, JSON.stringify(newSettings));
-      }
-    } catch (error) {
-      console.error('Menü ayarları kaydedilemedi:', error);
-    }
-  };
 
-  const resetToDefaults = async () => {
-    // Backend'den yüklenen rol varsayılanlarını kullan (yoksa kod içi varsayılanlar)
-    const roleBasedDefaults = roleDefaultsFromBackend || getDefaultSettings(user?.role);
-    setSettings(roleBasedDefaults);
-    
+    setSettings(newSettings);
+
     try {
-      // Backend'e sıfırla
-      try {
-        await apiService.resetMenuSettings();
-      } catch (backendError) {
-        console.log('Backend\'e sıfırlanamadı, localStorage\'dan sıfırlanıyor...', backendError);
-      }
+      // Backend'e kaydet
+      await apiService.saveMenuSettings(newSettings);
       
-      // Kullanıcı bazlı localStorage'a kaydet
+      // localStorage'a backup olarak kaydet
       if (user?.id) {
-        const userSpecificKey = `menu-settings-${user.id}`;
-        localStorage.setItem(userSpecificKey, JSON.stringify(roleBasedDefaults));
+        localStorage.setItem(`menu-settings-${user.id}`, JSON.stringify(newSettings));
       }
     } catch (error) {
-      console.error('Menü ayarları sıfırlanamadı:', error);
+      console.error('Menü ayarı kaydedilemedi:', error);
+      // Hata durumunda geri al
+      setSettings(settings);
     }
+  }, [settings, user?.id]);
+
+  // Kullanıcı ayarlarını rol varsayılanlarına sıfırla
+  const resetToRoleDefaults = useCallback(async () => {
+    if (!roleDefaults) {
+      await loadSettings();
+      return;
+    }
+
+    setSettings(roleDefaults);
+
+    try {
+      // Backend'deki kullanıcı ayarlarını sil (reset endpoint'i ile)
+      await apiService.resetMenuSettings();
+      
+      // localStorage'dan da temizle
+      if (user?.id) {
+        localStorage.removeItem(`menu-settings-${user.id}`);
+      }
+    } catch (error) {
+      console.error('Ayarlar sıfırlanamadı:', error);
+    }
+  }, [roleDefaults, user?.id, loadSettings]);
+
+  // Rol varsayılanlarını güncelle (sadece admin)
+  const updateRoleDefaults = useCallback(async (role: 'admin' | 'user', newDefaults: MenuSettings) => {
+    try {
+      await apiService.saveRoleMenuDefaults(role, newDefaults);
+      
+      // Eğer mevcut kullanıcının rolü güncelleniyorsa, ayarları yeniden yükle
+      if (user?.role === role) {
+        await loadSettings();
+      }
+      
+      setRoleDefaults(newDefaults);
+    } catch (error) {
+      console.error('Rol varsayılanları güncellenemedi:', error);
+      throw error;
+    }
+  }, [user?.role, loadSettings]);
+
+  // Rol varsayılanlarını yükle (sadece admin)
+  const loadRoleDefaults = useCallback(async (role: 'admin' | 'user'): Promise<MenuSettings | null> => {
+    return await loadRoleDefaultsFromBackend(role);
+  }, [loadRoleDefaultsFromBackend]);
+
+  // settings null ise fallback kullan
+  const effectiveSettings: MenuSettings = settings || {
+    visibleMenus: {
+      dashboard: true,
+      'ana-kasa': true,
+      'yarimamul': true,
+      'lazer-kesim': true,
+      'tezgah': true,
+      'cila': true,
+      'external-vault': true,
+      'dokum': true,
+      'tedarik': true,
+      'satis': true,
+      'required-has': true,
+      'reports': true,
+      'companies': true,
+      'logs': user?.role === 'admin',
+      'settings': true,
+      'user-management': user?.role === 'admin',
+    },
   };
 
   return (
     <MenuSettingsContext.Provider
       value={{
-        settings,
+        settings: effectiveSettings,
+        roleDefaults,
+        isLoading,
         toggleMenuVisibility,
-        resetToDefaults,
-        isLoading
+        resetToRoleDefaults,
+        updateRoleDefaults,
+        loadRoleDefaults,
       }}
     >
       {children}
     </MenuSettingsContext.Provider>
   );
 };
-
