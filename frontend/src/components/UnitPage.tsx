@@ -930,75 +930,36 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
 
   return (
     <div className="fade-in">
-      {/* Minimal Header */}
-      <Card 
-        style={{ 
-          marginBottom: 16, 
-          borderRadius: '12px',
-          background: '#ffffff',
-          border: '1px solid #e5e7eb',
-          boxShadow: 'none'
-        }}
-        styles={{ body: { padding: typeof window !== 'undefined' && window.innerWidth < 768 ? '12px' : '16px' } }}
-      >
-        <Row align="middle" justify="space-between">
-          <Col>
-            <Space size={typeof window !== 'undefined' && window.innerWidth < 768 ? 10 : 12} align="center">
-              <div style={{
-                width: typeof window !== 'undefined' && window.innerWidth < 768 ? '36px' : '40px',
-                height: typeof window !== 'undefined' && window.innerWidth < 768 ? '36px' : '40px',
-                borderRadius: '8px',
-                background: '#f8fafc',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '1px solid #e5e7eb'
-              }}>
-                {getUnitIcon('#64748b')}
-              </div>
-              <div>
-                <Space size={8} align="center">
-                  <Title level={4} style={{ margin: 0, color: '#1f2937', fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '16px' : '18px', fontWeight: '600', lineHeight: 1.2 }}>
-                    {unitName}
-                  </Title>
-                  {!isChecking && (
-                    <div style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444'
-                    }} />
-                  )}
-                </Space>
-              </div>
-            </Space>
-          </Col>
-          <Col>
-            <Button
-              type="primary"
-              size={typeof window !== 'undefined' && window.innerWidth < 768 ? 'small' : 'middle'}
-              icon={<PlusOutlined />}
-              onClick={() => setTransferModalOpen(true)}
-              style={{
-                height: typeof window !== 'undefined' && window.innerWidth < 768 ? '32px' : '36px',
-                padding: '0 14px',
-                fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '12px' : '13px',
-                fontWeight: 500,
-                borderRadius: '8px'
-              }}
-            >
-              Yeni Transfer
-            </Button>
-          </Col>
-        </Row>
-        
-        {/* Filtreler - Satış, output-only, input ve yarı mamül birimler için */}
-        {(isOutputOnlyUnit || unitId === 'satis' || isInputUnit || isSemiFinishedUnit) && (
-          <div style={{ 
-            marginTop: '20px',
-            paddingTop: '20px',
-            borderTop: '1px solid #e5e7eb'
-          }}>
+      {/* Ultra Minimal Header */}
+      <div style={{ 
+        marginBottom: 16, 
+        padding: typeof window !== 'undefined' && window.innerWidth < 768 ? '8px 0' : '12px 0',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <Space size={10} align="center">
+          {getUnitIcon('#64748b')}
+          <Title level={4} style={{ margin: 0, color: '#1f2937', fontSize: typeof window !== 'undefined' && window.innerWidth < 768 ? '16px' : '18px', fontWeight: '500', lineHeight: 1.2 }}>
+            {unitName}
+          </Title>
+          {!isChecking && (
+            <div style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              backgroundColor: isBackendOnline ? '#22c55e' : '#ef4444'
+            }} />
+          )}
+        </Space>
+      </div>
+
+      {/* Filtreler - Satış, output-only, input ve yarı mamül birimler için */}
+      {(isOutputOnlyUnit || unitId === 'satis' || isInputUnit || isSemiFinishedUnit) && (
+        <div style={{ 
+          marginTop: 0,
+          marginBottom: 16,
+          paddingTop: '16px',
+          borderTop: '1px solid #e5e7eb'
+        }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
