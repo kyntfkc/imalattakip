@@ -103,7 +103,9 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
       setIsLoading(true);
 
       // Normalize role: Backend'de 'normal_user', frontend'de 'user' olarak kullanılıyor
-      const normalizedRole = user.role === 'normal_user' ? 'user' : user.role;
+      // user.role type is 'admin' | 'user' but backend can return 'normal_user'
+      const userRole = user.role as 'admin' | 'user' | 'normal_user';
+      const normalizedRole = userRole === 'normal_user' ? 'user' : (userRole === 'admin' ? 'admin' : 'user');
 
       // 1. Rol varsayılanlarını yükle
       const roleDefaultsData = await loadRoleDefaultsFromBackend(normalizedRole as 'admin' | 'user');
