@@ -74,7 +74,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const isSemiFinishedUnit = SEMI_FINISHED_UNITS.includes(unitId);
 
   // Tarih filtreleme fonksiyonu
-  const filterTransfersByDate = (transfers: any[]) => {
+  const filterTransfersByDate = useCallback((transfers: any[]) => {
     let filtered = transfers;
 
     // Önce tarih aralığı filtresini uygula
@@ -130,7 +130,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       return unitTransfers;
     }
     return filterTransfersByDate(unitTransfers);
-  }, [unitTransfers, dateFilter, dateRange, isSemiFinishedUnit, unitId, isOutputOnlyUnit]);
+  }, [unitTransfers, filterTransfersByDate, isSemiFinishedUnit, unitId, isOutputOnlyUnit]);
 
   // OUTPUT_ONLY_UNITS, FIRE_UNITS, PROCESSING_UNITS, INPUT_UNITS ve SEMI_FINISHED_UNITS için toplam giriş hesapla
   const totalInput = useMemo(() => {
