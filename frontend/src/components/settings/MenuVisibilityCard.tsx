@@ -111,8 +111,9 @@ const MenuVisibilityCard: React.FC = () => {
             admin: defaultSettingsByRole.admin,
             user: defaultSettingsByRole.user
           });
-        } catch (error) {
-          console.error('Rol varsayılanları yüklenemedi:', error);
+        } catch (error: any) {
+          // Backend endpoint henüz hazır değilse veya hata varsa varsayılan ayarları kullan
+          console.log('Rol varsayılanları backend\'den yüklenemedi, varsayılan ayarlar kullanılıyor:', error?.message || error);
           setRoleDefaults({
             admin: defaultSettingsByRole.admin,
             user: defaultSettingsByRole.user
@@ -149,8 +150,13 @@ const MenuVisibilityCard: React.FC = () => {
       }));
       message.success(`${role === 'admin' ? 'Yönetici' : 'Kullanıcı'} rolü için varsayılan ayarlar kaydedildi`);
     } catch (error: any) {
-      console.error('Rol varsayılanları kaydedilemedi:', error);
-      message.error(error.message || 'Rol varsayılanları kaydedilemedi');
+      // Backend endpoint henüz hazır değilse sadece local state'i güncelle
+      console.log('Rol varsayılanları backend\'e kaydedilemedi, sadece local olarak güncellendi:', error?.message || error);
+      setRoleDefaults(prev => ({
+        ...prev,
+        [role]: newSettings
+      }));
+      message.warning('Ayarlar local olarak kaydedildi. Backend endpoint henüz aktif değil olabilir.');
     } finally {
       setLoadingRoleDefaults(false);
     }
