@@ -1201,9 +1201,9 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               <Col xs={24} sm={12}>
                 <Space direction="vertical" size="small" style={{ width: '100%' }}>
                   {(() => {
-                    // Diğer birimler için Has Karşılığı
-                    const hasValue = isOutputOnlyUnit ? filteredHasEquivalent : 
-                                   isSemiFinishedUnit ? filteredHasEquivalent : (unit?.hasEquivalent || 0);
+                    // Tüm birimler için Has Karşılığı - transferlerden hesaplanan değeri kullan
+                    // Fire birimlerinde has karşılığı 0 olduğu için sadece stok tutan birimler için göster
+                    const hasValue = hasFire || isProcessingUnit ? 0 : filteredHasEquivalent;
                     const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
                     return (
                       <Statistic
