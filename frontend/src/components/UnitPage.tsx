@@ -782,8 +782,9 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     // Transferlerden cinsi bilgilerini çıkar
     const cinsiMap = new Map<string, { stock: number; has: number; fire: number; input: number; output: number }>();
     
-    // Filtrelenmiş transferleri kullan (dateFilter varsa)
-    const transfersToUse = (isOutputOnlyUnit || isInputUnit || isSemiFinishedUnit) ? filteredTransfers : transfers;
+    // Stok hesaplaması her zaman TÜM transferlerden yapılmalı (tarih filtresinden bağımsız)
+    // Tarih filtresi sadece işlem listesini göstermek için kullanılır, stok hesaplaması için değil
+    const transfersToUse = transfers;
     
     // Bu birime gelen transferler
     const incomingTransfers = transfersToUse.filter(t => t.toUnit === unitId);
@@ -890,7 +891,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       });
     
     return result;
-  }, [unit, transfers, filteredTransfers, unitId, hasFire, isProcessingUnit, isInputUnit, isSemiFinishedUnit, isOutputOnlyUnit, cinsiOptions]);
+  }, [unit, transfers, unitId, hasFire, isProcessingUnit, isInputUnit, isSemiFinishedUnit, isOutputOnlyUnit, cinsiOptions]);
 
   if (!unit) {
     return (
