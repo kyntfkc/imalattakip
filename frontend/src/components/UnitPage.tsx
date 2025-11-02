@@ -1264,7 +1264,6 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               pagination={false}
               size="middle"
               rowKey="cinsi"
-              scroll={{ x: 'max-content' }}
             />
           ) : (
             <Empty description="Bu birimde henüz stok yok" />
