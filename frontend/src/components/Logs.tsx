@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Card, Table, Tag, Space, Typography, Button, Select, DatePicker, Input, Row, Col } from 'antd';
-import { FileTextOutlined, DeleteOutlined, SearchOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Card, Table, Tag, Space, Typography, Button, Select, DatePicker, Input, Row, Col, Alert } from 'antd';
+import { FileTextOutlined, DeleteOutlined, SearchOutlined, FilterOutlined, ReloadOutlined, LockOutlined } from '@ant-design/icons';
 import { useLog } from '../context/LogContext';
+import { useAuth } from '../context/AuthContext';
 import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -9,6 +10,7 @@ const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 const Logs: React.FC = () => {
+  const { user } = useAuth();
   const { logs, clearAllLogs } = useLog();
   const [searchText, setSearchText] = useState('');
   const [selectedAction, setSelectedAction] = useState<string>('all');
@@ -126,6 +128,22 @@ const Logs: React.FC = () => {
     setSelectedEntity('all');
     setDateRange(null);
   };
+
+  // Admin kontrolü
+  if (user?.role !== 'admin') {
+    return (
+      <div style={{ padding: '24px' }}>
+        <Alert
+          message="Yetkisiz Erişim"
+          description="Bu sayfaya sadece yönetici kullanıcılar erişebilir."
+          type="error"
+          icon={<LockOutlined />}
+          showIcon
+          style={{ borderRadius: '12px' }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="fade-in">

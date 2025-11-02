@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Modal, Form, Input, Select, Space, Typography, Tag, Popconfirm, message, Row, Col, Statistic } from 'antd';
-import { UserOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CrownOutlined, TeamOutlined, SearchOutlined, ReloadOutlined, KeyOutlined } from '@ant-design/icons';
-import { User } from '../context/AuthContext';
+import { Card, Table, Button, Modal, Form, Input, Select, Space, Typography, Tag, Popconfirm, message, Row, Col, Statistic, Alert } from 'antd';
+import { UserOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CrownOutlined, TeamOutlined, SearchOutlined, ReloadOutlined, KeyOutlined, LockOutlined } from '@ant-design/icons';
+import { User, useAuth } from '../context/AuthContext';
 import { apiService } from '../services/apiService';
 
 const { Title, Text } = Typography;
@@ -9,6 +9,7 @@ const { Option } = Select;
 const { Search } = Input;
 
 const UserManagement: React.FC = () => {
+  const { user } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -248,6 +249,22 @@ const UserManagement: React.FC = () => {
 
   const adminCount = users.filter(u => u.role === 'admin').length;
   const userCount = users.filter(u => u.role === 'user').length;
+
+  // Admin kontrolü
+  if (user?.role !== 'admin') {
+    return (
+      <div style={{ padding: '24px' }}>
+        <Alert
+          message="Yetkisiz Erişim"
+          description="Bu sayfaya sadece yönetici kullanıcılar erişebilir."
+          type="error"
+          icon={<LockOutlined />}
+          showIcon
+          style={{ borderRadius: '12px' }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div>

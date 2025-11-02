@@ -172,6 +172,8 @@ const AppContent: React.FC = () => {
     return <Login />;
   }
 
+  const isAdmin = user?.role === 'admin';
+
   const menuItems: MenuItem[] = [
     {
       key: 'dashboard',
@@ -257,25 +259,34 @@ const AppContent: React.FC = () => {
       icon: <TeamOutlined />,
       label: 'Firmalar'
     },
-    {
-      key: 'logs',
-      icon: <FileTextOutlined />,
-      label: 'Sistem Logları'
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Ayarlar'
-    },
-    {
-      key: 'divider-4',
-      type: 'divider' as const
-    },
-    {
-      key: 'user-management',
-      icon: <UserOutlined />,
-      label: 'Kullanıcı Yönetimi'
-    }
+    // Admin-only menü öğeleri
+    ...(isAdmin ? [
+      {
+        key: 'logs',
+        icon: <FileTextOutlined />,
+        label: 'Sistem Logları'
+      },
+      {
+        key: 'settings',
+        icon: <SettingOutlined />,
+        label: 'Ayarlar'
+      },
+      {
+        key: 'divider-4',
+        type: 'divider' as const
+      },
+      {
+        key: 'user-management',
+        icon: <UserOutlined />,
+        label: 'Kullanıcı Yönetimi'
+      }
+    ] : [
+      {
+        key: 'settings',
+        icon: <SettingOutlined />,
+        label: 'Ayarlar'
+      }
+    ])
   ];
 
   const renderContent = () => {
@@ -372,6 +383,10 @@ const AppContent: React.FC = () => {
           </Suspense>
         );
       case 'logs':
+        if (!isAdmin) {
+          setSelectedMenu('dashboard');
+          return <UnitDashboard />;
+        }
         return (
           <Suspense fallback={<LoadingFallback />}>
             <Logs />
@@ -384,6 +399,10 @@ const AppContent: React.FC = () => {
           </Suspense>
         );
       case 'user-management':
+        if (!isAdmin) {
+          setSelectedMenu('dashboard');
+          return <UnitDashboard />;
+        }
         return (
           <Suspense fallback={<LoadingFallback />}>
             <UserManagement />
