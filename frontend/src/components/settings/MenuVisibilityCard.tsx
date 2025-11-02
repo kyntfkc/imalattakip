@@ -1,6 +1,6 @@
-import React from 'react';
-import { Card, Switch, Space, Typography, Row, Col, Divider, Button, message } from 'antd';
-import { MenuOutlined, ReloadOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Card, Switch, Space, Typography, Row, Col, Divider, Button, message, Tabs, Alert, Tag } from 'antd';
+import { MenuOutlined, ReloadOutlined, EyeOutlined, EyeInvisibleOutlined, CrownOutlined, TeamOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useMenuSettings } from '../../context/MenuSettingsContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -31,10 +31,51 @@ const menuItems: MenuItem[] = [
   { key: 'user-management', label: 'Kullanıcı Yönetimi', category: 'Sistem (Admin)' },
 ];
 
+// Rol bazlı varsayılan ayarlar (Context'ten alınamadığı için burada tanımlıyoruz)
+const defaultSettingsByRole: Record<'admin' | 'user', Record<string, boolean>> = {
+  admin: {
+    dashboard: true,
+    'ana-kasa': true,
+    'yarimamul': true,
+    'lazer-kesim': true,
+    'tezgah': true,
+    'cila': true,
+    'external-vault': true,
+    'dokum': true,
+    'tedarik': true,
+    'satis': true,
+    'required-has': true,
+    'reports': true,
+    'companies': true,
+    'logs': true,
+    'settings': true,
+    'user-management': true,
+  },
+  user: {
+    dashboard: true,
+    'ana-kasa': true,
+    'yarimamul': true,
+    'lazer-kesim': true,
+    'tezgah': true,
+    'cila': true,
+    'external-vault': true,
+    'dokum': true,
+    'tedarik': true,
+    'satis': true,
+    'required-has': true,
+    'reports': true,
+    'companies': true,
+    'logs': false,
+    'settings': true,
+    'user-management': false,
+  },
+};
+
 const MenuVisibilityCard: React.FC = () => {
   const { settings, toggleMenuVisibility, resetToDefaults, isLoading } = useMenuSettings();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const [showRoleDefaults, setShowRoleDefaults] = useState(false);
 
   // Menüleri kategoriye göre grupla
   const groupedMenus = menuItems.reduce((acc, item) => {
@@ -94,9 +135,43 @@ const MenuVisibilityCard: React.FC = () => {
             </Button>
           </div>
 
-          <Text type="secondary" style={{ fontSize: '13px' }}>
-            Menü öğelerinin görünürlüğünü kontrol edin. Gizlenen menüler sol menüde görünmez.
-          </Text>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+            <Text type="secondary" style={{ fontSize: '13px' }}>
+              Menü öğelerinin görünürlüğünü kontrol edin. Gizlenen menüler sol menüde görünmez.
+            </Text>
+            {isAdmin && (
+              <Button
+                type={showRoleDefaults ? 'default' : 'link'}
+                size="small"
+                onClick={() => setShowRoleDefaults(!showRoleDefaults)}
+                icon={<InfoCircleOutlined />}
+              >
+                {showRoleDefaults ? 'Varsayılanları Gizle' : 'Rol Varsayılanlarını Göster'}
+              </Button>
+            )}
+          </div>
+
+          {isAdmin && showRoleDefaults && (
+            <Alert
+              message="Rol Varsayılan Ayarları"
+              description={
+                <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                  <Text style={{ fontSize: '13px' }}>
+                    Aşağıdaki ayarlar her rol için varsayılan değerlerdir. Yeni kullanıcılar bu ayarlarla başlar, ancak kendi ayarlarını özelleştirebilirler.
+                  </Text>
+                  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                    <Tag icon={<CrownOutlined />} color="red">Yönetici: Tüm menüler görünür</Tag>
+                    <Tag icon={<TeamOutlined />} color="blue">Kullanıcı: Sistem Logları ve Kullanıcı Yönetimi gizli</Tag>
+                  </div>
+                </Space>
+              }
+              type="info"
+              showIcon
+              style={{ borderRadius: '12px', marginBottom: 16 }}
+              closable
+              onClose={() => setShowRoleDefaults(false)}
+            />
+          )}
 
           <Divider style={{ margin: '16px 0' }} />
 
