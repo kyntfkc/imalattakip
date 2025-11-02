@@ -116,13 +116,15 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
             // Eksik menü öğelerini rol bazlı varsayılan ayarlardan ekle
             const roleDefaults = getDefaultSettings(user?.role);
             const allMenus = Object.keys(roleDefaults.visibleMenus);
-            const mergedMenus: any = { ...roleDefaults.visibleMenus };
+            const mergedMenus: any = { ...roleDefaults.visibleMenus }; // Önce varsayılanları kopyala
+            // Backend'den gelen ayarları üzerine yaz
             allMenus.forEach((menuKey) => {
               if (response.settings.visibleMenus[menuKey] !== undefined) {
                 mergedMenus[menuKey] = response.settings.visibleMenus[menuKey];
               }
             });
             setSettings({ visibleMenus: mergedMenus });
+            setIsLoading(false);
             return;
           }
         } catch (backendError) {
@@ -135,8 +137,11 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
         if (saved) {
           try {
             const parsedSettings = JSON.parse(saved);
-            const allMenus = Object.keys(defaultSettings.visibleMenus);
-            const mergedMenus: any = { ...defaultSettings.visibleMenus };
+            // Rol bazlı varsayılan ayarları kullan
+            const roleDefaults = getDefaultSettings(user?.role);
+            const allMenus = Object.keys(roleDefaults.visibleMenus);
+            const mergedMenus: any = { ...roleDefaults.visibleMenus }; // Önce varsayılanları kopyala
+            // localStorage'dan gelen ayarları üzerine yaz
             allMenus.forEach((menuKey) => {
               if (parsedSettings.visibleMenus && menuKey in parsedSettings.visibleMenus) {
                 mergedMenus[menuKey] = parsedSettings.visibleMenus[menuKey];

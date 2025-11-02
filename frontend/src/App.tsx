@@ -181,6 +181,23 @@ const AppContent: React.FC = () => {
 
   const isAdmin = user?.role === 'admin';
 
+  // Rol bazlı varsayılan ayarlar (fallback için)
+  const getDefaultVisibility = (key: string): boolean => {
+    const defaultSettings = {
+      admin: {
+        dashboard: true, 'ana-kasa': true, 'yarimamul': true, 'lazer-kesim': true, 'tezgah': true, 'cila': true,
+        'external-vault': true, 'dokum': true, 'tedarik': true, 'satis': true,
+        'required-has': true, 'reports': true, 'companies': true, 'logs': true, 'settings': true, 'user-management': true,
+      },
+      user: {
+        dashboard: true, 'ana-kasa': true, 'yarimamul': true, 'lazer-kesim': true, 'tezgah': true, 'cila': true,
+        'external-vault': true, 'dokum': true, 'tedarik': true, 'satis': true,
+        'required-has': true, 'reports': true, 'companies': true, 'logs': false, 'settings': true, 'user-management': false,
+      },
+    };
+    return defaultSettings[isAdmin ? 'admin' : 'user'][key as keyof typeof defaultSettings.admin] ?? true;
+  };
+
   // Menü öğelerini ayarlara göre filtrele
   const isMenuVisible = (key: string): boolean => {
     // Admin-only menüler için rol kontrolü
@@ -191,9 +208,9 @@ const AppContent: React.FC = () => {
       }
     }
     
-    // Menü ayarları yüklenene kadar varsayılan olarak görünür
+    // Menü ayarları yüklenene kadar rol bazlı varsayılan değerleri kullan
     if (menuSettingsLoading) {
-      return true;
+      return getDefaultVisibility(key);
     }
     
     // Ayarlara göre kontrol et - eğer false ise kesinlikle gizle
@@ -202,8 +219,8 @@ const AppContent: React.FC = () => {
       return false;
     }
     
-    // Ayar yoksa veya true ise görünür (varsayılan)
-    return visibility !== undefined ? visibility : true;
+    // Ayar yoksa varsayılan değeri kullan
+    return visibility !== undefined ? visibility : getDefaultVisibility(key);
   };
 
   const menuItems: MenuItem[] = [
