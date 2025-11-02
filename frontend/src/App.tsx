@@ -569,16 +569,21 @@ const AppContent: React.FC = () => {
             height: isMobile ? '56px' : '72px',
             zIndex: 100,
             position: 'sticky',
-            top: 0
+            top: 0,
+            overflow: 'hidden',
+            width: '100%'
           }}>
             {/* Sol Kısım - Mobil Menü & Logo & Başlık */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              flex: '0 0 auto',
+              flex: '1 1 auto',
               height: '100%',
               paddingLeft: isMobile ? '12px' : '32px',
-              gap: isMobile ? '12px' : '16px'
+              paddingRight: isMobile ? '8px' : '16px',
+              gap: isMobile ? '8px' : '16px',
+              minWidth: 0,
+              overflow: 'hidden'
             }}>
               {isMobile && (
                 <Button
@@ -622,11 +627,15 @@ const AppContent: React.FC = () => {
                 margin: 0, 
                 color: '#667eea',
                 fontWeight: 700,
-                fontSize: isMobile ? '16px' : '24px',
+                fontSize: isMobile ? '14px' : '24px',
                 lineHeight: 1,
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                flex: '0 1 auto',
+                minWidth: 0
               }}>
-                İmalat Takip
+                {isMobile ? 'İmalat' : 'İmalat Takip'}
               </Title>
             </div>
             
@@ -637,7 +646,9 @@ const AppContent: React.FC = () => {
               flex: '0 0 auto',
               height: '100%',
               paddingRight: isMobile ? '12px' : '32px',
-              gap: isMobile ? '8px' : '12px'
+              paddingLeft: isMobile ? '4px' : '16px',
+              gap: isMobile ? '6px' : '12px',
+              flexShrink: 0
             }}>
               {!isMobile && <DataSyncIndicator isMobile={false} />}
               {isMobile && (
@@ -693,19 +704,20 @@ const AppContent: React.FC = () => {
                     style={{
                       borderRadius: '10px',
                       height: '40px',
-                      width: '120px',
-                      minWidth: '120px',
-                      padding: '0 16px',
+                      minWidth: 'auto',
+                      width: 'auto',
+                      padding: isMobile ? '0 8px' : '0 12px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '6px',
+                      gap: '4px',
                       boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)',
-                      fontSize: '13px',
-                      fontWeight: 600
+                      fontSize: isMobile ? '11px' : '12px',
+                      fontWeight: 600,
+                      flexShrink: 0
                     }}
                   >
-                    Transfer
+                    {isMobile ? 'T' : 'Transfer'}
                   </Button>
                 </>
               )}
