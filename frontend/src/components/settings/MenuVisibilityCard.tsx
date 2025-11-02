@@ -219,11 +219,6 @@ const MenuVisibilityCard: React.FC = () => {
           >
             <Space direction="vertical" size={12} style={{ width: '100%' }}>
               {items.map((item) => {
-                // Rol varsayılanları için admin-only menüleri gizle
-                if (isRoleDefaults && item.category.includes('Admin')) {
-                  return null;
-                }
-                
                 const isVisible = currentSettings?.visibleMenus?.[item.key as keyof typeof currentSettings.visibleMenus] ?? true;
                 const isAdminOnly = item.category.includes('Admin');
                 
