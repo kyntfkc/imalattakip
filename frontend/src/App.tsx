@@ -182,7 +182,7 @@ const AppContent: React.FC = () => {
   const isAdmin = user?.role === 'admin';
 
   // Rol bazlı varsayılan ayarlar (fallback için)
-  const getDefaultVisibility = (key: string): boolean => {
+  const getDefaultVisibility = useCallback((key: string): boolean => {
     const defaultSettings = {
       admin: {
         dashboard: true, 'ana-kasa': true, 'yarimamul': true, 'lazer-kesim': true, 'tezgah': true, 'cila': true,
@@ -196,7 +196,7 @@ const AppContent: React.FC = () => {
       },
     };
     return defaultSettings[isAdmin ? 'admin' : 'user'][key as keyof typeof defaultSettings.admin] ?? true;
-  };
+  }, [isAdmin]);
 
   // Menü öğelerini ayarlara göre filtrele
   const isMenuVisible = useCallback((key: string): boolean => {
@@ -221,7 +221,7 @@ const AppContent: React.FC = () => {
     
     // Ayar yoksa varsayılan değeri kullan
     return visibility !== undefined ? visibility : getDefaultVisibility(key);
-  }, [menuSettings, menuSettingsLoading, isAdmin]);
+  }, [menuSettings, menuSettingsLoading, isAdmin, getDefaultVisibility]);
 
   // menuSettings değiştiğinde menü öğelerini yeniden hesapla
   const menuItems: MenuItem[] = useMemo(() => [
