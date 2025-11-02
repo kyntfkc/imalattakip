@@ -622,6 +622,8 @@ const Reports: React.FC = () => {
               'Tezgah': 'tezgah',
               'Cila': 'cila',
               'Döküm': 'dokum',
+              'Tedarik': 'tedarik',
+              'Satış': 'satis',
               'Dış Kasa': 'dis-kasa'
             };
             return unitIdMap[item.unit] === selectedUnit;
