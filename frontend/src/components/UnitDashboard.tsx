@@ -450,14 +450,15 @@ const UnitDashboard: React.FC = React.memo(() => {
     })).filter(item => item.stock > 0 || item.fire > 0);
   };
 
-  // Toplam özet istatistikler
+  // Toplam özet istatistikler - TÜM birimler için (gizli olsalar bile)
+  // Sadece gösterilen birimler değil, tüm birimlerin toplamı hesaplanmalı
   const totalStats = useMemo(() => {
-    const total = sortedUnits.reduce((acc, unit) => ({
+    const total = allUnits.reduce((acc, unit) => ({
       stock: acc.stock + (unit?.totalStock || 0),
       has: acc.has + (unit?.hasEquivalent || 0)
     }), { stock: 0, has: 0 });
     return total;
-  }, [sortedUnits]);
+  }, [allUnits]);
 
   // Loading state
   if (isLoading) {
