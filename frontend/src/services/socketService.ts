@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { logger } from '../utils/logger';
 
 class SocketService {
   private socket: Socket | null = null;
@@ -10,12 +11,12 @@ class SocketService {
 
   connect(token: string | null) {
     if (!token) {
-      console.warn('Socket bağlantısı için token gerekli');
+      logger.warn('Socket bağlantısı için token gerekli');
       return;
     }
 
     if (this.socket?.connected) {
-      console.log('Socket zaten bağlı');
+      logger.log('Socket zaten bağlı');
       return;
     }
 
@@ -28,7 +29,7 @@ class SocketService {
     // Railway URL'ini tam olarak kullan - /api olmadan
     const socketUrl = this.WS_URL;
     
-    console.log('🔌 Socket.io bağlantı URL:', socketUrl);
+    logger.log('🔌 Socket.io bağlantı URL:', socketUrl);
 
     this.socket = io(socketUrl, {
       auth: {
@@ -45,23 +46,23 @@ class SocketService {
     } as any);
 
     this.socket.on('connect', () => {
-      console.log('✅ Socket bağlantısı kuruldu:', this.socket?.id);
+      logger.log('✅ Socket bağlantısı kuruldu:', { socketId: this.socket?.id });
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('❌ Socket bağlantısı kesildi:', reason);
+      logger.log('❌ Socket bağlantısı kesildi:', { reason });
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('Socket bağlantı hatası:', error);
+      logger.error('Socket bağlantı hatası:', error);
       if (error.message) {
-        console.warn('Bağlantı hatası detayı:', error.message);
+        logger.warn('Bağlantı hatası detayı:', { message: error.message });
       }
     });
 
     // Railway test mesajı
     this.socket.on('hello', (message) => {
-      console.log('🔌 Socket.io mesajı:', message);
+      logger.log('🔌 Socket.io mesajı:', message);
     });
 
     return this.socket;
@@ -71,7 +72,7 @@ class SocketService {
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
-      console.log('Socket bağlantısı kapatıldı');
+      logger.log('Socket bağlantısı kapatıldı');
     }
   }
 

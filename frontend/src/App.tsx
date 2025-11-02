@@ -77,6 +77,7 @@ const AppContent: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const [logoError, setLogoError] = useState(false);
   const collapsedRef = useRef(collapsed);
 
   // collapsed değiştiğinde ref'i güncelle
@@ -436,20 +437,21 @@ const AppContent: React.FC = () => {
                 width: '48px',
                 height: '48px'
               }}>
-                <img 
-                  src="/logo.png" 
-                  alt="İndigo" 
-                  style={{ 
-                    height: '40px', 
-                    width: '40px',
-                    objectFit: 'contain',
-                    display: 'block'
-                  }}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.parentElement!.innerHTML = '<span style="font-size: 24px">💍</span>';
-                  }}
-                />
+                {!logoError ? (
+                  <img 
+                    src="/logo.png" 
+                    alt="İndigo" 
+                    style={{ 
+                      height: '40px', 
+                      width: '40px',
+                      objectFit: 'contain',
+                      display: 'block'
+                    }}
+                    onError={() => setLogoError(true)}
+                  />
+                ) : (
+                  <span style={{ fontSize: '24px' }}>💍</span>
+                )}
               </div>
             ) : (
               <div style={{
@@ -461,21 +463,25 @@ const AppContent: React.FC = () => {
                 justifyContent: 'center',
                 width: '100%'
               }}>
-                <img 
-                  src="/logo.png" 
-                  alt="İndigo İmalat Takip" 
-                  style={{ 
-                    height: '48px', 
-                    width: 'auto',
-                    maxWidth: '100%',
-                    objectFit: 'contain',
-                    display: 'block'
-                  }}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.parentElement!.innerHTML = '<div style="text-align: center;"><div style="font-size: 24px; margin-bottom: 4px;">💍</div><div style="color: #1f2937; font-size: 14px; font-weight: 700;">İndigo İmalat</div></div>';
-                  }}
-                />
+                {!logoError ? (
+                  <img 
+                    src="/logo.png" 
+                    alt="İndigo İmalat Takip" 
+                    style={{ 
+                      height: '48px', 
+                      width: 'auto',
+                      maxWidth: '100%',
+                      objectFit: 'contain',
+                      display: 'block'
+                    }}
+                    onError={() => setLogoError(true)}
+                  />
+                ) : (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '4px' }}>💍</div>
+                    <div style={{ color: '#1f2937', fontSize: '14px', fontWeight: 700 }}>İndigo İmalat</div>
+                  </div>
+                )}
               </div>
             )}
           </div>

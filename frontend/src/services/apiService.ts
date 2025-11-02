@@ -1,4 +1,6 @@
 // API Service for Backend Communication
+import { logger } from '../utils/logger';
+
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://imalattakip-backend-production.up.railway.app/api';
 
 class ApiService {
@@ -95,14 +97,14 @@ class ApiService {
             const error = await response.json();
             backendError = error;
             errorText = JSON.stringify(error);
-            console.log('🔍 Backend 500 response JSON:', error);
+            logger.log('🔍 Backend 500 response JSON:', error);
           } catch {
             // JSON parse hatası - text response olabilir
             // Clone varsa onu kullan, yoksa text okumayı dene
             try {
               const textResponse = clonedResponse || response;
               errorText = await textResponse.text();
-              console.log('🔍 Backend 500 response text:', errorText);
+              logger.log('🔍 Backend 500 response text:', errorText);
               
               if (errorText && errorText.trim()) {
                 try {
@@ -114,7 +116,7 @@ class ApiService {
                 }
               }
             } catch (textError) {
-              console.warn('Response text okunamadı:', textError);
+              logger.warn('Response text okunamadı:', textError);
             }
           }
           
@@ -128,7 +130,7 @@ class ApiService {
             errorMessage = `Sunucu hatası (500)! Backend endpoint: ${endpoint}. Lütfen backend log'larını kontrol edin.`;
           }
           
-          console.error('❌ Backend 500 error:', {
+          logger.error('❌ Backend 500 error:', {
             endpoint,
             status: response.status,
             statusText: response.statusText,
@@ -157,7 +159,7 @@ class ApiService {
 
   // Auth methods
   async login(username: string, password: string) {
-    console.log('🔐 Login attempt:', { username, apiUrl: API_BASE_URL });
+    logger.log('🔐 Login attempt:', { apiUrl: API_BASE_URL }, { includeSensitiveData: false });
     
     try {
       // Login için token gönderme - login endpoint'i public
@@ -191,14 +193,14 @@ class ApiService {
           errorMessage = 'Sunucu hatası! Lütfen daha sonra tekrar deneyin.';
         }
         
-        console.error('❌ Login failed:', { status: response.status, errorMessage });
+        logger.error('❌ Login failed:', { status: response.status, errorMessage });
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
       
       if (!data.token || !data.user) {
-        console.error('❌ Login response invalid:', data);
+        logger.error('❌ Login response invalid:', data, { includeSensitiveData: false });
         throw new Error('Sunucudan geçersiz yanıt alındı!');
       }
 
@@ -206,17 +208,17 @@ class ApiService {
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       
-      console.log('✅ Login successful:', { userId: data.user.id, username: data.user.username });
+      logger.log('✅ Login successful', undefined, { includeSensitiveData: false });
       
       return data;
     } catch (error: any) {
-      console.error('❌ Login failed:', error);
+      logger.error('❌ Login failed:', error, { includeSensitiveData: false });
       throw error;
     }
   }
 
   async register(username: string, password: string, role: string = 'user') {
-    console.log('📝 Register attempt:', { username, role });
+    logger.log('📝 Register attempt:', { role }, { includeSensitiveData: false });
     
     try {
       // Register için token gönderme - register endpoint'i public
@@ -250,17 +252,17 @@ class ApiService {
           errorMessage = 'Sunucu hatası! Lütfen daha sonra tekrar deneyin.';
         }
         
-        console.error('❌ Register failed:', { status: response.status, errorMessage });
+        logger.error('❌ Register failed:', { status: response.status, errorMessage });
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
       
-      console.log('✅ Register successful:', { userId: data.userId });
+      logger.log('✅ Register successful', undefined, { includeSensitiveData: false });
       
       return data;
     } catch (error: any) {
-      console.error('❌ Register failed:', error);
+      logger.error('❌ Register failed:', error, { includeSensitiveData: false });
       throw error;
     }
   }
@@ -354,16 +356,16 @@ class ApiService {
     notes?: string;
     company_id?: number;
   }) {
-    console.log('💾 Creating external vault transaction:', transaction);
+    logger.log('💾 Creating external vault transaction:', transaction);
     try {
       const response = await this.request<{ message: string; transactionId: number }>('/external-vault/transactions', {
         method: 'POST',
         body: JSON.stringify(transaction),
       });
-      console.log('✅ External vault transaction created:', response);
+      logger.log('✅ External vault transaction created:', response);
       return response;
     } catch (error: any) {
-      console.error('❌ Failed to create external vault transaction:', error);
+      logger.error('❌ Failed to create external vault transaction:', error);
       throw error;
     }
   }
@@ -523,16 +525,16 @@ class ApiService {
     entityName?: string;
     details?: string;
   }) {
-    console.log('📝 Creating log:', log);
+    logger.log('📝 Creating log:', log);
     try {
       const response = await this.request<any>('/logs', {
         method: 'POST',
         body: JSON.stringify(log),
       });
-      console.log('✅ Log created:', response);
+      logger.log('✅ Log created:', response);
       return response;
     } catch (error: any) {
-      console.error('❌ Failed to create log:', error);
+      logger.error('❌ Failed to create log:', error);
       // Log hatası kritik değil, sessizce devam et
       // throw error; // Log hatası için throw etme
       return null;
