@@ -1130,18 +1130,20 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         )}
       </Card>
 
-      {/* İstatistikler - Tek Kart */}
-      <Card 
-        className="card-hover"
-        style={{ 
-          borderRadius: '16px',
-          border: '1px solid #e5e7eb',
-          background: 'white',
-          overflow: 'hidden',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-          marginBottom: 16
-        }}
-      >
+      {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Yan Yana */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={12}>
+          <Card 
+            className="card-hover"
+            style={{ 
+              borderRadius: '16px',
+              border: '1px solid #e5e7eb',
+              background: 'white',
+              overflow: 'hidden',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              height: '100%'
+            }}
+          >
         <Row gutter={16}>
           {/* Fire birimleri için sadece Toplam Fire göster */}
           {hasFire || isProcessingUnit ? (
@@ -1226,33 +1228,35 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             </>
           )}
         </Row>
-      </Card>
+          </Card>
+        </Col>
 
-      {/* Cinsi Bazlı Stok Dağılımı - Sadece stok tutan birimler için (fire birimleri hariç) */}
-      {((!isProcessingUnit && !isOutputOnlyUnit && !isInputUnit && !hasFire) || isSemiFinishedUnit) && (
-        <Card 
-          title={
-            <Space size={12}>
-              <div style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '8px',
-                background: unitColor.gradient,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <GoldOutlined style={{ color: '#ffffff', fontSize: '18px' }} />
-              </div>
-              <Text strong style={{ fontSize: '16px' }}>Cinsi Bazlı Stok Dağılımı</Text>
-            </Space>
-          }
-          style={{ 
-            marginBottom: 16, 
-            borderRadius: commonStyles.borderRadius,
-            boxShadow: commonStyles.cardShadow 
-          }}
-        >
+        {/* Cinsi Bazlı Stok Dağılımı - Sadece stok tutan birimler için (fire birimleri hariç) */}
+        {((!isProcessingUnit && !isOutputOnlyUnit && !isInputUnit && !hasFire) || isSemiFinishedUnit) && (
+          <Col xs={24} lg={12}>
+            <Card 
+              title={
+                <Space size={12}>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '8px',
+                    background: unitColor.gradient,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <GoldOutlined style={{ color: '#ffffff', fontSize: '18px' }} />
+                  </div>
+                  <Text strong style={{ fontSize: '16px' }}>Cinsi Bazlı Stok Dağılımı</Text>
+                </Space>
+              }
+              style={{ 
+                borderRadius: commonStyles.borderRadius,
+                boxShadow: commonStyles.cardShadow,
+                height: '100%'
+              }}
+            >
           {cinsiData.length > 0 ? (
             <Table
               columns={cinsiColumns}
@@ -1265,8 +1269,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           ) : (
             <Empty description="Bu birimde henüz stok yok" />
           )}
-        </Card>
-      )}
+            </Card>
+          </Col>
+        )}
+      </Row>
 
       {/* İşlem Geçmişi */}
       <Card
