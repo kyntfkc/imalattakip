@@ -726,207 +726,159 @@ const Reports: React.FC = () => {
 
   return (
     <div className="fade-in" style={{ padding: '0 8px' }}>
-      {/* Modern Hero Section */}
+      {/* Minimalist Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        borderRadius: '20px',
-        padding: '40px 32px',
-        marginBottom: '32px',
-        color: '#1f2937',
-        position: 'relative',
-        overflow: 'hidden',
-        border: '1px solid #e5e7eb'
+        marginBottom: '20px',
+        paddingBottom: '12px',
+        borderBottom: '1px solid #e5e7eb'
       }}>
-        {/* Decorative Elements */}
-        <div style={{
-          position: 'absolute',
-          top: '-30px',
-          right: '-30px',
-          width: '120px',
-          height: '120px',
-          background: 'rgba(148, 163, 184, 0.1)',
-          borderRadius: '50%',
-          opacity: 0.5
-        }} />
-        <div style={{
-          position: 'absolute',
-          bottom: '-20px',
-          left: '-20px',
-          width: '80px',
-          height: '80px',
-          background: 'rgba(148, 163, 184, 0.08)',
-          borderRadius: '50%',
-          opacity: 0.4
-        }} />
-        
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <Space direction="vertical" size={20}>
-            <div>
-              <Title level={1} style={{ 
-                margin: 0, 
-                color: '#1f2937', 
-                fontSize: '36px',
-                fontWeight: '700'
-              }}>
-                <BarChartOutlined style={{ marginRight: '12px' }} />
-                Raporlar & Analiz
-              </Title>
-              <Text style={{ 
-                color: '#6b7280', 
-                fontSize: '18px',
-                fontWeight: '400'
-              }}>
-                Detaylı stok analizi, fire raporları ve ayar bazlı dağılım grafikleri
-              </Text>
-            </div>
-          </Space>
-        </div>
+        <Space size={12} align="center">
+          <BarChartOutlined style={{ fontSize: '20px', color: '#64748b' }} />
+          <Title level={4} style={{ 
+            margin: 0, 
+            color: '#1f2937', 
+            fontSize: '18px',
+            fontWeight: '600'
+          }}>
+            Raporlar & Analiz
+          </Title>
+        </Space>
       </div>
 
-      {/* Gelişmiş Filtreler */}
+      {/* Kompakt Filtreler */}
       <Card 
         style={{ 
-          marginBottom: 24, 
-          borderRadius: commonStyles.borderRadiusLarge, 
+          marginBottom: 16, 
+          borderRadius: '8px', 
           border: '1px solid #e5e7eb', 
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' 
+          boxShadow: 'none'
         }}
+        styles={{ body: { padding: '16px' } }}
         title={
-          <Space>
-            <FilterOutlined style={{ color: '#667eea', fontSize: '18px' }} />
-            <span style={{ color: '#1f2937', fontWeight: '600', fontSize: '16px' }}>Gelişmiş Filtreler</span>
+          <Space size={8}>
+            <FilterOutlined style={{ color: '#64748b', fontSize: '14px' }} />
+            <span style={{ color: '#1f2937', fontWeight: '500', fontSize: '14px' }}>Filtreler</span>
           </Space>
         }
       >
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          {/* Tarih Filtreleri */}
-          <div>
-            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <Text strong style={{ fontSize: '14px', color: '#374151' }}>
-                <CalendarOutlined style={{ marginRight: '8px' }} />
-                Tarih Aralığı:
-              </Text>
+        <Row gutter={[12, 12]} align="middle">
+          <Col xs={24} sm={12} md={6}>
+            <Space direction="vertical" size={4} style={{ width: '100%' }}>
+              <Text style={{ fontSize: '12px', color: '#6b7280' }}>Tarih:</Text>
               <Radio.Group 
                 value={dateFilter} 
                 onChange={(e) => setDateFilter(e.target.value)}
                 buttonStyle="solid"
-                size="large"
+                size="small"
               >
                 <Radio.Button value="all">Tümü</Radio.Button>
                 <Radio.Button value="today">Bugün</Radio.Button>
-                <Radio.Button value="week">Bu Hafta</Radio.Button>
-                <Radio.Button value="month">Bu Ay</Radio.Button>
-                <Radio.Button value="custom">Özel Aralık</Radio.Button>
+                <Radio.Button value="week">Hafta</Radio.Button>
+                <Radio.Button value="month">Ay</Radio.Button>
+                <Radio.Button value="custom">Özel</Radio.Button>
               </Radio.Group>
-            </Space>
-
-            {dateFilter === 'custom' && (
-              <div style={{ marginTop: 16 }}>
+              {dateFilter === 'custom' && (
                 <RangePicker 
                   value={customDateRange}
                   onChange={(dates) => setCustomDateRange(dates as [Dayjs, Dayjs])}
                   style={{ width: '100%' }}
                   format="DD.MM.YYYY"
-                  placeholder={['Başlangıç Tarihi', 'Bitiş Tarihi']}
-                  size="large"
+                  placeholder={['Başlangıç', 'Bitiş']}
+                  size="small"
                 />
-              </div>
-            )}
-          </div>
+              )}
+            </Space>
+          </Col>
 
-          <Divider style={{ margin: '8px 0' }} />
+          <Col xs={24} sm={12} md={5}>
+            <Space direction="vertical" size={4} style={{ width: '100%' }}>
+              <Text style={{ fontSize: '12px', color: '#6b7280' }}>Birim:</Text>
+              <Select 
+                value={selectedUnit} 
+                onChange={setSelectedUnit}
+                style={{ width: '100%' }}
+                size="small"
+                placeholder="Tüm birimler"
+              >
+                <Option value="all">Tüm Birimler</Option>
+                <Option value="ana-kasa">Ana Kasa</Option>
+                <Option value="yarimamul">Yarımamül</Option>
+                <Option value="lazer-kesim">Lazer Kesim</Option>
+                <Option value="tezgah">Tezgah</Option>
+                <Option value="cila">Cila</Option>
+                <Option value="dokum">Döküm</Option>
+                <Option value="dis-kasa">Dış Kasa</Option>
+              </Select>
+            </Space>
+          </Col>
 
-          {/* Diğer Filtreler ve Aksiyonlar */}
-          <Row gutter={[16, 16]} align="middle">
-            <Col xs={24} md={6}>
-              <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                <Text strong style={{ fontSize: '14px', color: '#374151' }}>Birim Seçimi:</Text>
-                <Select 
-                  value={selectedUnit} 
-                  onChange={setSelectedUnit}
-                  style={{ width: '100%' }}
-                  size="large"
-                  placeholder="Tüm birimler"
-                >
-                  <Option value="all">Tüm Birimler</Option>
-                  <Option value="ana-kasa">Ana Kasa</Option>
-                  <Option value="yarimamul">Yarımamül</Option>
-                  <Option value="lazer-kesim">Lazer Kesim</Option>
-                  <Option value="tezgah">Tezgah</Option>
-                  <Option value="cila">Cila</Option>
-                  <Option value="dokum">Döküm</Option>
-                  <Option value="dis-kasa">Dış Kasa</Option>
-                </Select>
-              </Space>
-            </Col>
-
-            <Col xs={24} md={6}>
-              <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                <Text strong style={{ fontSize: '14px', color: '#374151' }}>İşlemler:</Text>
+          <Col xs={24} sm={12} md={6}>
+            <Space direction="vertical" size={4} style={{ width: '100%' }}>
+              <Text style={{ fontSize: '12px', color: '#6b7280' }}>İşlemler:</Text>
+              <Space style={{ width: '100%' }}>
                 <Button 
                   icon={<ReloadOutlined />}
                   onClick={handleResetFilters}
-                  block
-                  size="large"
-                  style={{ borderRadius: '8px' }}
+                  size="small"
+                  style={{ flex: 1 }}
                 >
-                  Filtreleri Sıfırla
+                  Sıfırla
+                </Button>
+                <Button 
+                  icon={<FilePdfOutlined />}
+                  onClick={() => handleExport('pdf')}
+                  loading={isExporting}
+                  size="small"
+                  style={{ flex: 1 }}
+                >
+                  PDF
                 </Button>
               </Space>
-            </Col>
+            </Space>
+          </Col>
 
-            <Col xs={24} md={12}>
-              <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                <Text strong style={{ fontSize: '14px', color: '#374151' }}>Dışa Aktarma:</Text>
-                <Space style={{ width: '100%' }}>
-                  <Button 
-                    type="primary" 
-                    icon={<FileExcelOutlined />}
-                    onClick={() => handleExport('excel')}
-                    loading={isExporting}
-                    size="large"
-                    style={{ borderRadius: '8px', flex: 1 }}
-                  >
-                    Excel
-                  </Button>
-                  <Button 
-                    icon={<FilePdfOutlined />}
-                    onClick={() => handleExport('pdf')}
-                    loading={isExporting}
-                    size="large"
-                    style={{ borderRadius: '8px', flex: 1 }}
-                  >
-                    PDF
-                  </Button>
-                  <Button 
-                    icon={<PrinterOutlined />}
-                    onClick={handlePrint}
-                    size="large"
-                    style={{ borderRadius: '8px', flex: 1 }}
-                  >
-                    Yazdır
-                  </Button>
-                </Space>
+          <Col xs={24} sm={12} md={7}>
+            <Space direction="vertical" size={4} style={{ width: '100%' }}>
+              <Text style={{ fontSize: '12px', color: '#6b7280' }}>Dışa Aktarma:</Text>
+              <Space style={{ width: '100%' }}>
+                <Button 
+                  type="primary" 
+                  icon={<FileExcelOutlined />}
+                  onClick={() => handleExport('excel')}
+                  loading={isExporting}
+                  size="small"
+                  style={{ flex: 1 }}
+                >
+                  Excel
+                </Button>
+                <Button 
+                  icon={<PrinterOutlined />}
+                  onClick={handlePrint}
+                  size="small"
+                  style={{ flex: 1 }}
+                >
+                  Yazdır
+                </Button>
               </Space>
-            </Col>
-          </Row>
+            </Space>
+          </Col>
+        </Row>
 
           {/* Aktif Filtre Bilgisi */}
           {(dateFilter !== 'all' || selectedUnit !== 'all') && (
             <div style={{ 
-              background: 'linear-gradient(135deg, #f0f5ff 0%, #e6f7ff 100%)', 
-              padding: '16px', 
-              borderRadius: '12px',
-              border: '1px solid #d6e4ff'
+              marginTop: '12px',
+              paddingTop: '12px',
+              borderTop: '1px solid #e5e7eb'
             }}>
-              <Space wrap>
-                <Text strong style={{ color: '#1890ff' }}>Aktif Filtreler:</Text>
+              <Space wrap size={8}>
+                <Text style={{ fontSize: '12px', color: '#6b7280' }}>Aktif:</Text>
                 {dateFilter !== 'all' && (
                   <Tag 
                     color="blue" 
                     closable 
                     onClose={() => setDateFilter('all')}
-                    style={{ fontSize: '13px', padding: '4px 12px' }}
+                    style={{ fontSize: '11px', padding: '2px 8px', margin: 0 }}
                   >
                     {dateFilter === 'today' && 'Bugün'}
                     {dateFilter === 'week' && 'Bu Hafta'}
@@ -941,7 +893,7 @@ const Reports: React.FC = () => {
                     color="green" 
                     closable 
                     onClose={() => setSelectedUnit('all')}
-                    style={{ fontSize: '13px', padding: '4px 12px' }}
+                    style={{ fontSize: '11px', padding: '2px 8px', margin: 0 }}
                   >
                     {selectedUnit === 'ana-kasa' && 'Ana Kasa'}
                     {selectedUnit === 'yarimamul' && 'Yarımamül'}
@@ -955,166 +907,123 @@ const Reports: React.FC = () => {
               </Space>
             </div>
           )}
-        </Space>
       </Card>
 
-      {/* Gelişmiş İstatistik Kartları */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+      {/* Kompakt İstatistik Kartları */}
+      <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
         <Col xs={24} sm={8}>
           <Card 
             style={{ 
-              borderRadius: commonStyles.borderRadiusLarge, 
+              borderRadius: '8px', 
               border: '1px solid #e5e7eb',
               background: 'white',
-              boxShadow: commonStyles.cardShadow,
-              height: '100%'
+              boxShadow: 'none'
             }}
-            styles={{ body: { padding: '28px' } }}
+            styles={{ body: { padding: '16px' } }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', width: '100%' }}>
-              <div style={{
-                background: '#f8fafc',
-                borderRadius: commonStyles.borderRadiusLarge,
-                padding: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: '64px',
-                height: '64px'
-              }}>
-                <GoldOutlined style={{ fontSize: '28px', color: '#64748b' }} />
-              </div>
+            <Space size={12} align="center" style={{ width: '100%' }}>
+              <GoldOutlined style={{ fontSize: '20px', color: '#64748b' }} />
               <div style={{ flex: 1 }}>
                 <Text style={{ 
-                  color: '#64748b', 
-                  fontSize: '18px', 
-                  fontWeight: '500',
+                  color: '#6b7280', 
+                  fontSize: '12px', 
                   display: 'block',
-                  marginBottom: '8px'
+                  marginBottom: '4px'
                 }}>
                   Toplam Stok
                 </Text>
                 <Text style={{ 
                   color: '#1f2937', 
-                  fontSize: '36px', 
+                  fontSize: '20px', 
                   fontWeight: '600',
-                  display: 'block',
-                  whiteSpace: 'nowrap'
+                  display: 'block'
                 }}>
                   {safeToFixed(totalStock, 2)} gr
                 </Text>
               </div>
-            </div>
+            </Space>
           </Card>
         </Col>
         <Col xs={24} sm={8}>
           <Card 
             style={{ 
-              borderRadius: commonStyles.borderRadiusLarge, 
+              borderRadius: '8px', 
               border: '1px solid #e5e7eb',
               background: 'white',
-              boxShadow: commonStyles.cardShadow,
-              height: '100%'
+              boxShadow: 'none'
             }}
-            styles={{ body: { padding: '28px' } }}
+            styles={{ body: { padding: '16px' } }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', width: '100%' }}>
-              <div style={{
-                background: '#f8fafc',
-                borderRadius: commonStyles.borderRadiusLarge,
-                padding: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: '64px',
-                height: '64px'
-              }}>
-                <FireOutlined style={{ fontSize: '28px', color: '#64748b' }} />
-              </div>
+            <Space size={12} align="center" style={{ width: '100%' }}>
+              <FireOutlined style={{ fontSize: '20px', color: '#64748b' }} />
               <div style={{ flex: 1 }}>
                 <Text style={{ 
-                  color: '#64748b', 
-                  fontSize: '18px', 
-                  fontWeight: '500',
+                  color: '#6b7280', 
+                  fontSize: '12px', 
                   display: 'block',
-                  marginBottom: '8px'
+                  marginBottom: '4px'
                 }}>
                   Toplam Fire
                 </Text>
                 <Text style={{ 
                   color: '#1f2937', 
-                  fontSize: '36px', 
+                  fontSize: '20px', 
                   fontWeight: '600',
-                  display: 'block',
-                  whiteSpace: 'nowrap'
+                  display: 'block'
                 }}>
                   {safeToFixed(totalFire, 2)} gr
                 </Text>
               </div>
-            </div>
+            </Space>
           </Card>
         </Col>
         <Col xs={24} sm={8}>
           <Card 
             style={{ 
-              borderRadius: commonStyles.borderRadiusLarge, 
+              borderRadius: '8px', 
               border: '1px solid #e5e7eb',
               background: 'white',
-              boxShadow: commonStyles.cardShadow,
-              height: '100%'
+              boxShadow: 'none'
             }}
-            styles={{ body: { padding: '28px' } }}
+            styles={{ body: { padding: '16px' } }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', width: '100%' }}>
-              <div style={{
-                background: '#f8fafc',
-                borderRadius: commonStyles.borderRadiusLarge,
-                padding: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: '64px',
-                height: '64px'
-              }}>
-                <BankOutlined style={{ fontSize: '28px', color: '#64748b' }} />
-              </div>
+            <Space size={12} align="center" style={{ width: '100%' }}>
+              <BankOutlined style={{ fontSize: '20px', color: '#64748b' }} />
               <div style={{ flex: 1 }}>
                 <Text style={{ 
-                  color: '#64748b', 
-                  fontSize: '18px', 
-                  fontWeight: '500',
+                  color: '#6b7280', 
+                  fontSize: '12px', 
                   display: 'block',
-                  marginBottom: '8px'
+                  marginBottom: '4px'
                 }}>
                   Toplam Has
                 </Text>
                 <Text style={{ 
                   color: '#1f2937', 
-                  fontSize: '36px', 
+                  fontSize: '20px', 
                   fontWeight: '600',
-                  display: 'block',
-                  whiteSpace: 'nowrap'
+                  display: 'block'
                 }}>
                   {safeToFixed(totalHas, 2)} gr
                 </Text>
               </div>
-            </div>
+            </Space>
           </Card>
         </Col>
       </Row>
 
-      {/* Gelişmiş Tabbed Raporlar */}
+      {/* Kompakt Tabbed Raporlar */}
       <Card 
         style={{ 
-          borderRadius: commonStyles.borderRadiusLarge, 
+          borderRadius: '8px', 
           border: '1px solid #e5e7eb',
-          boxShadow: commonStyles.cardShadow
+          boxShadow: 'none'
         }}
-        styles={{ body: { padding: '24px' } }}
+        styles={{ body: { padding: '16px' } }}
       >
         <Tabs 
           defaultActiveKey="units"
-          size="large"
+          size="small"
           items={[
             {
               key: 'units',
