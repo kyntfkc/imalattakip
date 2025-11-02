@@ -1254,6 +1254,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
 
       {/* İşlem Geçmişi */}
       <Card
+        style={{ marginTop: 24 }}
         title={
           <Row justify="space-between" align="middle">
             <Col>
