@@ -197,13 +197,18 @@ const MenuVisibilityCard: React.FC = () => {
   };
 
   const renderMenuSettings = (currentSettings: any, onToggle: (key: string) => void, isRoleDefaults: boolean = false) => {
+    // Rol varsayılanları için admin-only menüleri filtrele
+    const menusToUse = isRoleDefaults 
+      ? getGroupedMenus(false) // Kullanıcı menüleri (admin-only hariç)
+      : groupedMenus;
+    
     return (
       <Collapse
-        defaultActiveKey={Object.keys(groupedMenus)}
+        defaultActiveKey={Object.keys(menusToUse)}
         ghost
         style={{ background: 'transparent' }}
       >
-        {Object.entries(groupedMenus).map(([category, items]) => (
+        {Object.entries(menusToUse).map(([category, items]) => (
           <Panel
             header={
               <Text strong style={{ fontSize: '14px', color: '#1f2937' }}>
