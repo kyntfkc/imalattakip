@@ -1135,29 +1135,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             </Col>
           ) : (
             <>
-              {/* Satış sayfası için sadece Has Karşılığı, diğerleri için Toplam Stok/İşlem + Has Karşılığı */}
+              {/* Satış sayfası için üstte hiçbir şey gösterme (altta gösterilecek), diğerleri için Toplam Stok/İşlem + Has Karşılığı */}
               {unitId === 'satis' ? (
-                /* Satış sayfası: Sadece Has Karşılığı göster */
+                /* Satış sayfası: Üstte boş göster (altta minimalist kartlar gösterilecek) */
                 <Col xs={24}>
-                  <Space direction="vertical" size="small" style={{ width: '100%' }} align="center">
-                    {(() => {
-                      const hasValue = filteredHasEquivalent;
-                      const formattedHas = hasValue.toFixed(2).replace(/^0+(?=\d)/, '');
-                      return (
-                        <Statistic
-                          title={<Text strong style={{ fontSize: '13px', opacity: 0.8 }}>Has Karşılığı</Text>}
-                          value={formattedHas}
-                          suffix="gr"
-                          valueStyle={{ 
-                            color: '#059669',
-                            fontSize: isMobile ? '22px' : '24px',
-                            fontWeight: 700
-                          }}
-                          prefix={<CrownOutlined style={{ fontSize: isMobile ? '18px' : '20px', color: '#64748b' }} />}
-                        />
-                      );
-                    })()}
-                  </Space>
+                  <div style={{ display: 'none' }}></div>
                 </Col>
               ) : (
                 <>
@@ -1352,38 +1334,75 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         )}
       </Card>
 
-      {/* Satış sayfası için minimalist Toplam Satış kartı - Tüm İşlemler'in altında */}
+      {/* Satış sayfası için minimalist Toplam Satış ve Has Karşılığı kartları - Tüm İşlemler'in altında */}
       {unitId === 'satis' && (
-        <div style={{ 
-          marginTop: 16,
-          padding: '16px 20px',
-          background: 'white',
-          borderRadius: '12px',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
-        }}>
-          <Space size={16} align="center" style={{ width: '100%', justifyContent: 'center' }}>
-            <GoldOutlined style={{ fontSize: '20px', color: '#64748b' }} />
-            <div style={{ textAlign: 'center' }}>
-              <Text style={{ 
-                display: 'block', 
-                fontSize: '12px', 
-                color: '#6b7280',
-                marginBottom: '4px'
-              }}>
-                Toplam Satış
-              </Text>
-              <Text strong style={{ 
-                display: 'block', 
-                fontSize: isMobile ? '24px' : '28px', 
-                color: '#1f2937',
-                fontWeight: 600
-              }}>
-                {totalInput.toFixed(2).replace(/^0+(?=\d)/, '')} gr
-              </Text>
+        <Row gutter={16} style={{ marginTop: 16 }}>
+          {/* Toplam Satış */}
+          <Col xs={24} sm={12}>
+            <div style={{ 
+              padding: '16px 20px',
+              background: 'white',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
+            }}>
+              <Space size={16} align="center" style={{ width: '100%', justifyContent: 'center' }}>
+                <GoldOutlined style={{ fontSize: '20px', color: '#64748b' }} />
+                <div style={{ textAlign: 'center' }}>
+                  <Text style={{ 
+                    display: 'block', 
+                    fontSize: '12px', 
+                    color: '#6b7280',
+                    marginBottom: '4px'
+                  }}>
+                    Toplam Satış
+                  </Text>
+                  <Text strong style={{ 
+                    display: 'block', 
+                    fontSize: isMobile ? '24px' : '28px', 
+                    color: '#1f2937',
+                    fontWeight: 600
+                  }}>
+                    {totalInput.toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                  </Text>
+                </div>
+              </Space>
             </div>
-          </Space>
-        </div>
+          </Col>
+          
+          {/* Has Karşılığı */}
+          <Col xs={24} sm={12}>
+            <div style={{ 
+              padding: '16px 20px',
+              background: 'white',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
+            }}>
+              <Space size={16} align="center" style={{ width: '100%', justifyContent: 'center' }}>
+                <CrownOutlined style={{ fontSize: '20px', color: '#64748b' }} />
+                <div style={{ textAlign: 'center' }}>
+                  <Text style={{ 
+                    display: 'block', 
+                    fontSize: '12px', 
+                    color: '#6b7280',
+                    marginBottom: '4px'
+                  }}>
+                    Has Karşılığı
+                  </Text>
+                  <Text strong style={{ 
+                    display: 'block', 
+                    fontSize: isMobile ? '24px' : '28px', 
+                    color: '#059669',
+                    fontWeight: 600
+                  }}>
+                    {filteredHasEquivalent.toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                  </Text>
+                </div>
+              </Space>
+            </div>
+          </Col>
+        </Row>
       )}
 
       <TransferModal
