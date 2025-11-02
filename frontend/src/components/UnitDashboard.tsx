@@ -442,11 +442,14 @@ const UnitDashboard: React.FC = () => {
 
   // Toplam özet istatistikler - TÜM birimler için (gizli olsalar bile)
   // Sadece gösterilen birimler değil, tüm birimlerin toplamı hesaplanmalı
+  // Dış kasa toplam stok hesabına dahil edilmez
   const totalStats = useMemo(() => {
-    const total = allUnits.reduce((acc, unit) => ({
-      stock: acc.stock + (unit?.totalStock || 0),
-      has: acc.has + (unit?.hasEquivalent || 0)
-    }), { stock: 0, has: 0 });
+    const total = allUnits
+      .filter(unit => unit.unitId !== 'dis-kasa')
+      .reduce((acc, unit) => ({
+        stock: acc.stock + (unit?.totalStock || 0),
+        has: acc.has + (unit?.hasEquivalent || 0)
+      }), { stock: 0, has: 0 });
     return total;
   }, [allUnits]);
 
