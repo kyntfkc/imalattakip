@@ -38,6 +38,7 @@ import {
 } from '@ant-design/icons';
 import { useTransfers } from '../context/TransferContext';
 import { useLog } from '../context/LogContext';
+import { useAuth } from '../context/AuthContext';
 import { useCinsiSettings, CinsiOption } from '../context/CinsiSettingsContext';
 import { UnitType, KaratType, UNIT_NAMES, FIRE_UNITS, OUTPUT_ONLY_UNITS, SEMI_FINISHED_UNITS, PROCESSING_UNITS, INPUT_UNITS, KARAT_HAS_RATIOS } from '../types';
 import type { ColumnsType } from 'antd/es/table';
@@ -55,6 +56,7 @@ interface UnitPageProps {
 const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const { unitSummaries, transfers, deleteTransfer } = useTransfers();
   const { addLog } = useLog();
+  const { user } = useAuth();
   const { cinsiOptions } = useCinsiSettings();
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState<'all' | 'week' | 'month' | 'year'>('all');
@@ -63,6 +65,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const [tableFilteredInfo, setTableFilteredInfo] = useState<Record<string, string[] | null>>({});
   const { isBackendOnline, isChecking } = useBackendStatus();
   const { isMobile } = useResponsive();
+
+  const isAdmin = user?.role === 'admin';
 
   const unit = unitSummaries.find(u => u.unitId === unitId);
   const unitName = UNIT_NAMES[unitId];
@@ -717,7 +721,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         <Text type="secondary">{notes || '-'}</Text>
       )
     },
-    {
+    ...(isAdmin ? [{
       title: 'İşlemler',
       key: 'actions',
       width: 100,
@@ -739,7 +743,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           />
         </Popconfirm>
       )
-    }
+    }] : [])
   ];
 
   // Cinsi bazlı stok tablosu

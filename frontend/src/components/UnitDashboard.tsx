@@ -52,9 +52,10 @@ interface SortableUnitCardProps {
   index: number;
   onClick: () => void;
   isMobile: boolean;
+  isAdmin: boolean;
 }
 
-const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, index, onClick, isMobile }) => {
+const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, index, onClick, isMobile, isAdmin }) => {
   const {
     attributes,
     listeners,
@@ -215,28 +216,30 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
               </Text>
             </div>
             
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginBottom: isMobile ? '8px' : '10px',
-              flexWrap: 'wrap',
-              gap: '4px'
-            }}>
-              <Text style={{ color: '#6b7280', fontSize: isMobile ? '11px' : '12px', fontWeight: '500', flexShrink: 0 }}>
-                Has Karşılığı
-              </Text>
-              <Text style={{ 
-                color: '#059669', 
-                fontSize: isMobile ? '14px' : '16px', 
-                fontWeight: '600',
-                wordBreak: 'break-word',
-                textAlign: 'right',
-                lineHeight: 1.2
+            {isAdmin && (
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                marginBottom: isMobile ? '8px' : '10px',
+                flexWrap: 'wrap',
+                gap: '4px'
               }}>
-                {((typeof unit?.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit?.hasEquivalent) || 0) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
-              </Text>
-            </div>
+                <Text style={{ color: '#6b7280', fontSize: isMobile ? '11px' : '12px', fontWeight: '500', flexShrink: 0 }}>
+                  Has Karşılığı
+                </Text>
+                <Text style={{ 
+                  color: '#059669', 
+                  fontSize: isMobile ? '14px' : '16px', 
+                  fontWeight: '600',
+                  wordBreak: 'break-word',
+                  textAlign: 'right',
+                  lineHeight: 1.2
+                }}>
+                  {((typeof unit?.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit?.hasEquivalent) || 0) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                </Text>
+              </div>
+            )}
 
             {/* Fire Display (only for fire units) */}
             {FIRE_UNITS.includes(unit.unitId as UnitType) && (
@@ -418,7 +421,7 @@ const UnitDashboard: React.FC = () => {
     return 'error';
   };
 
-  const cinsiColumns: ColumnsType<any> = [
+  const cinsiColumns: ColumnsType<any> = useMemo(() => [
     {
       title: 'Cinsi',
       dataIndex: 'cinsi',
@@ -434,13 +437,13 @@ const UnitDashboard: React.FC = () => {
       key: 'stock',
       render: (value: number) => (typeof value === 'number' ? value : parseFloat(String(value)) || 0).toFixed(2)
     },
-    {
+    ...(isAdmin ? [{
       title: 'Has Karşılığı (gr)',
       dataIndex: 'has',
       key: 'has',
       render: (value: number) => (typeof value === 'number' ? value : parseFloat(String(value)) || 0).toFixed(2)
-    }
-  ];
+    }] : [])
+  ], [cinsiOptions, isAdmin]);
 
   const handleUnitClick = useCallback((unit: UnitSummary) => {
     setSelectedUnit(unit);
@@ -831,6 +834,7 @@ const UnitDashboard: React.FC = () => {
                   index={index}
                   onClick={() => handleUnitClick(unit)}
                   isMobile={isMobile}
+                  isAdmin={isAdmin}
                 />
               ))
             )}
@@ -886,15 +890,17 @@ const UnitDashboard: React.FC = () => {
                   />
                 </Col>
               )}
-              <Col span={FIRE_UNITS.includes(selectedUnit.unitId) ? 8 : 12}>
-                <Statistic
-                  title="Has Karşılığı"
-                  value={selectedUnit.hasEquivalent}
-                  suffix={<span style={{ fontSize: '16px', fontWeight: 'bold', color: '#52c41a' }}>gr</span>}
-                  valueStyle={{ color: '#52c41a' }}
-                  precision={2}
-                />
-              </Col>
+              {isAdmin && (
+                <Col span={FIRE_UNITS.includes(selectedUnit.unitId) ? 8 : 12}>
+                  <Statistic
+                    title="Has Karşılığı"
+                    value={selectedUnit.hasEquivalent}
+                    suffix={<span style={{ fontSize: '16px', fontWeight: 'bold', color: '#52c41a' }}>gr</span>}
+                    valueStyle={{ color: '#52c41a' }}
+                    precision={2}
+                  />
+                </Col>
+              )}
             </Row>
 
             <Title level={4}>Cinsi Bazlı Stok Dağılımı</Title>
@@ -994,11 +1000,11 @@ const UnitDashboard: React.FC = () => {
                     );
                   }
                 },
-                {
+                ...(isAdmin ? [{
                   title: 'İşlemler',
                   key: 'actions',
                   width: 80,
-                  align: 'center',
+                  align: 'center' as const,
                   render: (record: any) => (
                     <Popconfirm
                       title="İşlemi Sil"
@@ -1016,7 +1022,7 @@ const UnitDashboard: React.FC = () => {
                       />
                     </Popconfirm>
                   )
-                }
+                }] : [])
               ];
 
               return (

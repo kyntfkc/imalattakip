@@ -28,6 +28,7 @@ import {
 } from '@ant-design/icons';
 import { useTransfers } from '../context/TransferContext';
 import { useCinsiSettings, CinsiOption } from '../context/CinsiSettingsContext';
+import { useAuth } from '../context/AuthContext';
 import { useResponsive } from '../hooks/useResponsive';
 import { UnitType, KaratType } from '../types';
 import { parseNumberFromInput, formatNumberForDisplay } from '../utils/numberFormat';
@@ -56,6 +57,7 @@ interface TransferModalProps {
 const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose, defaultFromUnit }) => {
   const { addNewTransfer } = useTransfers();
   const { cinsiOptions } = useCinsiSettings();
+  const { user } = useAuth();
   const { isMobile, isTablet } = useResponsive();
   const [form] = Form.useForm();
   const [transferData, setTransferData] = useState<TransferData | null>(null);
@@ -65,7 +67,9 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
   const [semiFinishedCinsi, setSemiFinishedCinsi] = useState<string>('');
   const [selectedFromUnit, setSelectedFromUnit] = useState<string>('');
 
-  const units = [
+  const isAdmin = user?.role === 'admin';
+
+  const allUnits = [
     { value: 'ana-kasa', label: 'Ana Kasa', icon: <BankOutlined /> },
     { value: 'yarimamul', label: 'Yarımamül', icon: <GoldOutlined /> },
     { value: 'lazer-kesim', label: 'Lazer Kesim', icon: <ThunderboltOutlined /> },
@@ -76,6 +80,14 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
     { value: 'satis', label: 'Satış', icon: <ShoppingCartOutlined /> }
   ];
 
+  // Normal kullanıcılar için döküm ve tedarik birimlerini gizle
+  const units = useMemo(() => {
+    if (isAdmin) {
+      return allUnits;
+    }
+    return allUnits.filter(unit => unit.value !== 'dokum' && unit.value !== 'tedarik');
+  }, [isAdmin]);
+
   const karatOptions = [
     { value: '14K', label: '14 Ayar' },
     { value: '18K', label: '18 Ayar' },
@@ -84,12 +96,12 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
   ];
 
   const getUnitIcon = (unitValue: string) => {
-    const unit = units.find(u => u.value === unitValue);
+    const unit = allUnits.find(u => u.value === unitValue);
     return unit?.icon;
   };
 
   const getUnitLabel = (unitValue: string) => {
-    const unit = units.find(u => u.value === unitValue);
+    const unit = allUnits.find(u => u.value === unitValue);
     return unit?.label;
   };
 
