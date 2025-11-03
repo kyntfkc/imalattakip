@@ -17,8 +17,12 @@ import {
   Input,
   DatePicker,
   Badge,
-  Tooltip
+  Tooltip,
+  Select
 } from 'antd';
+
+const { Option } = Select;
+const { RangePicker } = DatePicker;
 import dayjs, { Dayjs } from 'dayjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -65,6 +69,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null]>([null, null]);
   const [tableSearchText, setTableSearchText] = useState('');
   const [tableFilteredInfo, setTableFilteredInfo] = useState<Record<string, string[] | null>>({});
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState<'all' | 'input' | 'output'>('all');
   const { isBackendOnline, isChecking } = useBackendStatus();
   const { isMobile } = useResponsive();
 
@@ -129,14 +134,43 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transfers, unitId]);
 
-  // Filtrelenmiş transferler - Yarı mamül, Tedarik, Satış ve Döküm için filtre uygulanmaz
+  // Filtrelenmiş transferler - Tüm filtreleri uygula
   const filteredTransfers = useMemo(() => {
-    // Yarı mamül, Tedarik, Satış ve Döküm için filtre uygulanmaz, tüm transferler gösterilir
-    if (isSemiFinishedUnit || unitId === 'tedarik' || unitId === 'satis' || unitId === 'dokum' || isOutputOnlyUnit) {
-      return unitTransfers;
+    let filtered = unitTransfers;
+
+    // Yarı mamül, Tedarik, Satış ve Döküm için tarih filtresi uygulanmaz
+    if (!(isSemiFinishedUnit || unitId === 'tedarik' || unitId === 'satis' || unitId === 'dokum' || isOutputOnlyUnit)) {
+      filtered = filterTransfersByDate(filtered);
     }
-    return filterTransfersByDate(unitTransfers);
-  }, [unitTransfers, filterTransfersByDate, isSemiFinishedUnit, unitId, isOutputOnlyUnit]);
+
+    // İşlem tipi filtresi
+    if (transactionTypeFilter !== 'all') {
+      filtered = filtered.filter(transfer => {
+        const isIncoming = transfer.toUnit === unitId;
+        return transactionTypeFilter === 'input' ? isIncoming : !isIncoming;
+      });
+    }
+
+    // Arama filtresi
+    if (tableSearchText) {
+      const searchLower = tableSearchText.toLowerCase();
+      filtered = filtered.filter(transfer => {
+        const fromUnitName = (UNIT_NAMES[transfer.fromUnit as UnitType] || transfer.fromUnit).toLowerCase();
+        const toUnitName = (UNIT_NAMES[transfer.toUnit as UnitType] || transfer.toUnit).toLowerCase();
+        const karat = transfer.karat === '24K' ? 'Has Altın' : transfer.karat.replace('K', ' Ayar');
+        const cinsi = transfer.cinsi ? cinsiOptions.find(opt => opt.value === transfer.cinsi)?.label || transfer.cinsi : '';
+        const notes = transfer.notes || '';
+        
+        return fromUnitName.includes(searchLower) ||
+               toUnitName.includes(searchLower) ||
+               karat.toLowerCase().includes(searchLower) ||
+               cinsi.toLowerCase().includes(searchLower) ||
+               notes.toLowerCase().includes(searchLower);
+      });
+    }
+
+    return filtered;
+  }, [unitTransfers, filterTransfersByDate, isSemiFinishedUnit, unitId, isOutputOnlyUnit, transactionTypeFilter, tableSearchText, cinsiOptions]);
 
   // OUTPUT_ONLY_UNITS, FIRE_UNITS, PROCESSING_UNITS, INPUT_UNITS ve SEMI_FINISHED_UNITS için toplam giriş hesapla
   const totalInput = useMemo(() => {
@@ -311,6 +345,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     setTableSearchText('');
     setDateRange([null, null]);
     setDateFilter('all');
+    setTransactionTypeFilter('all');
+    message.success('Filtreler sıfırlandı');
   }, []);
 
   const handleExport = useCallback(() => {
@@ -1352,7 +1388,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                 icon={<FilterOutlined />}
                 onClick={handleResetFilters}
                 size={isMobile ? 'small' : 'middle'}
-                disabled={Object.keys(tableFilteredInfo).length === 0 && !tableSearchText && dateFilter === 'all' && !dateRange[0] && !dateRange[1]}
+                disabled={Object.keys(tableFilteredInfo).length === 0 && !tableSearchText && dateFilter === 'all' && !dateRange[0] && !dateRange[1] && transactionTypeFilter === 'all'}
                 style={{
                   borderRadius: '6px'
                 }}
@@ -1373,8 +1409,72 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             </Space>
           </div>
 
-          {/* Filtreler ve Arama - Kompakt */}
-          {(Object.keys(tableFilteredInfo).length > 0 || tableSearchText || dateFilter !== 'all' || dateRange[0] || dateRange[1]) && (
+          {/* Filtre Sistemi - Dış Kasa gibi */}
+          <div style={{
+            padding: '16px 24px',
+            borderBottom: '1px solid #e5e7eb',
+            background: '#fafafa'
+          }}>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12} md={6}>
+                <Input
+                  placeholder="Birim, ayar, cinsi, notlarda ara..."
+                  prefix={<SearchOutlined />}
+                  value={tableSearchText}
+                  onChange={(e) => setTableSearchText(e.target.value)}
+                  allowClear
+                  style={{ borderRadius: '8px' }}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Select
+                  placeholder="İşlem Tipi"
+                  value={transactionTypeFilter}
+                  onChange={(value) => setTransactionTypeFilter(value)}
+                  style={{ width: '100%', borderRadius: '8px' }}
+                  allowClear
+                >
+                  <Option value="all">Tüm İşlemler</Option>
+                  <Option value="input">Giriş</Option>
+                  <Option value="output">Çıkış</Option>
+                </Select>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Segmented
+                  options={[
+                    { label: 'Tümü', value: 'all' },
+                    { label: 'Son 7 Gün', value: 'week' },
+                    { label: 'Son Ay', value: 'month' },
+                    { label: 'Son Yıl', value: 'year' }
+                  ]}
+                  value={dateFilter}
+                  onChange={(value) => {
+                    setDateFilter(value as 'all' | 'week' | 'month' | 'year');
+                    setDateRange([null, null]);
+                  }}
+                  style={{ borderRadius: '8px', width: '100%' }}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <RangePicker
+                  style={{ width: '100%', borderRadius: '8px' }}
+                  placeholder={['Başlangıç Tarihi', 'Bitiş Tarihi']}
+                  value={dateRange}
+                  onChange={(dates) => {
+                    if (dates) {
+                      setDateRange([dates[0], dates[1]]);
+                      setDateFilter('all');
+                    } else {
+                      setDateRange([null, null]);
+                    }
+                  }}
+                />
+              </Col>
+            </Row>
+          </div>
+
+          {/* Aktif Filtreler - Kompakt */}
+          {(Object.keys(tableFilteredInfo).length > 0 || tableSearchText || dateFilter !== 'all' || dateRange[0] || dateRange[1] || transactionTypeFilter !== 'all') && (
             <div style={{
               padding: '12px 24px',
               background: '#f9fafb',
@@ -1432,15 +1532,30 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   Arama: {tableSearchText}
                 </Tag>
               )}
+              {transactionTypeFilter !== 'all' && (
+                <Tag
+                  closable
+                  onClose={() => setTransactionTypeFilter('all')}
+                  style={{
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    padding: '4px 10px',
+                    border: '1px solid #d1d5db',
+                    background: 'white'
+                  }}
+                >
+                  İşlem Tipi: {transactionTypeFilter === 'input' ? 'Giriş' : 'Çıkış'}
+                </Tag>
+              )}
             </div>
           )}
 
           {/* Table Content - Modern */}
           <div style={{ padding: isMobile ? '12px' : '16px 24px' }}>
-            {unitTransfers.length > 0 ? (
+            {filteredTransfers.length > 0 ? (
               <Table
                 columns={columns}
-                dataSource={unitTransfers}
+                dataSource={filteredTransfers}
                 rowKey="id"
                 pagination={{
                   pageSize: 20,
@@ -1449,6 +1564,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   showTotal: (total, range) => (
                     <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500 }}>
                       {range[0]}-{range[1]} / <strong style={{ color: '#1f2937' }}>{total}</strong> işlem
+                      {filteredTransfers.length !== unitTransfers.length && (
+                        <span style={{ marginLeft: '8px', color: '#9ca3af' }}>
+                          (Toplam: {unitTransfers.length})
+                        </span>
+                      )}
                     </span>
                   ),
                   size: 'small',
