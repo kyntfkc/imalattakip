@@ -173,6 +173,9 @@ export const calculateUnitSummaries = (transfers: Transfer[]): UnitSummary[] => 
 
   // Her transfer için stok bilgilerini güncelle
   stocks.forEach((stock) => {
+    // Dış Kasa ayrı hesaplanıyor, burada dahil edilmez
+    if (stock.unitId === 'dis-kasa') return;
+    
     if (!summaryMap.has(stock.unitId)) {
       summaryMap.set(stock.unitId, {
         unitId: stock.unitId,
