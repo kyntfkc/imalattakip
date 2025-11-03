@@ -624,6 +624,52 @@ const RequiredHas: React.FC = () => {
         }
         style={{ borderRadius: commonStyles.borderRadius, boxShadow: commonStyles.cardShadow }}
       >
+        {/* Filtre Sistemi */}
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col xs={24} sm={12} md={8}>
+            <Input
+              placeholder="Açıklama veya notlarda ara..."
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+              style={{ borderRadius: '8px' }}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Segmented
+              options={[
+                { label: 'Tümü', value: 'all' },
+                { label: 'Son 7 Gün', value: 'week' },
+                { label: 'Son Ay', value: 'month' },
+                { label: 'Son Yıl', value: 'year' }
+              ]}
+              value={dateFilter}
+              onChange={(value) => {
+                setDateFilter(value as 'all' | 'week' | 'month' | 'year');
+                setDateRange([null, null]);
+              }}
+              style={{ borderRadius: '8px' }}
+            />
+          </Col>
+          <Col xs={24} sm={24} md={8}>
+            <RangePicker
+              style={{ width: '100%', borderRadius: '8px' }}
+              placeholder={['Başlangıç Tarihi', 'Bitiş Tarihi']}
+              value={dateRange}
+              onChange={(dates) => {
+                if (dates) {
+                  setDateRange([dates[0], dates[1]]);
+                  setDateFilter('all');
+                } else {
+                  setDateRange([null, null]);
+                }
+              }}
+              format="DD.MM.YYYY"
+            />
+          </Col>
+        </Row>
+
         {filteredItems.length === 0 && items.length > 0 ? (
           <Empty 
             description="Filtre kriterlerine uygun kayıt bulunamadı"
