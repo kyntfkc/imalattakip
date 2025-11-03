@@ -13,6 +13,8 @@ import {
   Form,
   Input,
   DatePicker,
+  Select,
+  Segmented,
   message,
   Popconfirm,
   Empty
@@ -22,9 +24,12 @@ import {
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
-  GoldOutlined
+  GoldOutlined,
+  SearchOutlined,
+  FilterOutlined,
+  CalendarOutlined
 } from '@ant-design/icons';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
 import { parseNumberFromInput, formatNumberForDisplay } from '../utils/numberFormat';
 import { commonStyles } from '../styles/theme';
@@ -44,6 +49,9 @@ interface RequiredHasItem {
   notes?: string;
 }
 
+const { RangePicker } = DatePicker;
+const { Option } = Select;
+
 const RequiredHas: React.FC = () => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
@@ -52,6 +60,9 @@ const RequiredHas: React.FC = () => {
   const [form] = Form.useForm();
   const [items, setItems] = useState<RequiredHasItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState<'all' | 'week' | 'month' | 'year'>('all');
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null]>([null, null]);
+  const [searchText, setSearchText] = useState('');
 
   // Backend'den verileri yükle
   useEffect(() => {
@@ -564,7 +575,20 @@ const RequiredHas: React.FC = () => {
         }
         style={{ borderRadius: commonStyles.borderRadius, boxShadow: commonStyles.cardShadow }}
       >
-        {items.length === 0 ? (
+        {filteredItems.length === 0 && items.length > 0 ? (
+          <Empty 
+            description="Filtre kriterlerine uygun kayıt bulunamadı"
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          >
+            <Button onClick={() => {
+              setSearchText('');
+              setDateFilter('all');
+              setDateRange([null, null]);
+            }}>
+              Filtreleri Temizle
+            </Button>
+          </Empty>
+        ) : filteredItems.length === 0 ? (
           <Empty 
             description="Henüz kayıt yok"
             image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -591,12 +615,12 @@ const RequiredHas: React.FC = () => {
         ) : (
           <Table
             columns={columns}
-            dataSource={items}
+            dataSource={filteredItems}
             rowKey="id"
             pagination={{
               pageSize: 20,
               showSizeChanger: true,
-              showTotal: (total) => `Toplam ${total} kayıt`
+              showTotal: (total, range) => `${range[0]}-${range[1]} / ${total} kayıt (${items.length} toplam)`
             }}
             scroll={{ x: 1000 }}
           />
@@ -618,11 +642,11 @@ const RequiredHas: React.FC = () => {
       }}>
         <Space size="large">
           <Text style={{ fontSize: '14px', color: '#64748b' }}>
-            <Text strong style={{ color: '#52c41a' }}>Toplam Giriş: </Text>
+            <Text strong style={{ color: '#ff4d4f' }}>Alınacak Toplam Has: </Text>
             {Math.round(totals.input)} TL
           </Text>
           <Text style={{ fontSize: '14px', color: '#64748b' }}>
-            <Text strong style={{ color: '#ff4d4f' }}>Toplam Çıkış: </Text>
+            <Text strong style={{ color: '#52c41a' }}>Alınan Toplam Has: </Text>
             {Math.round(totals.output)} TL
           </Text>
         </Space>
