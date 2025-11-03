@@ -35,6 +35,7 @@ import { useTransfers } from '../context/TransferContext';
 import { useExternalVault } from '../context/ExternalVaultContext';
 import { useDashboardSettings } from '../context/DashboardSettingsContext';
 import { useLog } from '../context/LogContext';
+import { useAuth } from '../context/AuthContext';
 import { UnitSummary, KaratType, FIRE_UNITS, UnitType } from '../types';
 import type { ColumnsType } from 'antd/es/table';
 import TransferModal from './TransferModal';
@@ -302,10 +303,14 @@ const UnitDashboard: React.FC = () => {
   const { totalStock: externalVaultStock, totalHas: externalVaultHas, stockByKarat: externalVaultStockByKarat } = useExternalVault();
   const { settings, updateUnitOrder } = useDashboardSettings();
   const { addLog } = useLog();
+  const { user } = useAuth();
   const [selectedUnit, setSelectedUnit] = useState<UnitSummary | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const { isMobile } = useResponsive();
+  
+  // Normal kullanıcılar için admin değil
+  const isAdmin = user?.role === 'admin';
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -349,11 +354,19 @@ const UnitDashboard: React.FC = () => {
 
   // Birimleri kullanıcının ayarladığı sıraya göre sırala ve gizli olanları filtrele
   const sortedUnits = useMemo(() => {
-    return settings.unitOrder
+    let filtered = settings.unitOrder
       .map(unitId => allUnits.find(u => u.unitId === unitId))
       .filter((unit): unit is UnitSummary => unit !== undefined)
       .filter(unit => !settings.hiddenUnits.includes(unit.unitId as UnitType));
-  }, [settings.unitOrder, settings.hiddenUnits, allUnits]);
+    
+    // Normal kullanıcılar için sadece Lazer Kesim, Tezgah ve Cila görünür
+    if (!isAdmin) {
+      const allowedUnits = ['lazer-kesim', 'tezgah', 'cila'];
+      filtered = filtered.filter(unit => allowedUnits.includes(unit.unitId));
+    }
+    
+    return filtered;
+  }, [settings.unitOrder, settings.hiddenUnits, allUnits, isAdmin]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -555,114 +568,116 @@ const UnitDashboard: React.FC = () => {
               </Text>
             </div>
             
-            {/* Quick Stats */}
-            <Row gutter={[12, 12]} style={{ marginTop: isMobile ? '12px' : '16px' }}>
-              <Col xs={24} sm={12} md={12}>
-                <div style={{
-                  background: 'white',
-                  borderRadius: isMobile ? '14px' : '16px',
-                  padding: isMobile ? '12px' : '16px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  minHeight: isMobile ? '80px' : '100px',
-                  height: isMobile ? 'auto' : '100px',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '14px', width: '100%', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-                    <div style={{
-                      background: '#f8fafc',
-                      borderRadius: isMobile ? '10px' : '12px',
-                      padding: isMobile ? '10px' : '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: isMobile ? '40px' : '48px',
-                      width: isMobile ? '40px' : '48px',
-                      height: isMobile ? '40px' : '48px',
-                      flexShrink: 0
-                    }}>
-                      <GoldOutlined style={{ fontSize: isMobile ? '18px' : '22px', color: '#64748b' }} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={{ 
-                        color: '#64748b', 
-                        fontSize: isMobile ? '12px' : '14px', 
-                        fontWeight: '500',
-                        display: 'block',
-                        marginBottom: isMobile ? '2px' : '4px'
+            {/* Quick Stats - Sadece admin için göster */}
+            {isAdmin && (
+              <Row gutter={[12, 12]} style={{ marginTop: isMobile ? '12px' : '16px' }}>
+                <Col xs={24} sm={12} md={12}>
+                  <div style={{
+                    background: 'white',
+                    borderRadius: isMobile ? '14px' : '16px',
+                    padding: isMobile ? '12px' : '16px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                    minHeight: isMobile ? '80px' : '100px',
+                    height: isMobile ? 'auto' : '100px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '14px', width: '100%', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+                      <div style={{
+                        background: '#f8fafc',
+                        borderRadius: isMobile ? '10px' : '12px',
+                        padding: isMobile ? '10px' : '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minWidth: isMobile ? '40px' : '48px',
+                        width: isMobile ? '40px' : '48px',
+                        height: isMobile ? '40px' : '48px',
+                        flexShrink: 0
                       }}>
-                        Toplam Stok
-                      </Text>
-                      <Text style={{ 
-                        color: '#1f2937', 
-                        fontSize: isMobile ? '18px' : '28px', 
-                        fontWeight: '600',
-                        display: 'block',
-                        whiteSpace: isMobile ? 'normal' : 'nowrap',
-                        wordBreak: 'break-word',
-                        lineHeight: 1.2
-                      }}>
-                        {(typeof totalStats.stock === 'number' ? totalStats.stock : parseFloat(totalStats.stock) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
-                      </Text>
-                    </div>
-                  </div>
-                </div>
-              </Col>
-              
-              <Col xs={24} sm={12} md={12}>
-                <div style={{
-                  background: 'white',
-                  borderRadius: isMobile ? '14px' : '16px',
-                  padding: isMobile ? '12px' : '16px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  minHeight: isMobile ? '80px' : '100px',
-                  height: isMobile ? 'auto' : '100px',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '14px', width: '100%', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-                    <div style={{
-                      background: '#f8fafc',
-                      borderRadius: isMobile ? '10px' : '12px',
-                      padding: isMobile ? '10px' : '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: isMobile ? '40px' : '48px',
-                      width: isMobile ? '40px' : '48px',
-                      height: isMobile ? '40px' : '48px',
-                      flexShrink: 0
-                    }}>
-                      <CrownOutlined style={{ fontSize: isMobile ? '18px' : '22px', color: '#64748b' }} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={{ 
-                        color: '#64748b', 
-                        fontSize: isMobile ? '12px' : '14px', 
-                        fontWeight: '500',
-                        display: 'block',
-                        marginBottom: isMobile ? '2px' : '4px'
-                      }}>
-                        Has Karşılığı
-                      </Text>
-                      <Text style={{ 
-                        color: '#1f2937', 
-                        fontSize: isMobile ? '18px' : '28px', 
-                        fontWeight: '600',
-                        display: 'block',
-                        whiteSpace: isMobile ? 'normal' : 'nowrap',
-                        wordBreak: 'break-word',
-                        lineHeight: 1.2
-                      }}>
-                        {(typeof totalStats.has === 'number' ? totalStats.has : parseFloat(totalStats.has) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
-                      </Text>
+                        <GoldOutlined style={{ fontSize: isMobile ? '18px' : '22px', color: '#64748b' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <Text style={{ 
+                          color: '#64748b', 
+                          fontSize: isMobile ? '12px' : '14px', 
+                          fontWeight: '500',
+                          display: 'block',
+                          marginBottom: isMobile ? '2px' : '4px'
+                        }}>
+                          Toplam Stok
+                        </Text>
+                        <Text style={{ 
+                          color: '#1f2937', 
+                          fontSize: isMobile ? '18px' : '28px', 
+                          fontWeight: '600',
+                          display: 'block',
+                          whiteSpace: isMobile ? 'normal' : 'nowrap',
+                          wordBreak: 'break-word',
+                          lineHeight: 1.2
+                        }}>
+                          {(typeof totalStats.stock === 'number' ? totalStats.stock : parseFloat(totalStats.stock) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                        </Text>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Col>
-            </Row>
+                </Col>
+                
+                <Col xs={24} sm={12} md={12}>
+                  <div style={{
+                    background: 'white',
+                    borderRadius: isMobile ? '14px' : '16px',
+                    padding: isMobile ? '12px' : '16px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                    minHeight: isMobile ? '80px' : '100px',
+                    height: isMobile ? 'auto' : '100px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '14px', width: '100%', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+                      <div style={{
+                        background: '#f8fafc',
+                        borderRadius: isMobile ? '10px' : '12px',
+                        padding: isMobile ? '10px' : '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minWidth: isMobile ? '40px' : '48px',
+                        width: isMobile ? '40px' : '48px',
+                        height: isMobile ? '40px' : '48px',
+                        flexShrink: 0
+                      }}>
+                        <CrownOutlined style={{ fontSize: isMobile ? '18px' : '22px', color: '#64748b' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <Text style={{ 
+                          color: '#64748b', 
+                          fontSize: isMobile ? '12px' : '14px', 
+                          fontWeight: '500',
+                          display: 'block',
+                          marginBottom: isMobile ? '2px' : '4px'
+                        }}>
+                          Has Karşılığı
+                        </Text>
+                        <Text style={{ 
+                          color: '#1f2937', 
+                          fontSize: isMobile ? '18px' : '28px', 
+                          fontWeight: '600',
+                          display: 'block',
+                          whiteSpace: isMobile ? 'normal' : 'nowrap',
+                          wordBreak: 'break-word',
+                          lineHeight: 1.2
+                        }}>
+                          {(typeof totalStats.has === 'number' ? totalStats.has : parseFloat(totalStats.has) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                        </Text>
+                      </div>
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            )}
           </Space>
         </div>
       </div>
