@@ -160,6 +160,12 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       }, 0);
   }, [transfers, unitId]);
 
+  // Admin için toplam fire hesapla (tüm transferlerden)
+  const adminTotalFire = useMemo(() => {
+    if (!isAdmin || !hasFire) return null;
+    return Math.max(0, totalInput - totalOutput);
+  }, [isAdmin, hasFire, totalInput, totalOutput]);
+
   // Normal kullanıcılar için son 7 günlük fire hesapla
   const last7DaysFire = useMemo(() => {
     if (isAdmin || !hasFire) return null;
@@ -1213,14 +1219,10 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                         color: '#1f2937',
                         display: 'block'
                       }}>
-                        {(() => {
-                          if (isAdmin) {
-                            const totalFire = Math.max(0, totalInput - totalOutput);
-                            return totalFire.toFixed(2).replace(/^0+(?=\d)/, '');
-                          } else {
-                            return last7DaysFire !== null ? last7DaysFire.toFixed(2).replace(/^0+(?=\d)/, '') : '0.00';
-                          }
-                        })()} gr
+                        {isAdmin 
+                          ? (adminTotalFire !== null ? adminTotalFire.toFixed(2).replace(/^0+(?=\d)/, '') : '0.00')
+                          : (last7DaysFire !== null ? last7DaysFire.toFixed(2).replace(/^0+(?=\d)/, '') : '0.00')
+                        } gr
                       </Text>
                     </div>
                   </Space>
@@ -1539,12 +1541,12 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   <Text strong style={{ 
                     display: 'block', 
                     fontSize: isMobile ? '24px' : '28px', 
-                    color: hasFire && ((isAdmin ? (totalInput - totalOutput) : (last7DaysFire || 0)) > 0) ? '#ff4d4f' : (isInputUnit && (totalInput + totalOutput) < 0) ? '#ff4d4f' : '#1f2937',
+                    color: hasFire && ((isAdmin ? (adminTotalFire || 0) : (last7DaysFire || 0)) > 0) ? '#ff4d4f' : (isInputUnit && (totalInput + totalOutput) < 0) ? '#ff4d4f' : '#1f2937',
                     fontWeight: 600
                   }}>
                     {hasFire || isProcessingUnit ? 
                       (isAdmin ? 
-                        Math.max(0, totalInput - totalOutput).toFixed(2).replace(/^0+(?=\d)/, '') :
+                        (adminTotalFire !== null ? adminTotalFire.toFixed(2).replace(/^0+(?=\d)/, '') : '0.00') :
                         (last7DaysFire !== null ? last7DaysFire.toFixed(2).replace(/^0+(?=\d)/, '') : '0.00')
                       ) : 
                       (isInputUnit ? 
