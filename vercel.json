@@ -3,6 +3,8 @@
   "buildCommand": "cd frontend && npm run build",
   "outputDirectory": "frontend/build",
   "installCommand": "cd frontend && npm install",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "env": {
     "REACT_APP_API_URL": "https://imalattakip-backend-production.up.railway.app/api"
   },
@@ -19,41 +21,12 @@
           "value": "*"
         }
       ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/manifest.json",
-      "dest": "/manifest.json"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "/(.*\\.(json|png|jpg|jpeg|gif|svg|ico|css|js|woff|woff2|ttf|eot))",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!manifest\\.json|static|.*\\..*).*)",
+      "destination": "/index.html"
     }
   ]
 }
