@@ -251,17 +251,66 @@ const RequiredHas: React.FC = () => {
     }
   }, [items, isLoading]);
 
-  // Toplam hesaplamaları
+  // Filtrelenmiş kayıtları hesapla
+  const filteredItems = useMemo(() => {
+    let filtered = items;
+
+    // Arama filtresi
+    if (searchText) {
+      const searchLower = searchText.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.description.toLowerCase().includes(searchLower) ||
+        (item.notes && item.notes.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Tarih filtresi
+    if (dateRange[0] && dateRange[1]) {
+      const startDate = dateRange[0].startOf('day');
+      const endDate = dateRange[1].endOf('day');
+      filtered = filtered.filter(item => {
+        const itemDate = dayjs(item.date);
+        return itemDate.isAfter(startDate.subtract(1, 'day')) && itemDate.isBefore(endDate.add(1, 'day'));
+      });
+    } else if (dateFilter !== 'all') {
+      const now = dayjs();
+      let startDate: Dayjs;
+      
+      switch (dateFilter) {
+        case 'week':
+          startDate = now.subtract(7, 'day');
+          break;
+        case 'month':
+          startDate = now.subtract(1, 'month');
+          break;
+        case 'year':
+          startDate = now.subtract(1, 'year');
+          break;
+        default:
+          return filtered;
+      }
+      
+      filtered = filtered.filter(item => {
+        const itemDate = dayjs(item.date);
+        return itemDate.isAfter(startDate.subtract(1, 'day'));
+      });
+    }
+
+    return filtered;
+  }, [items, searchText, dateFilter, dateRange]);
+
+  // Toplamları hesapla - filtrelenmiş kayıtlardan
   const totals = useMemo(() => {
-    const totalInput = items.reduce((sum, item) => sum + (item.input || 0), 0);
-    const totalOutput = items.reduce((sum, item) => sum + (item.output || 0), 0);
+    const totalInput = filteredItems.reduce((sum, item) => sum + (item.input || 0), 0);
+    const totalOutput = filteredItems.reduce((sum, item) => sum + (item.output || 0), 0);
     const totalRequired = totalInput - totalOutput; // Alınacak toplam
+    
     return {
       input: totalInput,
       output: totalOutput,
       required: totalRequired
     };
-  }, [items]);
+  }, [filteredItems]);
 
 
   // Verileri backend'den tekrar yükle (force reload)
