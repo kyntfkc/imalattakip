@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Card, 
   Row, 
@@ -14,10 +14,13 @@ import {
   Input,
   InputNumber,
   Select,
+  DatePicker,
+  Segmented,
   message,
   Divider,
   Popconfirm,
-  Drawer
+  Drawer,
+  Empty
 } from 'antd';
 import { 
   BankOutlined, 
@@ -29,8 +32,10 @@ import {
   ShoppingOutlined,
   UserOutlined,
   DeleteOutlined,
-  EditOutlined
+  EditOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
+import dayjs, { Dayjs } from 'dayjs';
 import { useExternalVault } from '../context/ExternalVaultContext';
 import { useCompanies } from '../context/CompanyContext';
 import { useLog } from '../context/LogContext';
@@ -40,6 +45,7 @@ import { parseNumberFromInput, formatNumberForDisplay } from '../utils/numberFor
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 interface ExternalVaultStock {
   karat: KaratType;
@@ -69,6 +75,10 @@ const ExternalVault: React.FC = () => {
   const [form] = Form.useForm();
   const [quickAddDrawerVisible, setQuickAddDrawerVisible] = useState(false);
   const [quickAddForm] = Form.useForm();
+  const [dateFilter, setDateFilter] = useState<'all' | 'week' | 'month' | 'year'>('all');
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null]>([null, null]);
+  const [searchText, setSearchText] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'input' | 'output'>('all');
 
   const karatOptions: KaratType[] = ['14K', '18K', '22K', '24K'];
 
