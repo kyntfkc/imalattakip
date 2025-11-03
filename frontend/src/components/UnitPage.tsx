@@ -1328,69 +1328,31 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           }}
           bodyStyle={{ padding: 0 }}
         >
-          {/* Profesyonel Header */}
+          {/* Header */}
           <div style={{
-            padding: isMobile ? '16px' : '20px 24px',
-            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-            borderBottom: '2px solid #e5e7eb',
+            padding: isMobile ? '16px' : '16px 24px',
+            borderBottom: '1px solid #e5e7eb',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: '12px'
           }}>
-            <Space size={12} align="center" style={{ flex: 1, minWidth: '200px' }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '10px',
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
-              }}>
-                <HistoryOutlined style={{ fontSize: '18px', color: 'white' }} />
-              </div>
-              <div>
-                <Text strong style={{
-                  fontSize: isMobile ? '16px' : '18px',
-                  color: '#1f2937',
-                  display: 'block',
-                  fontWeight: 600,
-                  lineHeight: 1.2
-                }}>
-                  Tüm İşlemler
-                </Text>
-                <Text style={{
-                  fontSize: '12px',
-                  color: '#6b7280',
-                  display: 'block',
-                  marginTop: '2px'
-                }}>
-                  Transfer geçmişi ve işlem kayıtları
-                </Text>
-              </div>
-              <Badge
-                count={(isInputUnit && unitId === 'dokum') ? filteredTransfers.length : unitTransfers.length}
-                overflowCount={9999}
-                style={{
-                  backgroundColor: '#3b82f6',
-                  boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
-                }}
-              />
-            </Space>
-            <Space size={8} style={{ flexWrap: 'wrap' }}>
+            <Text strong style={{
+              fontSize: isMobile ? '16px' : '17px',
+              color: '#1f2937',
+              fontWeight: 600
+            }}>
+              Tüm İşlemler
+            </Text>
+            <Space size={8}>
               <Button
                 icon={<FilterOutlined />}
                 onClick={handleResetFilters}
                 size={isMobile ? 'small' : 'middle'}
                 disabled={Object.keys(tableFilteredInfo).length === 0 && !tableSearchText && dateFilter === 'all' && !dateRange[0] && !dateRange[1]}
                 style={{
-                  borderRadius: '8px',
-                  border: '1px solid #d1d5db',
-                  fontWeight: 500,
-                  height: isMobile ? '32px' : '36px'
+                  borderRadius: '6px'
                 }}
               >
                 Temizle
@@ -1401,12 +1363,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                 onClick={handleExport}
                 size={isMobile ? 'small' : 'middle'}
                 style={{
-                  borderRadius: '8px',
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                  border: 'none',
-                  fontWeight: 600,
-                  height: isMobile ? '32px' : '36px',
-                  boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                  borderRadius: '6px'
                 }}
               >
                 Dışa Aktar
