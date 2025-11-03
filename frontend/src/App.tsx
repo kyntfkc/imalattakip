@@ -58,15 +58,15 @@ const App: React.FC = () => {
       <MenuSettingsProvider>
         <LogProvider>
           <TransferProvider>
-            <ExternalVaultProvider>
-              <CompanyProvider>
+            <CompanyProvider>
+              <ExternalVaultProvider>
                 <DashboardSettingsProvider>
                   <CinsiSettingsProvider>
                     <AppContent />
                   </CinsiSettingsProvider>
                 </DashboardSettingsProvider>
-              </CompanyProvider>
-            </ExternalVaultProvider>
+              </ExternalVaultProvider>
+            </CompanyProvider>
           </TransferProvider>
         </LogProvider>
       </MenuSettingsProvider>
