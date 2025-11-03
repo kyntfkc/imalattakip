@@ -147,11 +147,24 @@ const AppContent: React.FC = () => {
 
   // Menü öğelerini ayarlara göre filtrele
   const isMenuVisible = useCallback((key: string): boolean => {
-    // Admin-only menüler için rol kontrolü (her zaman geçerli)
+    // Normal kullanıcılar için sadece Lazer Kesim, Tezgah ve Cila görünür
+    if (!isAdmin) {
+      const allowedMenus = ['lazer-kesim', 'tezgah', 'cila'];
+      if (!allowedMenus.includes(key)) {
+        return false;
+      }
+    }
+    
+    // Admin-only menüler için rol kontrolü (her zaman geçerli) - normal kullanıcılar asla görmemeli
     if (key === 'user-management' || key === 'logs') {
       if (!isAdmin) {
         return false;
       }
+    }
+    
+    // Normal kullanıcılar için hassas menüleri gizle
+    if (!isAdmin && (key === 'reports' || key === 'companies' || key === 'required-has')) {
+      return false;
     }
     
     // Ayarlar yüklenene kadar false döndür (menüler gizli kalır)

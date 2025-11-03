@@ -109,34 +109,33 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
     try {
       setIsLoading(true);
 
-      // Normalize role: Backend'de 'normal_user', frontend'de 'user' olarak kullanılıyor
-      // user.role type is 'admin' | 'user' but backend can return 'normal_user'
-      const userRole = user.role as 'admin' | 'user' | 'normal_user';
-      const normalizedRole = userRole === 'normal_user' ? 'user' : (userRole === 'admin' ? 'admin' : 'user');
-      const isAdmin = userRole === 'admin';
+      // Rol artık AuthContext'de normalleştirilmiş olarak geliyor ('admin' | 'user')
+      const isAdmin = user.role === 'admin';
+      const normalizedRole = user.role;
 
       // 1. Rol varsayılanlarını yükle (sadece admin için backend'den, normal kullanıcılar için kod içi varsayılanlar)
       const roleDefaultsData = await loadRoleDefaultsFromBackend(normalizedRole as 'admin' | 'user', isAdmin);
       
       // Eğer backend'de yoksa, kod içi varsayılanları kullan
+      // Normal kullanıcılar için varsayılan ayarlar (sadece Lazer Kesim, Tezgah, Cila görünür)
       const defaultRoleSettings: MenuSettings = {
         visibleMenus: {
-          dashboard: true,
-          'ana-kasa': true,
-          'yarimamul': true,
-          'lazer-kesim': true,
-          'tezgah': true,
-          'cila': true,
-          'external-vault': true,
-          'dokum': true,
-          'tedarik': true,
-          'satis': true,
-          'required-has': true,
-          'reports': true,
-          'companies': true,
-          'logs': user.role === 'admin',
-          'settings': true,
-          'user-management': user.role === 'admin',
+          dashboard: isAdmin, // Normal kullanıcılar için kapalı
+          'ana-kasa': isAdmin, // Normal kullanıcılar için kapalı
+          'yarimamul': isAdmin, // Normal kullanıcılar için kapalı
+          'lazer-kesim': true, // Normal kullanıcılar için açık
+          'tezgah': true, // Normal kullanıcılar için açık
+          'cila': true, // Normal kullanıcılar için açık
+          'external-vault': isAdmin, // Normal kullanıcılar için kapalı
+          'dokum': isAdmin, // Normal kullanıcılar için kapalı
+          'tedarik': isAdmin, // Normal kullanıcılar için kapalı
+          'satis': isAdmin, // Normal kullanıcılar için kapalı
+          'required-has': isAdmin, // Normal kullanıcılar için kapalı
+          'reports': isAdmin, // Normal kullanıcılar için kapalı
+          'companies': isAdmin, // Normal kullanıcılar için kapalı
+          'logs': isAdmin,
+          'settings': isAdmin, // Normal kullanıcılar için kapalı
+          'user-management': isAdmin,
         },
       };
 
@@ -173,24 +172,26 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
     } catch (error) {
       console.error('Ayarlar yüklenemedi:', error);
       // Hata durumunda varsayılan ayarları kullan
+      // Normal kullanıcılar için sadece Lazer Kesim, Tezgah, Cila görünür
+      const fallbackIsAdmin = user?.role === 'admin';
       const fallbackSettings: MenuSettings = {
         visibleMenus: {
-          dashboard: true,
-          'ana-kasa': true,
-          'yarimamul': true,
-          'lazer-kesim': true,
-          'tezgah': true,
-          'cila': true,
-          'external-vault': true,
-          'dokum': true,
-          'tedarik': true,
-          'satis': true,
-          'required-has': true,
-          'reports': true,
-          'companies': true,
-          'logs': user?.role === 'admin',
-          'settings': true,
-          'user-management': user?.role === 'admin',
+          dashboard: fallbackIsAdmin, // Normal kullanıcılar için kapalı
+          'ana-kasa': fallbackIsAdmin, // Normal kullanıcılar için kapalı
+          'yarimamul': fallbackIsAdmin, // Normal kullanıcılar için kapalı
+          'lazer-kesim': true, // Normal kullanıcılar için açık
+          'tezgah': true, // Normal kullanıcılar için açık
+          'cila': true, // Normal kullanıcılar için açık
+          'external-vault': fallbackIsAdmin, // Normal kullanıcılar için kapalı
+          'dokum': fallbackIsAdmin, // Normal kullanıcılar için kapalı
+          'tedarik': fallbackIsAdmin, // Normal kullanıcılar için kapalı
+          'satis': fallbackIsAdmin, // Normal kullanıcılar için kapalı
+          'required-has': fallbackIsAdmin, // Normal kullanıcılar için kapalı
+          'reports': fallbackIsAdmin, // Normal kullanıcılar için kapalı
+          'companies': fallbackIsAdmin, // Normal kullanıcılar için kapalı
+          'logs': fallbackIsAdmin,
+          'settings': fallbackIsAdmin, // Normal kullanıcılar için kapalı
+          'user-management': fallbackIsAdmin,
         },
       };
       setSettings(fallbackSettings);

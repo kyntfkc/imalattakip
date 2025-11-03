@@ -5,6 +5,13 @@ import { User, useAuth } from '../context/AuthContext';
 import { apiService } from '../services/apiService';
 
 const { Title, Text } = Typography;
+
+// Rol normalleştirme fonksiyonu: Backend'den 'normal_user' gelebilir, frontend'de 'user' olarak normalize edilir
+const normalizeRole = (role: string): 'admin' | 'user' => {
+  if (role === 'admin') return 'admin';
+  if (role === 'normal_user' || role === 'user') return 'user';
+  return 'user';
+};
 const { Option } = Select;
 const { Search } = Input;
 
@@ -34,7 +41,7 @@ const UserManagement: React.FC = () => {
         const formattedUsers: User[] = backendUsers.map((u: any) => ({
           id: u.id,
           username: u.username,
-          role: u.role as 'admin' | 'user',
+          role: normalizeRole(u.role),
           name: u.name || '',
           email: u.email || ''
         }));
@@ -80,7 +87,7 @@ const UserManagement: React.FC = () => {
       const formattedUsers: User[] = backendUsers.map((u: any) => ({
         id: u.id,
         username: u.username,
-        role: u.role as 'admin' | 'user',
+        role: normalizeRole(u.role),
         name: u.name || '',
         email: u.email || ''
       }));

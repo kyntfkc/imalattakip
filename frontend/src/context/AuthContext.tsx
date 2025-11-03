@@ -35,6 +35,14 @@ interface AuthProviderProps {
 
 // Backend API kullanımı için varsayılan kullanıcılar kaldırıldı
 
+// Rol normalleştirme fonksiyonu: Backend'den 'normal_user' gelebilir, frontend'de 'user' olarak normalize edilir
+const normalizeRole = (role: string): 'admin' | 'user' => {
+  if (role === 'admin') return 'admin';
+  if (role === 'normal_user' || role === 'user') return 'user';
+  // Varsayılan olarak 'user' döndür
+  return 'user';
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const loadedUser = {
             id: verification.user.id,
             username: verification.user.username,
-            role: verification.user.role as 'admin' | 'user'
+            role: normalizeRole(verification.user.role)
           };
           setUser(loadedUser);
           
@@ -64,7 +72,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (savedUser) {
             try {
               const parsedUser = JSON.parse(savedUser);
-              setUser(parsedUser);
+              // Rolü normalize et
+              setUser({
+                ...parsedUser,
+                role: normalizeRole(parsedUser.role || 'user')
+              });
               const token = localStorage.getItem('authToken');
               if (token) {
                 socketService.connect(token);
@@ -84,7 +96,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (savedUser) {
           try {
             const parsedUser = JSON.parse(savedUser);
-            setUser(parsedUser);
+            // Rolü normalize et
+            setUser({
+              ...parsedUser,
+              role: normalizeRole(parsedUser.role || 'user')
+            });
             const token = localStorage.getItem('authToken');
             if (token) {
               socketService.connect(token);
@@ -114,12 +130,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
       const response = await apiService.login(username, password);
+      const normalizedRole = normalizeRole(response.user.role);
       const newUser = {
         id: response.user.id,
         username: response.user.username,
-        role: response.user.role as 'admin' | 'user'
+        role: normalizedRole
       };
       setUser(newUser);
+      
+      // localStorage'a normalize edilmiş rolü kaydet
+      localStorage.setItem('user', JSON.stringify(newUser));
       
       // Socket bağlantısını başlat
       const token = localStorage.getItem('authToken');
