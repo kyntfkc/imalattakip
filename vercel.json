@@ -3,29 +3,12 @@
   "buildCommand": "cd frontend && npm run build",
   "outputDirectory": "frontend/build",
   "installCommand": "cd frontend && npm install",
-  "cleanUrls": true,
-  "trailingSlash": false,
   "env": {
     "REACT_APP_API_URL": "https://imalattakip-backend-production.up.railway.app/api"
   },
-  "headers": [
-    {
-      "source": "/manifest.json",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/manifest+json"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        }
-      ]
-    }
-  ],
   "rewrites": [
     {
-      "source": "/((?!manifest\\.json|static|.*\\..*).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
