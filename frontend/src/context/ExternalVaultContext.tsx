@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { KaratType, KARAT_HAS_RATIOS } from '../types';
 import { apiService } from '../services/apiService';
 import { useAuth } from './AuthContext';
+import { useCompanies } from './CompanyContext';
 
 export interface ExternalVaultTransaction {
   id: string;
@@ -52,6 +53,7 @@ interface ExternalVaultProviderProps {
 
 export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ children }) => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { companies } = useCompanies();
   const [transactions, setTransactions] = useState<ExternalVaultTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -87,6 +89,14 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
         const formattedTransactions: ExternalVaultTransaction[] = backendTransactions.map((t: any) => {
           const amount = typeof t.amount === 'number' ? t.amount : (parseFloat(String(t.amount)) || 0);
           const karatValue = typeof t.karat === 'number' ? t.karat : parseInt(String(t.karat)) || 0;
+          const companyId = t.company_id ? t.company_id.toString() : undefined;
+          
+          // Firma ismini bul - backend'den geliyorsa kullan, gelmiyorsa companies listesinden bul
+          let companyName = t.company_name || t.companyName;
+          if (!companyName && companyId && companies.length > 0) {
+            const company = companies.find(c => c.id === companyId);
+            companyName = company?.name;
+          }
           
           return {
             id: t.id.toString(),
@@ -94,7 +104,9 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
             karat: `${karatValue}K` as KaratType,
             amount: isNaN(amount) ? 0 : amount,
             notes: t.notes,
-            date: t.created_at
+            date: t.created_at,
+            companyId,
+            companyName
           };
         });
         
@@ -171,7 +183,7 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
     };
 
     loadData();
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, companies]);
 
   // Transaction değiştiğinde backend'den güncel stock verilerini yükle
   useEffect(() => {
@@ -285,6 +297,14 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
       const formattedTransactions: ExternalVaultTransaction[] = backendTransactions.map((t: any) => {
         const amount = typeof t.amount === 'number' ? t.amount : (parseFloat(String(t.amount)) || 0);
         const karatValue = typeof t.karat === 'number' ? t.karat : parseInt(String(t.karat)) || 0;
+        const companyId = t.company_id ? t.company_id.toString() : undefined;
+        
+        // Firma ismini bul - backend'den geliyorsa kullan, gelmiyorsa companies listesinden bul
+        let companyName = t.company_name || t.companyName;
+        if (!companyName && companyId && companies.length > 0) {
+          const company = companies.find(c => c.id === companyId);
+          companyName = company?.name;
+        }
         
         return {
           id: t.id.toString(),
@@ -293,8 +313,8 @@ export const ExternalVaultProvider: React.FC<ExternalVaultProviderProps> = ({ ch
           amount: isNaN(amount) ? 0 : amount,
           notes: t.notes,
           date: t.created_at,
-          companyId: t.company_id ? t.company_id.toString() : undefined,
-          companyName: t.company_name || t.companyName
+          companyId,
+          companyName
         };
       });
       
