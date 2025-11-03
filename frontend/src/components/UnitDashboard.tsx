@@ -458,11 +458,7 @@ const UnitDashboard: React.FC = () => {
   // Dış kasa toplam stok hesabına dahil edilmez
   // unitSummaries'den hesapla (externalVaultUnit dahil edilmez)
   const totalStats = useMemo(() => {
-    console.log('📊 Dashboard totalStats: unitSummaries', unitSummaries);
-    console.log('📊 Dashboard totalStats: unitSummaries length', unitSummaries.length);
-    
     const filteredUnits = unitSummaries.filter(unit => unit && unit.unitId !== 'dis-kasa');
-    console.log('📊 Dashboard totalStats: Filtered units (dis-kasa hariç)', filteredUnits.length);
     
     const total = filteredUnits.reduce((acc, unit) => {
         // Güvenli sayısal dönüşüm
@@ -486,25 +482,17 @@ const UnitDashboard: React.FC = () => {
           has = isNaN(parsed) ? 0 : parsed;
         }
         
-        console.log(`📊 Dashboard totalStats: Unit ${unit.unitName} - Stock: ${stock}, Has: ${has}`);
-        
         return {
           stock: acc.stock + stock,
           has: acc.has + has
         };
       }, { stock: 0, has: 0 });
     
-    console.log('📊 Dashboard totalStats: Final total', total);
-    
     // Final kontrol - NaN kontrolü
-    const result = {
+    return {
       stock: isNaN(total.stock) ? 0 : total.stock,
       has: isNaN(total.has) ? 0 : total.has
     };
-    
-    console.log('📊 Dashboard totalStats: Final result', result);
-    
-    return result;
   }, [unitSummaries]);
 
   // Loading state
