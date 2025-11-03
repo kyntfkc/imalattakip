@@ -160,6 +160,29 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       }, 0);
   }, [transfers, unitId]);
 
+  // Normal kullanıcılar için son 7 günlük fire hesapla
+  const last7DaysFire = useMemo(() => {
+    if (isAdmin || !hasFire) return null;
+    
+    const sevenDaysAgo = dayjs().subtract(7, 'days').startOf('day').toDate();
+    
+    const last7DaysInput = transfers
+      .filter(t => t.toUnit === unitId && new Date(t.date) >= sevenDaysAgo)
+      .reduce((sum, t) => {
+        const safeAmount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+        return sum + safeAmount;
+      }, 0);
+    
+    const last7DaysOutput = transfers
+      .filter(t => t.fromUnit === unitId && new Date(t.date) >= sevenDaysAgo)
+      .reduce((sum, t) => {
+        const safeAmount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+        return sum + safeAmount;
+      }, 0);
+    
+    return Math.max(0, last7DaysInput - last7DaysOutput);
+  }, [transfers, unitId, hasFire, isAdmin]);
+
   // Has karşılığı hesapla - Tüm birimler için transferlerden hesapla
   const filteredHasEquivalent = useMemo(() => {
     // Yarı mamül için: girişlerden çıkışları çıkar (mevcut stokun has karşılığı)
@@ -1054,13 +1077,15 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             }}
           >
             <Row gutter={[16, 0]}>
-              {/* Fire birimleri için sadece Toplam Fire göster */}
+              {/* Fire birimleri için sadece Toplam Fire göster - Normal kullanıcılar için son 7 günlük */}
               {hasFire || isProcessingUnit ? (
                 <Col xs={24} style={{ textAlign: 'center' }}>
                   <Space size={8} align="center">
                     <ThunderboltOutlined style={{ fontSize: '14px', color: '#64748b' }} />
                     <div style={{ textAlign: 'left' }}>
-                      <Text style={{ fontSize: '11px', color: '#9ca3af', display: 'block', lineHeight: '1.2' }}>Toplam Fire</Text>
+                      <Text style={{ fontSize: '11px', color: '#9ca3af', display: 'block', lineHeight: '1.2' }}>
+                        {isAdmin ? 'Toplam Fire' : 'Son 7 Günlük Fire'}
+                      </Text>
                       <Text style={{ 
                         fontSize: isMobile ? '16px' : '18px',
                         fontWeight: 600,
@@ -1068,8 +1093,12 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                         display: 'block'
                       }}>
                         {(() => {
-                          const totalFire = Math.max(0, totalInput - totalOutput);
-                          return totalFire.toFixed(2).replace(/^0+(?=\d)/, '');
+                          if (isAdmin) {
+                            const totalFire = Math.max(0, totalInput - totalOutput);
+                            return totalFire.toFixed(2).replace(/^0+(?=\d)/, '');
+                          } else {
+                            return last7DaysFire !== null ? last7DaysFire.toFixed(2).replace(/^0+(?=\d)/, '') : '0.00';
+                          }
                         })()} gr
                       </Text>
                     </div>
@@ -1406,7 +1435,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       {(unitId === 'satis' || unitId === 'tedarik' || unitId === 'dokum' || unitId === 'lazer-kesim' || unitId === 'tezgah' || unitId === 'cila') && (
         <Row gutter={16} style={{ marginTop: 16 }}>
           {/* Toplam Satış/İşlem/Fire */}
-          <Col xs={24} sm={12}>
+          <Col xs={24} sm={isAdmin && !hasFire && !isProcessingUnit ? 12 : 24}>
             <div style={{ 
               padding: '16px 20px',
               background: 'white',
@@ -1427,16 +1456,19 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                     color: '#6b7280',
                     marginBottom: '4px'
                   }}>
-                    {unitId === 'satis' ? 'Toplam Satış' : hasFire || isProcessingUnit ? 'Toplam Fire' : 'Toplam İşlem'}
+                    {unitId === 'satis' ? 'Toplam Satış' : hasFire || isProcessingUnit ? (isAdmin ? 'Toplam Fire' : 'Son 7 Günlük Fire') : 'Toplam İşlem'}
                   </Text>
                   <Text strong style={{ 
                     display: 'block', 
                     fontSize: isMobile ? '24px' : '28px', 
-                    color: hasFire && (totalInput - totalOutput > 0) ? '#ff4d4f' : (isInputUnit && (totalInput + totalOutput) < 0) ? '#ff4d4f' : '#1f2937',
+                    color: hasFire && ((isAdmin ? (totalInput - totalOutput) : (last7DaysFire || 0)) > 0) ? '#ff4d4f' : (isInputUnit && (totalInput + totalOutput) < 0) ? '#ff4d4f' : '#1f2937',
                     fontWeight: 600
                   }}>
                     {hasFire || isProcessingUnit ? 
-                      (Math.max(0, totalInput - totalOutput).toFixed(2).replace(/^0+(?=\d)/, '')) : 
+                      (isAdmin ? 
+                        Math.max(0, totalInput - totalOutput).toFixed(2).replace(/^0+(?=\d)/, '') :
+                        (last7DaysFire !== null ? last7DaysFire.toFixed(2).replace(/^0+(?=\d)/, '') : '0.00')
+                      ) : 
                       (isInputUnit ? 
                         (totalInput + totalOutput).toFixed(2).replace(/^0+(?=\d)/, '') : 
                         totalInput.toFixed(2).replace(/^0+(?=\d)/, ''))
@@ -1447,38 +1479,40 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             </div>
           </Col>
           
-          {/* Has Karşılığı */}
-          <Col xs={24} sm={12}>
-            <div style={{ 
-              padding: '16px 20px',
-              background: 'white',
-              borderRadius: '12px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
-            }}>
-              <Space size={16} align="center" style={{ width: '100%', justifyContent: 'center' }}>
-                <CrownOutlined style={{ fontSize: '20px', color: '#64748b' }} />
-                <div style={{ textAlign: 'center' }}>
-                  <Text style={{ 
-                    display: 'block', 
-                    fontSize: '12px', 
-                    color: '#6b7280',
-                    marginBottom: '4px'
-                  }}>
-                    Has Karşılığı
-                  </Text>
-                  <Text strong style={{ 
-                    display: 'block', 
-                    fontSize: isMobile ? '24px' : '28px', 
-                    color: '#059669',
-                    fontWeight: 600
-                  }}>
-                    {(hasFire || isProcessingUnit ? 0 : filteredHasEquivalent).toFixed(2).replace(/^0+(?=\d)/, '')} gr
-                  </Text>
-                </div>
-              </Space>
-            </div>
-          </Col>
+          {/* Has Karşılığı - Sadece admin için */}
+          {isAdmin && (
+            <Col xs={24} sm={12}>
+              <div style={{ 
+                padding: '16px 20px',
+                background: 'white',
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
+              }}>
+                <Space size={16} align="center" style={{ width: '100%', justifyContent: 'center' }}>
+                  <CrownOutlined style={{ fontSize: '20px', color: '#64748b' }} />
+                  <div style={{ textAlign: 'center' }}>
+                    <Text style={{ 
+                      display: 'block', 
+                      fontSize: '12px', 
+                      color: '#6b7280',
+                      marginBottom: '4px'
+                    }}>
+                      Has Karşılığı
+                    </Text>
+                    <Text strong style={{ 
+                      display: 'block', 
+                      fontSize: isMobile ? '24px' : '28px', 
+                      color: '#059669',
+                      fontWeight: 600
+                    }}>
+                      {(hasFire || isProcessingUnit ? 0 : filteredHasEquivalent).toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                    </Text>
+                  </div>
+                </Space>
+              </div>
+            </Col>
+          )}
         </Row>
       )}
 
