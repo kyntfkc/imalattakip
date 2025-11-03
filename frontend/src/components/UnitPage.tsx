@@ -371,15 +371,36 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     // PDF oluştur
     const doc = new jsPDF('landscape', 'mm', 'a4');
     
-    // Başlık
-    doc.setFontSize(18);
-    doc.setTextColor(31, 41, 55);
-    const title = `${unitName} - Tüm İşlemler`;
-    doc.text(title, 14, 15);
+    // Arka plan rengi için (başlık çizgisi)
+    const primaryColor: [number, number, number] = [102, 126, 234]; // Indigo
     
-    // Tarih bilgisi
-    doc.setFontSize(10);
+    // Başlık çizgisi (üst kenarda)
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(0, 0, 297, 8, 'F');
+    
+    // Logo/Şirket adı alanı
+    doc.setFontSize(12);
+    doc.setTextColor(255, 255, 255);
+    doc.text('İndigo Takı - İmalat Takip', 14, 6);
+    
+    // Ana başlık
+    doc.setFontSize(20);
+    doc.setTextColor(31, 41, 55);
+    doc.setFont('helvetica', 'bold');
+    const title = `${unitName} - Tüm İşlemler`;
+    doc.text(title, 14, 18);
+    
+    // Alt başlık çizgisi
+    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setLineWidth(0.5);
+    doc.line(14, 21, 283, 21);
+    
+    // Tarih ve bilgiler (daha düzenli)
+    let currentY = 26;
+    doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
+    
     const exportDate = new Date().toLocaleString('tr-TR', {
       day: '2-digit',
       month: '2-digit',
@@ -387,10 +408,80 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       hour: '2-digit',
       minute: '2-digit'
     });
-    const dateText = `Oluşturulma Tarihi: ${exportDate}`;
-    doc.text(dateText, 14, 22);
+    doc.text(`Oluşturulma Tarihi: ${exportDate}`, 14, currentY);
     
-    // Filtre bilgisi
+    // İstatistikler hesapla
+    const totalInput = dataToExport
+      .filter(t => t.toUnit === unitId)
+      .reduce((sum, t) => sum + (typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0), 0);
+    
+    const totalOutput = dataToExport
+      .filter(t => t.fromUnit === unitId)
+      .reduce((sum, t) => sum + (typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0), 0);
+    
+    const netAmount = totalInput - totalOutput;
+    
+    // İstatistik kutuları
+    currentY = 32;
+    const boxWidth = 85;
+    const boxHeight = 12;
+    const spacing = 8;
+    let boxX = 14;
+    
+    // Toplam Giriş
+    doc.setFillColor(236, 253, 245);
+    doc.roundedRect(boxX, currentY, boxWidth, boxHeight, 2, 2, 'F');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Toplam Giriş', boxX + 3, currentY + 4);
+    doc.setFontSize(11);
+    doc.setTextColor(5, 150, 105);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${totalInput.toFixed(2)} gr`, boxX + 3, currentY + 8);
+    
+    // Toplam Çıkış
+    boxX += boxWidth + spacing;
+    doc.setFillColor(254, 242, 242);
+    doc.roundedRect(boxX, currentY, boxWidth, boxHeight, 2, 2, 'F');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Toplam Çıkış', boxX + 3, currentY + 4);
+    doc.setFontSize(11);
+    doc.setTextColor(239, 68, 68);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${totalOutput.toFixed(2)} gr`, boxX + 3, currentY + 8);
+    
+    // Net Stok/Fire
+    boxX += boxWidth + spacing;
+    const netLabel = hasFire || isProcessingUnit ? 'Net Fire' : 'Net Stok';
+    const netColor = netAmount > 0 && (hasFire || isProcessingUnit) ? [239, 68, 68] : [59, 130, 246];
+    doc.setFillColor(239, 246, 255);
+    doc.roundedRect(boxX, currentY, boxWidth, boxHeight, 2, 2, 'F');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
+    doc.text(netLabel, boxX + 3, currentY + 4);
+    doc.setFontSize(11);
+    doc.setTextColor(netColor[0], netColor[1], netColor[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${Math.max(0, netAmount).toFixed(2)} gr`, boxX + 3, currentY + 8);
+    
+    // Toplam İşlem
+    boxX += boxWidth + spacing;
+    doc.setFillColor(249, 250, 251);
+    doc.roundedRect(boxX, currentY, 55, boxHeight, 2, 2, 'F');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Toplam İşlem', boxX + 3, currentY + 4);
+    doc.setFontSize(11);
+    doc.setTextColor(31, 41, 55);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${dataToExport.length}`, boxX + 3, currentY + 8);
+    
+    // Filtre bilgisi (varsa)
+    currentY = 47;
     let filterInfo = '';
     if (dateRange[0] && dateRange[1]) {
       filterInfo = `Tarih Aralığı: ${dateRange[0].format('DD.MM.YYYY')} - ${dateRange[1].format('DD.MM.YYYY')}`;
@@ -403,10 +494,12 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       filterInfo = `Tarih Filtresi: ${filterLabels[dateFilter]}`;
     }
     if (filterInfo) {
-      doc.text(filterInfo, 14, 28);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.setFont('helvetica', 'normal');
+      doc.text(filterInfo, 14, currentY);
+      currentY += 4;
     }
-    const totalText = `Toplam İşlem: ${dataToExport.length}`;
-    doc.text(totalText, 14, 34);
 
     // Tablo verileri - Türkçe karakterleri koru
     const tableData = dataToExport.map(transfer => {
@@ -441,21 +534,25 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     autoTable(doc, {
       head: [['Tarih', 'İşlem Tipi', 'Kaynak Birim', 'Hedef Birim', 'Ayar', 'Miktar', 'Cinsi', 'Not']],
       body: tableData,
-      startY: filterInfo ? 40 : 36,
+      startY: filterInfo ? currentY + 2 : currentY - 2,
       styles: {
-        fontSize: 7,
-        cellPadding: 1.5,
+        fontSize: 8,
+        cellPadding: 2,
         overflow: 'linebreak',
         cellWidth: 'wrap',
         font: 'helvetica',
-        fontStyle: 'normal'
+        fontStyle: 'normal',
+        textColor: [31, 41, 55],
+        lineColor: [229, 231, 235],
+        lineWidth: 0.3
       },
       headStyles: {
-        fillColor: [31, 41, 55],
+        fillColor: primaryColor,
         textColor: 255,
         fontStyle: 'bold',
         font: 'helvetica',
-        fontSize: 7
+        fontSize: 9,
+        halign: 'center'
       },
       alternateRowStyles: {
         fillColor: [249, 250, 251]
@@ -488,6 +585,24 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
             data.cell.text = convertText(data.cell.text);
           }
         }
+      },
+      didDrawPage: function(data: any) {
+        // Her sayfa için footer ekle
+        const pageCount = doc.getNumberOfPages();
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.setFont('helvetica', 'normal');
+        
+        // Sol alt - Şirket bilgisi
+        doc.text('İndigo Takı - İmalat Takip Sistemi', 14, 202);
+        
+        // Sağ alt - Sayfa numarası
+        const pageText = `Sayfa ${data.pageNumber} / ${pageCount}`;
+        doc.text(pageText, 283 - doc.getTextWidth(pageText), 202);
+        
+        // Orta alt - Tarih
+        const pageDate = new Date().toLocaleDateString('tr-TR');
+        doc.text(pageDate, 148.5 - doc.getTextWidth(pageDate) / 2, 202);
       }
     });
 
@@ -496,7 +611,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     doc.save(fileName);
     
     message.success(`${dataToExport.length} işlem PDF olarak dışa aktarıldı`);
-  }, [unitTransfers, filteredTransfers, isOutputOnlyUnit, isInputUnit, unitId, isSemiFinishedUnit, unitName, tableSearchText, tableFilteredInfo, dateRange, dateFilter, cinsiOptions]);
+  }, [unitTransfers, filteredTransfers, isOutputOnlyUnit, isInputUnit, unitId, isSemiFinishedUnit, unitName, tableSearchText, tableFilteredInfo, dateRange, dateFilter, cinsiOptions, hasFire, isProcessingUnit]);
 
   const columns: ColumnsType<any> = [
     {

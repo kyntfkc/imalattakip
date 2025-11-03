@@ -117,10 +117,10 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
       const roleDefaultsData = await loadRoleDefaultsFromBackend(normalizedRole as 'admin' | 'user', isAdmin);
       
       // Eğer backend'de yoksa, kod içi varsayılanları kullan
-      // Normal kullanıcılar için varsayılan ayarlar (sadece Lazer Kesim, Tezgah, Cila görünür)
+      // Normal kullanıcılar için varsayılan ayarlar (Dashboard, Lazer Kesim, Tezgah, Cila görünür)
       const defaultRoleSettings: MenuSettings = {
         visibleMenus: {
-          dashboard: isAdmin, // Normal kullanıcılar için kapalı
+          dashboard: true, // Normal kullanıcılar için açık
           'ana-kasa': isAdmin, // Normal kullanıcılar için kapalı
           'yarimamul': isAdmin, // Normal kullanıcılar için kapalı
           'lazer-kesim': true, // Normal kullanıcılar için açık
@@ -172,11 +172,11 @@ export const MenuSettingsProvider: React.FC<MenuSettingsProviderProps> = ({ chil
     } catch (error) {
       console.error('Ayarlar yüklenemedi:', error);
       // Hata durumunda varsayılan ayarları kullan
-      // Normal kullanıcılar için sadece Lazer Kesim, Tezgah, Cila görünür
+      // Normal kullanıcılar için Dashboard, Lazer Kesim, Tezgah, Cila görünür
       const fallbackIsAdmin = user?.role === 'admin';
       const fallbackSettings: MenuSettings = {
         visibleMenus: {
-          dashboard: fallbackIsAdmin, // Normal kullanıcılar için kapalı
+          dashboard: true, // Normal kullanıcılar için açık
           'ana-kasa': fallbackIsAdmin, // Normal kullanıcılar için kapalı
           'yarimamul': fallbackIsAdmin, // Normal kullanıcılar için kapalı
           'lazer-kesim': true, // Normal kullanıcılar için açık

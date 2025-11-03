@@ -147,9 +147,9 @@ const AppContent: React.FC = () => {
 
   // Menü öğelerini ayarlara göre filtrele
   const isMenuVisible = useCallback((key: string): boolean => {
-    // Normal kullanıcılar için sadece Lazer Kesim, Tezgah ve Cila görünür
+    // Normal kullanıcılar için Dashboard, Lazer Kesim, Tezgah ve Cila görünür
     if (!isAdmin) {
-      const allowedMenus = ['lazer-kesim', 'tezgah', 'cila'];
+      const allowedMenus = ['dashboard', 'lazer-kesim', 'tezgah', 'cila'];
       if (!allowedMenus.includes(key)) {
         return false;
       }
