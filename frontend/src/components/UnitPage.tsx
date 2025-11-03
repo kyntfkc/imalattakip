@@ -1515,7 +1515,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       {(unitId === 'satis' || unitId === 'tedarik' || unitId === 'dokum' || unitId === 'lazer-kesim' || unitId === 'tezgah' || unitId === 'cila') && (
         <Row gutter={16} style={{ marginTop: 16 }}>
           {/* Toplam Satış/İşlem/Fire */}
-          <Col xs={24} sm={isAdmin && !hasFire && !isProcessingUnit ? 12 : 24}>
+          <Col xs={24} sm={isAdmin ? 12 : 24}>
             <div style={{ 
               padding: '16px 20px',
               background: 'white',
