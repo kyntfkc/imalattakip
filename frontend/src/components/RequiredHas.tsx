@@ -29,6 +29,9 @@ import type { ColumnsType } from 'antd/es/table';
 import { parseNumberFromInput, formatNumberForDisplay } from '../utils/numberFormat';
 import { commonStyles } from '../styles/theme';
 import '../styles/animations.css';
+import { useAuth } from '../context/AuthContext';
+import apiService from '../services/apiService';
+import socketService from '../services/socketService';
 
 const { Title, Text } = Typography;
 
@@ -42,30 +45,200 @@ interface RequiredHasItem {
 }
 
 const RequiredHas: React.FC = () => {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'input' | 'output' | 'edit'>('input');
   const [editingItem, setEditingItem] = useState<RequiredHasItem | null>(null);
   const [form] = Form.useForm();
   const [items, setItems] = useState<RequiredHasItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // LocalStorage'dan verileri yükle
+  // Backend'den verileri yükle
   useEffect(() => {
-    const saved = localStorage.getItem('requiredHasItems');
-    if (saved) {
+    if (authLoading || !isAuthenticated) {
+      setIsLoading(authLoading);
+      return;
+    }
+
+    const loadItems = async () => {
       try {
-        setItems(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to load required has items:', e);
+        setIsLoading(true);
+        console.log('📥 RequiredHas loadItems: Backend\'den veriler yükleniyor...');
+        const backendItems = await apiService.getRequiredHasItems();
+        console.log('✅ RequiredHas loadItems: Backend\'den', backendItems.length, 'kayıt alındı');
+        
+        // Backend formatını frontend formatına çevir
+        const formattedItems: RequiredHasItem[] = backendItems.map((item: any) => ({
+          id: item.id.toString(),
+          date: item.date,
+          description: item.description,
+          input: parseFloat(item.input) || 0,
+          output: parseFloat(item.output) || 0,
+          notes: item.notes || ''
+        }));
+        
+        setItems(formattedItems);
+        console.log('✅ RequiredHas loadItems: State güncellendi,', formattedItems.length, 'kayıt');
+      } catch (error) {
+        console.error('❌ RequiredHas loadItems: Backend\'den veri yüklenemedi:', error);
+        // Backend çalışmıyorsa localStorage'dan yükle (fallback)
+        const saved = localStorage.getItem('requiredHasItems');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            console.log('📦 RequiredHas loadItems: localStorage\'dan', parsed.length, 'kayıt yüklendi');
+            setItems(parsed);
+          } catch (e) {
+            console.error('❌ RequiredHas loadItems: localStorage parse hatası:', e);
+            setItems([]);
+          }
+        } else {
+          setItems([]);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadItems();
+
+    // Periyodik polling - Socket.io event'leri gelmeyebilir, her 10 saniyede bir yükle
+    const pollingInterval = setInterval(() => {
+      if (isAuthenticated) {
+        console.log('🔄 RequiredHas polling: Yeni veriler yükleniyor...');
+        loadItems();
+      }
+    }, 10000); // Her 10 saniyede bir yükle
+
+    return () => {
+      clearInterval(pollingInterval);
+    };
+  }, [isAuthenticated, authLoading]);
+
+  // Real-time socket event listeners
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    // Socket bağlantısını bekle ve dinle
+    const setupSocketListeners = () => {
+      if (!socketService.isConnected()) {
+        return;
+      }
+
+      // Item oluşturuldu handler
+      const handleCreated = (data: any) => {
+        console.log('🔔 RequiredHas created event:', data);
+        const formattedItem: RequiredHasItem = {
+          id: data.id.toString(),
+          date: data.date,
+          description: data.description,
+          input: parseFloat(data.input) || 0,
+          output: parseFloat(data.output) || 0,
+          notes: data.notes || ''
+        };
+
+        setItems(prev => {
+          const exists = prev.find(i => i.id === formattedItem.id);
+          if (exists) return prev;
+          return [formattedItem, ...prev];
+        });
+      };
+
+      // Item güncellendi handler
+      const handleUpdated = (data: any) => {
+        console.log('🔔 RequiredHas updated event:', data);
+        const formattedItem: RequiredHasItem = {
+          id: data.id.toString(),
+          date: data.date,
+          description: data.description,
+          input: parseFloat(data.input) || 0,
+          output: parseFloat(data.output) || 0,
+          notes: data.notes || ''
+        };
+
+        setItems(prev => prev.map(i => 
+          i.id === formattedItem.id ? formattedItem : i
+        ));
+      };
+
+      // Item silindi handler
+      const handleDeleted = (data: { id: number }) => {
+        console.log('🔔 RequiredHas deleted event:', data);
+        setItems(prev => prev.filter(i => i.id !== data.id.toString()));
+      };
+
+      // Register listeners
+      socketService.onRequiredHasCreated(handleCreated);
+      socketService.onRequiredHasUpdated(handleUpdated);
+      socketService.onRequiredHasDeleted(handleDeleted);
+
+      return {
+        handleCreated,
+        handleUpdated,
+        handleDeleted
+      };
+    };
+
+    let handlers: any = null;
+
+    // Socket bağlıysa hemen dinle
+    if (socketService.isConnected()) {
+      handlers = setupSocketListeners();
+    }
+
+    // Socket bağlantısı kurulduğunda dinle
+    const socket = socketService.getSocket();
+    if (socket) {
+      const connectHandler = () => {
+        console.log('✅ Socket connected, setting up RequiredHas listeners');
+        if (handlers) {
+          // Önceki listener'ları temizle
+          socketService.off('requiredHas:created', handlers.handleCreated);
+          socketService.off('requiredHas:updated', handlers.handleUpdated);
+          socketService.off('requiredHas:deleted', handlers.handleDeleted);
+        }
+        handlers = setupSocketListeners();
+      };
+      
+      // Eğer zaten bağlıysa hemen dinle
+      if (socket.connected) {
+        connectHandler();
+      } else {
+        // Bağlantı kurulduğunda dinle
+        socket.on('connect', connectHandler);
       }
     }
-  }, []);
 
-  // LocalStorage'a kaydet
+    // Periyodik olarak socket bağlantısını kontrol et ve listener'ları yeniden kur
+    const checkInterval = setInterval(() => {
+      if (socketService.isConnected() && !handlers) {
+        console.log('🔄 Reconnecting RequiredHas listeners');
+        handlers = setupSocketListeners();
+      }
+    }, 2000);
+
+    return () => {
+      clearInterval(checkInterval);
+      // Cleanup listeners
+      if (handlers) {
+        socketService.off('requiredHas:created', handlers.handleCreated);
+        socketService.off('requiredHas:updated', handlers.handleUpdated);
+        socketService.off('requiredHas:deleted', handlers.handleDeleted);
+      }
+      if (socket) {
+        socket.off('connect');
+      }
+    };
+  }, [isAuthenticated]);
+
+  // LocalStorage'a da kaydet (backup olarak)
   useEffect(() => {
-    if (items.length > 0 || localStorage.getItem('requiredHasItems')) {
+    if (!isLoading && items.length >= 0) {
       localStorage.setItem('requiredHasItems', JSON.stringify(items));
     }
-  }, [items]);
+  }, [items, isLoading]);
 
   // Toplam hesaplamaları
   const totals = useMemo(() => {
@@ -80,51 +253,112 @@ const RequiredHas: React.FC = () => {
   }, [items]);
 
 
-  // Ekle/düzenle
-  const handleAddOrEdit = (values: any) => {
-    if (editingItem) {
-      // Düzenleme
-      const newItem: RequiredHasItem = {
-        id: editingItem.id,
-        date: values.date ? dayjs(values.date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
-        description: values.description,
-        input: typeof values.input === 'string' 
-          ? parseNumberFromInput(values.input) 
-          : values.input || 0,
-        output: typeof values.output === 'string' 
-          ? parseNumberFromInput(values.output) 
-          : values.output || 0,
-        notes: values.notes
-      };
-      setItems(items.map(item => item.id === editingItem.id ? newItem : item));
-      message.success('Güncellendi!');
-    } else {
-      // Yeni ekleme
-      const newItem: RequiredHasItem = {
-        id: `RH${Date.now()}`,
-        date: values.date ? dayjs(values.date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
-        description: values.description,
-        input: modalType === 'input' 
-          ? (typeof values.amount === 'string' ? parseNumberFromInput(values.amount) : values.amount || 0)
-          : 0,
-        output: modalType === 'output' 
-          ? (typeof values.amount === 'string' ? parseNumberFromInput(values.amount) : values.amount || 0)
-          : 0,
-        notes: values.notes
-      };
-      setItems([...items, newItem]);
-      message.success(modalType === 'input' ? 'Giriş eklendi!' : 'Çıkış eklendi!');
+  // Verileri backend'den tekrar yükle (force reload)
+  const reloadItems = async () => {
+    try {
+      console.log('🔄 RequiredHas reloadItems: Backend\'den veriler yükleniyor...');
+      const backendItems = await apiService.getRequiredHasItems();
+      console.log('✅ RequiredHas reloadItems: Backend\'den', backendItems.length, 'kayıt alındı');
+      
+      const formattedItems: RequiredHasItem[] = backendItems.map((item: any) => ({
+        id: item.id.toString(),
+        date: item.date,
+        description: item.description,
+        input: parseFloat(item.input) || 0,
+        output: parseFloat(item.output) || 0,
+        notes: item.notes || ''
+      }));
+      
+      setItems(formattedItems);
+      console.log('✅ RequiredHas reloadItems: State güncellendi,', formattedItems.length, 'kayıt');
+    } catch (error) {
+      console.error('❌ RequiredHas reloadItems: Veriler yüklenemedi:', error);
     }
-
-    form.resetFields();
-    setModalVisible(false);
-    setEditingItem(null);
-    setModalType('input');
   };
 
-  const handleDelete = (id: string) => {
-    setItems(items.filter(item => item.id !== id));
-    message.success('Silindi!');
+  // Ekle/düzenle
+  const handleAddOrEdit = async (values: any) => {
+    try {
+      console.log('🚀 RequiredHas handleAddOrEdit: İşlem başlatıldı', { editingItem: !!editingItem, modalType, values });
+      
+      const date = values.date ? dayjs(values.date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD');
+      const description = values.description;
+      const input = editingItem 
+        ? (typeof values.input === 'string' ? parseNumberFromInput(values.input) : values.input || 0)
+        : (modalType === 'input' 
+          ? (typeof values.amount === 'string' ? parseNumberFromInput(values.amount) : values.amount || 0)
+          : 0);
+      const output = editingItem
+        ? (typeof values.output === 'string' ? parseNumberFromInput(values.output) : values.output || 0)
+        : (modalType === 'output' 
+          ? (typeof values.amount === 'string' ? parseNumberFromInput(values.amount) : values.amount || 0)
+          : 0);
+      const notes = values.notes || '';
+
+      console.log('📝 RequiredHas handleAddOrEdit: Hazırlanan veriler', { date, description, input, output, notes });
+
+      if (editingItem) {
+        // Backend'e güncelle
+        console.log('🔄 RequiredHas handleAddOrEdit: Güncelleme yapılıyor, ID:', editingItem.id);
+        await apiService.updateRequiredHasItem(parseInt(editingItem.id), {
+          date,
+          description,
+          input,
+          output,
+          notes
+        });
+        console.log('✅ RequiredHas handleAddOrEdit: Güncelleme başarılı');
+        message.success('Güncellendi!');
+      } else {
+        // Backend'e ekle
+        console.log('➕ RequiredHas handleAddOrEdit: Yeni kayıt ekleniyor');
+        const result = await apiService.createRequiredHasItem({
+          date,
+          description,
+          input,
+          output,
+          notes
+        });
+        console.log('✅ RequiredHas handleAddOrEdit: Yeni kayıt eklendi, ID:', result?.id);
+        message.success(modalType === 'input' ? 'Giriş eklendi!' : 'Çıkış eklendi!');
+      }
+
+      // İşlem sonrası verileri yeniden yükle (hemen ve kısa bir süre sonra)
+      console.log('🔄 RequiredHas handleAddOrEdit: Veriler yeniden yükleniyor...');
+      reloadItems(); // Hemen reload
+      setTimeout(() => {
+        console.log('🔄 RequiredHas handleAddOrEdit: İkinci reload yapılıyor...');
+        reloadItems(); // Socket.io event gelmeyebilir, tekrar yükle
+      }, 1000);
+
+      form.resetFields();
+      setModalVisible(false);
+      setEditingItem(null);
+      setModalType('input');
+    } catch (error: any) {
+      console.error('❌ RequiredHas handleAddOrEdit: Kayıt işlemi hatası:', error);
+      message.error(error.message || 'Kayıt işlemi başarısız!');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      console.log('🗑️ RequiredHas handleDelete: Silme işlemi başlatıldı, ID:', id);
+      await apiService.deleteRequiredHasItem(parseInt(id));
+      console.log('✅ RequiredHas handleDelete: Silme başarılı');
+      message.success('Silindi!');
+      
+      // İşlem sonrası verileri yeniden yükle (hemen ve kısa bir süre sonra)
+      console.log('🔄 RequiredHas handleDelete: Veriler yeniden yükleniyor...');
+      reloadItems(); // Hemen reload
+      setTimeout(() => {
+        console.log('🔄 RequiredHas handleDelete: İkinci reload yapılıyor...');
+        reloadItems(); // Socket.io event gelmeyebilir, tekrar yükle
+      }, 1000);
+    } catch (error: any) {
+      console.error('❌ RequiredHas handleDelete: Silme hatası:', error);
+      message.error(error.message || 'Silme işlemi başarısız!');
+    }
   };
 
   const handleEdit = (item: RequiredHasItem) => {

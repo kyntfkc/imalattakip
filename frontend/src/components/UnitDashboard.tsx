@@ -456,15 +456,20 @@ const UnitDashboard: React.FC = () => {
   // Toplam özet istatistikler - TÜM birimler için (gizli olsalar bile)
   // Sadece gösterilen birimler değil, tüm birimlerin toplamı hesaplanmalı
   // Dış kasa toplam stok hesabına dahil edilmez
+  // unitSummaries'den hesapla (externalVaultUnit dahil edilmez)
   const totalStats = useMemo(() => {
-    const total = allUnits
+    const total = unitSummaries
       .filter(unit => unit.unitId !== 'dis-kasa')
-      .reduce((acc, unit) => ({
-        stock: acc.stock + (unit?.totalStock || 0),
-        has: acc.has + (unit?.hasEquivalent || 0)
-      }), { stock: 0, has: 0 });
+      .reduce((acc, unit) => {
+        const stock = typeof unit?.totalStock === 'number' ? unit.totalStock : parseFloat(unit?.totalStock) || 0;
+        const has = typeof unit?.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit?.hasEquivalent) || 0;
+        return {
+          stock: acc.stock + stock,
+          has: acc.has + has
+        };
+      }, { stock: 0, has: 0 });
     return total;
-  }, [allUnits]);
+  }, [unitSummaries]);
 
   // Loading state
   if (isLoading) {

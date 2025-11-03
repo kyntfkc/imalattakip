@@ -495,6 +495,43 @@ class ApiService {
     });
   }
 
+  // Required Has methods
+  async getRequiredHasItems() {
+    return this.request<any[]>('/required-has');
+  }
+
+  async createRequiredHasItem(item: {
+    date: string;
+    description: string;
+    input: number;
+    output: number;
+    notes?: string;
+  }) {
+    return this.request<{ message: string; id: number }>('/required-has', {
+      method: 'POST',
+      body: JSON.stringify(item),
+    });
+  }
+
+  async updateRequiredHasItem(id: number, item: {
+    date: string;
+    description: string;
+    input: number;
+    output: number;
+    notes?: string;
+  }) {
+    return this.request<{ message: string; id: number }>(`/required-has/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(item),
+    });
+  }
+
+  async deleteRequiredHasItem(id: number) {
+    return this.request<{ message: string }>(`/required-has/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getCompanyStats() {
     return this.request<{
       total: number;

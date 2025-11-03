@@ -148,6 +148,19 @@ class SocketService {
   onCinsiDeleted(callback: (data: { id: number }) => void) {
     this.on('cinsi:deleted', callback);
   }
+
+  // Required Has events
+  onRequiredHasCreated(callback: (data: any) => void) {
+    this.on('requiredHas:created', callback);
+  }
+
+  onRequiredHasUpdated(callback: (data: any) => void) {
+    this.on('requiredHas:updated', callback);
+  }
+
+  onRequiredHasDeleted(callback: (data: { id: number }) => void) {
+    this.on('requiredHas:deleted', callback);
+  }
 }
 
 export const socketService = new SocketService();
