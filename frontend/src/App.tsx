@@ -457,7 +457,8 @@ const AppContent: React.FC = () => {
           }}
           breakpoint="lg"
           onBreakpoint={(broken) => {
-            setIsMobile(broken);
+            // Responsive hook zaten resize event'lerini dinliyor
+            // Sadece menüyü kapat
             if (broken) {
               setCollapsed(true);
             }
