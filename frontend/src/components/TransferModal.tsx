@@ -28,6 +28,7 @@ import {
 } from '@ant-design/icons';
 import { useTransfers } from '../context/TransferContext';
 import { useCinsiSettings, CinsiOption } from '../context/CinsiSettingsContext';
+import { useResponsive } from '../hooks/useResponsive';
 import { UnitType, KaratType } from '../types';
 import { parseNumberFromInput, formatNumberForDisplay } from '../utils/numberFormat';
 
@@ -55,6 +56,7 @@ interface TransferModalProps {
 const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose, defaultFromUnit }) => {
   const { addNewTransfer } = useTransfers();
   const { cinsiOptions } = useCinsiSettings();
+  const { isMobile, isTablet } = useResponsive();
   const [form] = Form.useForm();
   const [transferData, setTransferData] = useState<TransferData | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -255,25 +257,25 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
       open={open}
       onCancel={handleClose}
       footer={null}
-      width={window.innerWidth < 768 ? '95%' : window.innerWidth < 1024 ? '85%' : '90%'}
+      width={isMobile ? '95%' : isTablet ? '85%' : '90%'}
       style={{ 
-        top: window.innerWidth < 768 ? '10px' : '20px',
+        top: isMobile ? '10px' : '20px',
         paddingBottom: 0
       }}
       className="transfer-modal-responsive"
       styles={{
         body: {
-          padding: window.innerWidth < 768 ? '16px' : '24px',
+          padding: isMobile ? '16px' : '24px',
           background: '#f8fafc'
         }
       }}
-      centered={window.innerWidth >= 768}
+      centered={!isMobile}
     >
       {!showPreview ? (
         <div style={{
           background: 'white',
-          borderRadius: window.innerWidth < 768 ? '12px' : '16px',
-          padding: window.innerWidth < 768 ? '20px' : '32px',
+          borderRadius: isMobile ? '12px' : '16px',
+          padding: isMobile ? '20px' : '32px',
           border: '1px solid #e5e7eb',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}
@@ -283,9 +285,9 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
             form={form}
             layout="vertical"
             onFinish={handlePreview}
-            size={window.innerWidth < 768 ? 'middle' : 'large'}
+            size={isMobile ? 'middle' : 'large'}
           >
-          <Row gutter={window.innerWidth < 768 ? 12 : 16}>
+          <Row gutter={isMobile ? 12 : 16}>
             <Col xs={24} sm={12}>
               <Form.Item
                 label="Kaynak Birim"
@@ -619,15 +621,15 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
             <Space 
               style={{ 
                 width: '100%', 
-                justifyContent: window.innerWidth < 768 ? 'space-between' : 'flex-end',
-                flexWrap: window.innerWidth < 768 ? 'wrap' : 'nowrap'
+                justifyContent: isMobile ? 'space-between' : 'flex-end',
+                flexWrap: isMobile ? 'wrap' : 'nowrap'
               }}
             >
               <Button 
                 onClick={handleClose} 
-                size={window.innerWidth < 768 ? 'middle' : 'large'}
-                block={window.innerWidth < 768}
-                style={{ marginBottom: window.innerWidth < 768 ? '8px' : 0 }}
+                size={isMobile ? 'middle' : 'large'}
+                block={isMobile}
+                style={{ marginBottom: isMobile ? '8px' : 0 }}
               >
                 İptal
               </Button>
@@ -635,8 +637,8 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                 type="primary" 
                 htmlType="submit"
                 icon={<CalculatorOutlined />}
-                size={window.innerWidth < 768 ? 'middle' : 'large'}
-                block={window.innerWidth < 768}
+                size={isMobile ? 'middle' : 'large'}
+                block={isMobile}
               >
                 Önizleme
               </Button>

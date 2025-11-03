@@ -569,7 +569,7 @@ const UnitDashboard: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '14px', width: '100%', flexWrap: (typeof window !== 'undefined' && window.innerWidth < 480) ? 'wrap' : 'nowrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '14px', width: '100%', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
                     <div style={{
                       background: '#f8fafc',
                       borderRadius: isMobile ? '10px' : '12px',
@@ -599,7 +599,7 @@ const UnitDashboard: React.FC = () => {
                         fontSize: isMobile ? '18px' : '28px', 
                         fontWeight: '600',
                         display: 'block',
-                        whiteSpace: (typeof window !== 'undefined' && window.innerWidth < 480) ? 'normal' : 'nowrap',
+                        whiteSpace: isMobile ? 'normal' : 'nowrap',
                         wordBreak: 'break-word',
                         lineHeight: 1.2
                       }}>
@@ -622,7 +622,7 @@ const UnitDashboard: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '14px', width: '100%', flexWrap: (typeof window !== 'undefined' && window.innerWidth < 480) ? 'wrap' : 'nowrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '14px', width: '100%', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
                     <div style={{
                       background: '#f8fafc',
                       borderRadius: isMobile ? '10px' : '12px',
@@ -652,7 +652,7 @@ const UnitDashboard: React.FC = () => {
                         fontSize: isMobile ? '18px' : '28px', 
                         fontWeight: '600',
                         display: 'block',
-                        whiteSpace: (typeof window !== 'undefined' && window.innerWidth < 480) ? 'normal' : 'nowrap',
+                        whiteSpace: isMobile ? 'normal' : 'nowrap',
                         wordBreak: 'break-word',
                         lineHeight: 1.2
                       }}>

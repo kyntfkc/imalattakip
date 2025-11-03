@@ -27,6 +27,7 @@ import { CinsiSettingsProvider } from './context/CinsiSettingsContext';
 import { LogProvider } from './context/LogContext';
 import { MenuSettingsProvider, useMenuSettings } from './context/MenuSettingsContext';
 import { useBackendStatus } from './hooks/useBackendStatus';
+import { useResponsive } from './hooks/useResponsive';
 import Login from './components/Login';
 import TransferModal from './components/TransferModal';
 import DataSyncIndicator from './components/DataSyncIndicator';
@@ -77,10 +78,10 @@ const AppContent: React.FC = () => {
   const { user, isAuthenticated, logout, isLoading } = useAuth();
   const { settings: menuSettings, isLoading: menuSettingsLoading } = useMenuSettings();
   const { isBackendOnline, isChecking } = useBackendStatus();
+  const { isMobile } = useResponsive();
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const [logoError, setLogoError] = useState(false);
   const collapsedRef = useRef(collapsed);
 
@@ -134,27 +135,12 @@ const AppContent: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Mobile detection - flicker önleme
+  // Mobilde menü kapalı başla
   useEffect(() => {
-    const checkMobile = () => {
-      const width = window.innerWidth;
-      const newIsMobile = width < 768;
-      
-      // Sadece state değiştiyse güncelle
-      if (newIsMobile !== isMobile) {
-        setIsMobile(newIsMobile);
-        
-        // Mobil ise ve menü açıksa kapat - ref kullanarak
-        if (newIsMobile && !collapsedRef.current) {
-          setCollapsed(true);
-        }
-      }
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, [isMobile, collapsedRef]);
+    if (isMobile && !collapsedRef.current) {
+      setCollapsed(true);
+    }
+  }, [isMobile]);
 
   // Admin kontrolü
   const isAdmin = user?.role === 'admin';
