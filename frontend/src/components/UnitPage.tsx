@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+Kullanimport React, { useState, useMemo, useCallback } from 'react';
 import { 
   Card, 
   Row, 
@@ -1190,12 +1190,14 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                   <Text strong style={{ 
                     display: 'block', 
                     fontSize: isMobile ? '24px' : '28px', 
-                    color: hasFire && (totalInput - totalOutput > 0) ? '#ff4d4f' : '#1f2937',
+                    color: hasFire && (totalInput - totalOutput > 0) ? '#ff4d4f' : (isInputUnit && (totalInput + totalOutput) < 0) ? '#ff4d4f' : '#1f2937',
                     fontWeight: 600
                   }}>
                     {hasFire || isProcessingUnit ? 
                       (Math.max(0, totalInput - totalOutput).toFixed(2).replace(/^0+(?=\d)/, '')) : 
-                      totalInput.toFixed(2).replace(/^0+(?=\d)/, '')
+                      (isInputUnit ? 
+                        (totalInput + totalOutput).toFixed(2).replace(/^0+(?=\d)/, '') : 
+                        totalInput.toFixed(2).replace(/^0+(?=\d)/, ''))
                     } gr
                   </Text>
                 </div>
