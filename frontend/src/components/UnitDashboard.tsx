@@ -241,8 +241,8 @@ const SortableUnitCard: React.FC<SortableUnitCardProps> = React.memo(({ unit, in
               </div>
             )}
 
-            {/* Fire Display (only for fire units) */}
-            {FIRE_UNITS.includes(unit.unitId as UnitType) && (
+            {/* Fire Display (only for fire units and admin) */}
+            {isAdmin && FIRE_UNITS.includes(unit.unitId as UnitType) && (
               <div style={{ 
                 display: 'flex', 
                 justifyContent: 'space-between', 
@@ -870,37 +870,49 @@ const UnitDashboard: React.FC = () => {
         {selectedUnit && (
           <div>
             <Row gutter={16} style={{ marginBottom: 24 }}>
-              <Col span={FIRE_UNITS.includes(selectedUnit.unitId) ? 8 : 12}>
-                <Statistic
-                  title="Toplam Stok"
-                  value={selectedUnit.totalStock}
-                  suffix={<span style={{ fontSize: '16px', fontWeight: 'bold', color: '#1890ff' }}>gr</span>}
-                  valueStyle={{ color: '#1890ff' }}
-                  precision={2}
-                />
-              </Col>
-              {FIRE_UNITS.includes(selectedUnit.unitId) && (
-                <Col span={8}>
-                  <Statistic
-                    title="Fire Miktarı"
-                    value={selectedUnit.totalFire}
-                    suffix={<span style={{ fontSize: '16px', fontWeight: 'bold', color: selectedUnit.totalFire > 0 ? '#ff4d4f' : '#52c41a' }}>gr</span>}
-                    valueStyle={{ color: selectedUnit.totalFire > 0 ? '#ff4d4f' : '#52c41a' }}
-                    precision={2}
-                  />
-                </Col>
-              )}
-              {isAdmin && (
-                <Col span={FIRE_UNITS.includes(selectedUnit.unitId) ? 8 : 12}>
-                  <Statistic
-                    title="Has Karşılığı"
-                    value={selectedUnit.hasEquivalent}
-                    suffix={<span style={{ fontSize: '16px', fontWeight: 'bold', color: '#52c41a' }}>gr</span>}
-                    valueStyle={{ color: '#52c41a' }}
-                    precision={2}
-                  />
-                </Col>
-              )}
+              {(() => {
+                const isFireUnit = FIRE_UNITS.includes(selectedUnit.unitId);
+                const showFire = isAdmin && isFireUnit;
+                const showHas = isAdmin;
+                const totalStats = 1 + (showFire ? 1 : 0) + (showHas ? 1 : 0);
+                const colSpan = totalStats === 1 ? 24 : totalStats === 2 ? 12 : 8;
+                
+                return (
+                  <>
+                    <Col span={colSpan}>
+                      <Statistic
+                        title="Toplam Stok"
+                        value={selectedUnit.totalStock}
+                        suffix={<span style={{ fontSize: '16px', fontWeight: 'bold', color: '#1890ff' }}>gr</span>}
+                        valueStyle={{ color: '#1890ff' }}
+                        precision={2}
+                      />
+                    </Col>
+                    {showFire && (
+                      <Col span={colSpan}>
+                        <Statistic
+                          title="Fire Miktarı"
+                          value={selectedUnit.totalFire}
+                          suffix={<span style={{ fontSize: '16px', fontWeight: 'bold', color: selectedUnit.totalFire > 0 ? '#ff4d4f' : '#52c41a' }}>gr</span>}
+                          valueStyle={{ color: selectedUnit.totalFire > 0 ? '#ff4d4f' : '#52c41a' }}
+                          precision={2}
+                        />
+                      </Col>
+                    )}
+                    {showHas && (
+                      <Col span={colSpan}>
+                        <Statistic
+                          title="Has Karşılığı"
+                          value={selectedUnit.hasEquivalent}
+                          suffix={<span style={{ fontSize: '16px', fontWeight: 'bold', color: '#52c41a' }}>gr</span>}
+                          valueStyle={{ color: '#52c41a' }}
+                          precision={2}
+                        />
+                      </Col>
+                    )}
+                  </>
+                );
+              })()}
             </Row>
 
             <Title level={4}>Cinsi Bazlı Stok Dağılımı</Title>
