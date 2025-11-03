@@ -15,7 +15,9 @@ import {
   Empty,
   Segmented,
   Input,
-  DatePicker
+  DatePicker,
+  Badge,
+  Tooltip
 } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import jsPDF from 'jspdf';
@@ -59,7 +61,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const { user } = useAuth();
   const { cinsiOptions } = useCinsiSettings();
   const [transferModalOpen, setTransferModalOpen] = useState(false);
-  const [dateFilter, setDateFilter] = useState<'all' | 'week' | 'month' | 'year'>('all');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null]>([null, null]);
   const [tableSearchText, setTableSearchText] = useState('');
   const [tableFilteredInfo, setTableFilteredInfo] = useState<Record<string, string[] | null>>({});
@@ -478,14 +480,25 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       title: 'Tarih',
       dataIndex: 'date',
       key: 'date',
-      render: (date: string) => new Date(date).toLocaleString('tr-TR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-      width: 160,
+      render: (date: string) => {
+        const formattedDate = new Date(date).toLocaleString('tr-TR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <CalendarOutlined style={{ fontSize: '12px', color: '#9ca3af' }} />
+            <Text style={{ fontSize: '13px', color: '#374151', fontWeight: 500 }}>
+              {formattedDate}
+            </Text>
+          </div>
+        );
+      },
+      width: 180,
+      sorter: (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
       filteredValue: tableFilteredInfo.date || null,
       onFilter: (value, record) => {
         if (!value || !Array.isArray(value) || value.length === 0) return true;
@@ -635,12 +648,24 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       render: (record: any) => {
         const isIncoming = record.toUnit === unitId;
         return (
-          <Tag color={isIncoming ? 'green' : 'red'}>
-            {isIncoming ? 'Giriş' : 'Çıkış'}
+          <Tag 
+            color={isIncoming ? 'success' : 'error'}
+            style={{
+              borderRadius: '6px',
+              padding: '4px 12px',
+              fontSize: '12px',
+              fontWeight: 600,
+              border: 'none',
+              boxShadow: isIncoming 
+                ? '0 2px 4px rgba(52, 211, 153, 0.2)' 
+                : '0 2px 4px rgba(239, 68, 68, 0.2)'
+            }}
+          >
+            {isIncoming ? '✓ Giriş' : '✕ Çıkış'}
           </Tag>
         );
       },
-      width: 100,
+      width: 120,
       filters: [
         { text: 'Giriş', value: 'giris' },
         { text: 'Çıkış', value: 'cikis' }
@@ -682,12 +707,27 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       title: 'Ayar',
       dataIndex: 'karat',
       key: 'karat',
-      width: 100,
-      render: (karat: string) => (
-        <Tag color="blue">
-          {karat === '24K' ? 'Has Altın' : karat.replace('K', ' Ayar')}
-        </Tag>
-      ),
+      width: 120,
+      render: (karat: string) => {
+        const isHas = karat === '24K';
+        return (
+          <Tag 
+            color={isHas ? 'gold' : 'blue'}
+            style={{
+              borderRadius: '6px',
+              padding: '4px 12px',
+              fontSize: '12px',
+              fontWeight: 600,
+              border: 'none',
+              boxShadow: isHas 
+                ? '0 2px 4px rgba(250, 204, 21, 0.2)' 
+                : '0 2px 4px rgba(59, 130, 246, 0.2)'
+            }}
+          >
+            {isHas ? '👑 Has Altın' : karat.replace('K', ' Ayar')}
+          </Tag>
+        );
+      },
       filters: [
         { text: '14 Ayar', value: '14K' },
         { text: '18 Ayar', value: '18K' },
@@ -701,24 +741,68 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       title: 'Miktar',
       dataIndex: 'amount',
       key: 'amount',
-      width: 120,
+      width: 130,
       render: (amount: number, record: any) => {
         const isIncoming = record.toUnit === unitId;
         const safeAmount = typeof amount === 'number' ? amount : parseFloat(amount) || 0;
         return (
-          <Text strong style={{ color: isIncoming ? '#52c41a' : '#ff4d4f' }}>
-            {isIncoming ? '+' : '-'}{safeAmount.toFixed(2)} gr
-          </Text>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <span style={{
+              fontSize: '14px',
+              fontWeight: 700,
+              color: isIncoming ? '#10b981' : '#ef4444'
+            }}>
+              {isIncoming ? '↗' : '↙'}
+            </span>
+            <Text strong style={{ 
+              color: isIncoming ? '#10b981' : '#ef4444',
+              fontSize: '14px',
+              fontWeight: 600
+            }}>
+              {isIncoming ? '+' : '-'}{safeAmount.toFixed(2)} gr
+            </Text>
+          </div>
         );
+      },
+      sorter: (a, b) => {
+        const aAmount = typeof a.amount === 'number' ? a.amount : parseFloat(a.amount) || 0;
+        const bAmount = typeof b.amount === 'number' ? b.amount : parseFloat(b.amount) || 0;
+        return aAmount - bAmount;
       }
     },
     {
       title: 'Not',
       dataIndex: 'notes',
       key: 'notes',
-      ellipsis: true,
+      ellipsis: {
+        showTitle: false
+      },
       render: (notes: string) => (
-        <Text type="secondary">{notes || '-'}</Text>
+        notes ? (
+          <Tooltip title={notes} placement="topLeft">
+            <Text 
+              type="secondary" 
+              style={{
+                fontSize: '12px',
+                color: '#6b7280',
+                cursor: 'help',
+                display: 'block',
+                maxWidth: '200px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {notes}
+            </Text>
+          </Tooltip>
+        ) : (
+          <Text type="secondary" style={{ fontSize: '12px', color: '#d1d5db' }}>-</Text>
+        )
       )
     },
     ...(isAdmin ? [{
@@ -1082,47 +1166,82 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         </div>
       )}
 
-      {/* İşlem Geçmişi - Minimalist */}
+      {/* İşlem Geçmişi - Profesyonel Tasarım */}
       <div style={{ marginTop: 16 }}>
-        <div 
-          style={{ 
-            borderRadius: '6px',
+        <Card
+          style={{
+            borderRadius: '12px',
             border: '1px solid #e5e7eb',
-            background: 'white'
+            background: 'white',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+            overflow: 'hidden'
           }}
+          bodyStyle={{ padding: 0 }}
         >
-          {/* Minimalist Header */}
-          <div style={{ 
-            padding: '12px 16px', 
-            borderBottom: '1px solid #f0f0f0',
+          {/* Profesyonel Header */}
+          <div style={{
+            padding: isMobile ? '16px' : '20px 24px',
+            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+            borderBottom: '2px solid #e5e7eb',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px'
           }}>
-            <Space size={8} align="center">
-              <HistoryOutlined style={{ fontSize: '14px', color: '#64748b' }} />
-              <Text strong style={{ fontSize: '13px', color: '#1f2937' }}>Tüm İşlemler</Text>
-              <Tag 
-                style={{ 
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  padding: '2px 6px',
-                  margin: 0,
-                  background: '#f3f4f6',
-                  border: 'none',
-                  color: '#6b7280'
+            <Space size={12} align="center" style={{ flex: 1, minWidth: '200px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+              }}>
+                <HistoryOutlined style={{ fontSize: '18px', color: 'white' }} />
+              </div>
+              <div>
+                <Text strong style={{
+                  fontSize: isMobile ? '16px' : '18px',
+                  color: '#1f2937',
+                  display: 'block',
+                  fontWeight: 600,
+                  lineHeight: 1.2
+                }}>
+                  Tüm İşlemler
+                </Text>
+                <Text style={{
+                  fontSize: '12px',
+                  color: '#6b7280',
+                  display: 'block',
+                  marginTop: '2px'
+                }}>
+                  Transfer geçmişi ve işlem kayıtları
+                </Text>
+              </div>
+              <Badge
+                count={(isInputUnit && unitId === 'dokum') ? filteredTransfers.length : unitTransfers.length}
+                overflowCount={9999}
+                style={{
+                  backgroundColor: '#3b82f6',
+                  boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
                 }}
-              >
-                {(isInputUnit && unitId === 'dokum') ? filteredTransfers.length : unitTransfers.length}
-              </Tag>
+              />
             </Space>
-            <Space size={6}>
+            <Space size={8} style={{ flexWrap: 'wrap' }}>
               <Button
                 icon={<FilterOutlined />}
                 onClick={handleResetFilters}
-                size="small"
+                size={isMobile ? 'small' : 'middle'}
                 disabled={Object.keys(tableFilteredInfo).length === 0 && !tableSearchText && dateFilter === 'all' && !dateRange[0] && !dateRange[1]}
-                style={{ fontSize: '12px', height: '28px', padding: '0 10px' }}
+                style={{
+                  borderRadius: '8px',
+                  border: '1px solid #d1d5db',
+                  fontWeight: 500,
+                  height: isMobile ? '32px' : '36px'
+                }}
               >
                 Temizle
               </Button>
@@ -1130,16 +1249,85 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                 type="primary"
                 icon={<DownloadOutlined />}
                 onClick={handleExport}
-                size="small"
-                style={{ fontSize: '12px', height: '28px', padding: '0 10px' }}
+                size={isMobile ? 'small' : 'middle'}
+                style={{
+                  borderRadius: '8px',
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                  border: 'none',
+                  fontWeight: 600,
+                  height: isMobile ? '32px' : '36px',
+                  boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                }}
               >
                 Dışa Aktar
               </Button>
             </Space>
           </div>
-          
-          {/* Table Content */}
-          <div style={{ padding: '12px' }}>
+
+          {/* Filtreler ve Arama - Kompakt */}
+          {(Object.keys(tableFilteredInfo).length > 0 || tableSearchText || dateFilter !== 'all' || dateRange[0] || dateRange[1]) && (
+            <div style={{
+              padding: '12px 24px',
+              background: '#f9fafb',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '8px'
+            }}>
+              <Text style={{ fontSize: '12px', color: '#6b7280', fontWeight: 500 }}>Aktif Filtreler:</Text>
+              {dateFilter !== 'all' && (
+                <Tag
+                  closable
+                  onClose={() => setDateFilter('all')}
+                  style={{
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    padding: '4px 10px',
+                    border: '1px solid #d1d5db',
+                    background: 'white'
+                  }}
+                >
+                  {dateFilter === 'today' && 'Bugün'}
+                  {dateFilter === 'week' && 'Bu Hafta'}
+                  {dateFilter === 'month' && 'Bu Ay'}
+                </Tag>
+              )}
+              {(dateRange[0] || dateRange[1]) && (
+                <Tag
+                  closable
+                  onClose={() => setDateRange([null, null])}
+                  style={{
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    padding: '4px 10px',
+                    border: '1px solid #d1d5db',
+                    background: 'white'
+                  }}
+                >
+                  {dateRange[0]?.format('DD.MM.YYYY')} - {dateRange[1]?.format('DD.MM.YYYY')}
+                </Tag>
+              )}
+              {tableSearchText && (
+                <Tag
+                  closable
+                  onClose={() => setTableSearchText('')}
+                  style={{
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    padding: '4px 10px',
+                    border: '1px solid #d1d5db',
+                    background: 'white'
+                  }}
+                >
+                  Arama: {tableSearchText}
+                </Tag>
+              )}
+            </div>
+          )}
+
+          {/* Table Content - Modern */}
+          <div style={{ padding: isMobile ? '12px' : '16px 24px' }}>
             {unitTransfers.length > 0 ? (
               <Table
                 columns={columns}
@@ -1148,20 +1336,70 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                 pagination={{
                   pageSize: 20,
                   showSizeChanger: true,
-                  showTotal: (total) => `Toplam ${total} işlem`,
-                  size: 'small'
+                  showQuickJumper: true,
+                  showTotal: (total, range) => (
+                    <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 500 }}>
+                      {range[0]}-{range[1]} / <strong style={{ color: '#1f2937' }}>{total}</strong> işlem
+                    </span>
+                  ),
+                  size: 'small',
+                  pageSizeOptions: ['10', '20', '50', '100']
                 }}
                 scroll={{ x: 1000 }}
-                size="small"
+                size="middle"
                 onChange={(pagination, filters, sorter) => {
                   setTableFilteredInfo(filters as Record<string, string[] | null>);
                 }}
+                style={{
+                  borderRadius: '8px',
+                  overflow: 'hidden'
+                }}
+                rowClassName={(record, index) =>
+                  index % 2 === 0 ? 'table-row-even' : 'table-row-odd'
+                }
+                onRow={(record) => ({
+                  style: {
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  },
+                  onMouseEnter: (e) => {
+                    e.currentTarget.style.background = '#f8fafc';
+                  },
+                  onMouseLeave: (e) => {
+                    e.currentTarget.style.background = '';
+                  }
+                })}
               />
             ) : (
-              <Empty description="Henüz işlem yok" style={{ margin: '20px 0' }} />
+              <Empty
+                description={
+                  <span style={{ color: '#6b7280', fontSize: '14px' }}>
+                    Henüz işlem kaydı bulunmuyor
+                  </span>
+                }
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                style={{
+                  margin: '40px 0',
+                  padding: '20px'
+                }}
+              >
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => setTransferModalOpen(true)}
+                  style={{
+                    borderRadius: '8px',
+                    marginTop: '12px',
+                    height: '36px',
+                    fontWeight: 500
+                  }}
+                >
+                  İlk İşlemi Oluştur
+                </Button>
+              </Empty>
             )}
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Satış, Tedarik, Döküm, Lazer Kesim, Tezgah ve Cila sayfaları için minimalist kartlar - Tüm İşlemler'in altında */}

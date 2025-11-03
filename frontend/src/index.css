@@ -102,3 +102,18 @@ code {
     box-shadow: none !important;
   }
 }
+
+/* Table row styles for better UX */
+.table-row-even {
+  background-color: #ffffff;
+}
+
+.table-row-odd {
+  background-color: #f9fafb;
+}
+
+.table-row-even:hover,
+.table-row-odd:hover {
+  background-color: #f3f4f6 !important;
+  transition: all 0.2s ease;
+}
