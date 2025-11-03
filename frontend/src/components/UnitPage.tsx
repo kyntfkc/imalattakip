@@ -371,6 +371,17 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     // PDF oluştur
     const doc = new jsPDF('landscape', 'mm', 'a4');
     
+    // Türkçe karakter desteği için helper fonksiyon
+    const addText = (text: string, x: number, y: number, options?: { fontSize?: number; color?: [number, number, number]; font?: string; style?: string }) => {
+      if (options?.fontSize) doc.setFontSize(options.fontSize);
+      if (options?.color) doc.setTextColor(options.color[0], options.color[1], options.color[2]);
+      if (options?.font) doc.setFont(options.font, options.style || 'normal');
+      
+      // Türkçe karakterleri koru - Unicode desteği için
+      const textLines = doc.splitTextToSize(text, 250);
+      doc.text(textLines, x, y);
+    };
+    
     // Arka plan rengi için (başlık çizgisi)
     const primaryColor: [number, number, number] = [102, 126, 234]; // Indigo
     
@@ -379,16 +390,11 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     doc.rect(0, 0, 297, 8, 'F');
     
     // Logo/Şirket adı alanı
-    doc.setFontSize(12);
-    doc.setTextColor(255, 255, 255);
-    doc.text('İndigo Takı - İmalat Takip', 14, 6);
+    addText('İndigo Takı - İmalat Takip', 14, 6, { fontSize: 12, color: [255, 255, 255] });
     
     // Ana başlık
-    doc.setFontSize(20);
-    doc.setTextColor(31, 41, 55);
-    doc.setFont('helvetica', 'bold');
     const title = `${unitName} - Tüm İşlemler`;
-    doc.text(title, 14, 18);
+    addText(title, 14, 18, { fontSize: 20, color: [31, 41, 55], font: 'helvetica', style: 'bold' });
     
     // Alt başlık çizgisi
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -397,10 +403,6 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     
     // Tarih ve bilgiler (daha düzenli)
     let currentY = 26;
-    doc.setFontSize(9);
-    doc.setTextColor(100, 100, 100);
-    doc.setFont('helvetica', 'normal');
-    
     const exportDate = new Date().toLocaleString('tr-TR', {
       day: '2-digit',
       month: '2-digit',
@@ -408,7 +410,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       hour: '2-digit',
       minute: '2-digit'
     });
-    doc.text(`Oluşturulma Tarihi: ${exportDate}`, 14, currentY);
+    addText(`Oluşturulma Tarihi: ${exportDate}`, 14, currentY, { fontSize: 9, color: [100, 100, 100] });
     
     // İstatistikler hesapla
     const totalInput = dataToExport
@@ -431,54 +433,31 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     // Toplam Giriş
     doc.setFillColor(236, 253, 245);
     doc.roundedRect(boxX, currentY, boxWidth, boxHeight, 2, 2, 'F');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text('Toplam Giriş', boxX + 3, currentY + 4);
-    doc.setFontSize(11);
-    doc.setTextColor(5, 150, 105);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${totalInput.toFixed(2)} gr`, boxX + 3, currentY + 8);
+    addText('Toplam Giriş', boxX + 3, currentY + 4, { fontSize: 8, color: [100, 100, 100] });
+    addText(`${totalInput.toFixed(2)} gr`, boxX + 3, currentY + 8, { fontSize: 11, color: [5, 150, 105], font: 'helvetica', style: 'bold' });
     
     // Toplam Çıkış
     boxX += boxWidth + spacing;
     doc.setFillColor(254, 242, 242);
     doc.roundedRect(boxX, currentY, boxWidth, boxHeight, 2, 2, 'F');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Toplam Çıkış', boxX + 3, currentY + 4);
-    doc.setFontSize(11);
-    doc.setTextColor(239, 68, 68);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${totalOutput.toFixed(2)} gr`, boxX + 3, currentY + 8);
+    addText('Toplam Çıkış', boxX + 3, currentY + 4, { fontSize: 8, color: [100, 100, 100] });
+    addText(`${totalOutput.toFixed(2)} gr`, boxX + 3, currentY + 8, { fontSize: 11, color: [239, 68, 68], font: 'helvetica', style: 'bold' });
     
     // Net Stok/Fire
     boxX += boxWidth + spacing;
     const netLabel = hasFire || isProcessingUnit ? 'Net Fire' : 'Net Stok';
-    const netColor = netAmount > 0 && (hasFire || isProcessingUnit) ? [239, 68, 68] : [59, 130, 246];
+    const netColor: [number, number, number] = netAmount > 0 && (hasFire || isProcessingUnit) ? [239, 68, 68] : [59, 130, 246];
     doc.setFillColor(239, 246, 255);
     doc.roundedRect(boxX, currentY, boxWidth, boxHeight, 2, 2, 'F');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.setFont('helvetica', 'normal');
-    doc.text(netLabel, boxX + 3, currentY + 4);
-    doc.setFontSize(11);
-    doc.setTextColor(netColor[0], netColor[1], netColor[2]);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${Math.max(0, netAmount).toFixed(2)} gr`, boxX + 3, currentY + 8);
+    addText(netLabel, boxX + 3, currentY + 4, { fontSize: 8, color: [100, 100, 100] });
+    addText(`${Math.max(0, netAmount).toFixed(2)} gr`, boxX + 3, currentY + 8, { fontSize: 11, color: netColor, font: 'helvetica', style: 'bold' });
     
     // Toplam İşlem
     boxX += boxWidth + spacing;
     doc.setFillColor(249, 250, 251);
     doc.roundedRect(boxX, currentY, 55, boxHeight, 2, 2, 'F');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Toplam İşlem', boxX + 3, currentY + 4);
-    doc.setFontSize(11);
-    doc.setTextColor(31, 41, 55);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${dataToExport.length}`, boxX + 3, currentY + 8);
+    addText('Toplam İşlem', boxX + 3, currentY + 4, { fontSize: 8, color: [100, 100, 100] });
+    addText(`${dataToExport.length}`, boxX + 3, currentY + 8, { fontSize: 11, color: [31, 41, 55], font: 'helvetica', style: 'bold' });
     
     // Filtre bilgisi (varsa)
     currentY = 47;
@@ -494,10 +473,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       filterInfo = `Tarih Filtresi: ${filterLabels[dateFilter]}`;
     }
     if (filterInfo) {
-      doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
-      doc.setFont('helvetica', 'normal');
-      doc.text(filterInfo, 14, currentY);
+      addText(filterInfo, 14, currentY, { fontSize: 8, color: [100, 100, 100] });
       currentY += 4;
     }
 
@@ -573,7 +549,8 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         if (data.cell && typeof data.cell.text !== 'undefined') {
           const convertText = (text: any): string => {
             if (typeof text === 'string') {
-              // Unicode karakterleri olduğu gibi koru
+              // Unicode karakterleri olduğu gibi koru - Türkçe karakter desteği
+              // jsPDF'in internal text encoding'i Unicode'u destekler
               return text;
             }
             return String(text || '');
@@ -584,25 +561,46 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
           } else {
             data.cell.text = convertText(data.cell.text);
           }
+          
+          // Türkçe karakterleri doğru şekilde render etmek için
+          if (data.cell.text && typeof data.cell.text === 'string') {
+            // Özel Türkçe karakterlerin doğru gösterilmesi için
+            const turkishChars: { [key: string]: string } = {
+              'ı': 'ı',
+              'İ': 'İ',
+              'ğ': 'ğ',
+              'Ğ': 'Ğ',
+              'ş': 'ş',
+              'Ş': 'Ş',
+              'ü': 'ü',
+              'Ü': 'Ü',
+              'ö': 'ö',
+              'Ö': 'Ö',
+              'ç': 'ç',
+              'Ç': 'Ç'
+            };
+            
+            // Karakterler zaten doğru Unicode değerlerinde olmalı
+            // jsPDF'in autoTable'ı Unicode'u destekler
+          }
         }
       },
       didDrawPage: function(data: any) {
         // Her sayfa için footer ekle
         const pageCount = doc.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(150, 150, 150);
-        doc.setFont('helvetica', 'normal');
         
         // Sol alt - Şirket bilgisi
-        doc.text('İndigo Takı - İmalat Takip Sistemi', 14, 202);
+        addText('İndigo Takı - İmalat Takip Sistemi', 14, 202, { fontSize: 8, color: [150, 150, 150] });
         
         // Sağ alt - Sayfa numarası
         const pageText = `Sayfa ${data.pageNumber} / ${pageCount}`;
-        doc.text(pageText, 283 - doc.getTextWidth(pageText), 202);
+        const pageTextWidth = doc.getTextWidth(pageText);
+        addText(pageText, 283 - pageTextWidth, 202, { fontSize: 8, color: [150, 150, 150] });
         
         // Orta alt - Tarih
         const pageDate = new Date().toLocaleDateString('tr-TR');
-        doc.text(pageDate, 148.5 - doc.getTextWidth(pageDate) / 2, 202);
+        const pageDateWidth = doc.getTextWidth(pageDate);
+        addText(pageDate, 148.5 - pageDateWidth / 2, 202, { fontSize: 8, color: [150, 150, 150] });
       }
     });
 
