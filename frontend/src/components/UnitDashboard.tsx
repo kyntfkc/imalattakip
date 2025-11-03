@@ -36,7 +36,8 @@ import { useExternalVault } from '../context/ExternalVaultContext';
 import { useDashboardSettings } from '../context/DashboardSettingsContext';
 import { useLog } from '../context/LogContext';
 import { useAuth } from '../context/AuthContext';
-import { UnitSummary, KaratType, FIRE_UNITS, UnitType } from '../types';
+import { useCinsiSettings } from '../context/CinsiSettingsContext';
+import { UnitSummary, KaratType, FIRE_UNITS, UnitType, KARAT_HAS_RATIOS, PROCESSING_UNITS, INPUT_UNITS, SEMI_FINISHED_UNITS, OUTPUT_ONLY_UNITS } from '../types';
 import type { ColumnsType } from 'antd/es/table';
 import TransferModal from './TransferModal';
 import { unitColors, commonStyles } from '../styles/theme';
@@ -304,6 +305,7 @@ const UnitDashboard: React.FC = () => {
   const { settings, updateUnitOrder } = useDashboardSettings();
   const { addLog } = useLog();
   const { user } = useAuth();
+  const { cinsiOptions } = useCinsiSettings();
   const [selectedUnit, setSelectedUnit] = useState<UnitSummary | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
@@ -416,24 +418,27 @@ const UnitDashboard: React.FC = () => {
     return 'error';
   };
 
-  const columns = [
+  const cinsiColumns: ColumnsType<any> = [
     {
-      title: 'Ayar',
-      dataIndex: 'karat',
-      key: 'karat',
-      render: (karat: string) => karat === '24K' ? 'Has Altın' : karat.replace('K', ' Ayar')
+      title: 'Cinsi',
+      dataIndex: 'cinsi',
+      key: 'cinsi',
+      render: (cinsi: string) => {
+        const option = cinsiOptions.find(opt => opt.value === cinsi);
+        return option ? option.label : cinsi;
+      }
     },
     {
       title: 'Mevcut Stok (gr)',
       dataIndex: 'stock',
       key: 'stock',
-      render: (value: number) => (typeof value === 'number' ? value : parseFloat(value) || 0).toFixed(2)
+      render: (value: number) => (typeof value === 'number' ? value : parseFloat(String(value)) || 0).toFixed(2)
     },
     {
       title: 'Has Karşılığı (gr)',
       dataIndex: 'has',
       key: 'has',
-      render: (value: number) => (typeof value === 'number' ? value : parseFloat(value) || 0).toFixed(2)
+      render: (value: number) => (typeof value === 'number' ? value : parseFloat(String(value)) || 0).toFixed(2)
     }
   ];
 
@@ -442,16 +447,105 @@ const UnitDashboard: React.FC = () => {
     setModalVisible(true);
   }, []);
 
-  const getKaratDetailData = (unit: UnitSummary) => {
-    const karats: KaratType[] = ['14K', '18K', '22K', '24K'];
-    return karats.map(karat => ({
-      key: karat,
-      karat,
-      stock: unit.stockByKarat[karat].currentStock,
-      has: unit.stockByKarat[karat].hasEquivalent,
-      fire: unit.stockByKarat[karat].fire
-    })).filter(item => item.stock > 0 || item.fire > 0);
-  };
+  // Cinsi bazlı stok verilerini hesapla
+  const getCinsiDetailData = useCallback((unit: UnitSummary) => {
+    if (!unit) return [];
+    
+    const unitId = unit.unitId;
+    const hasFire = FIRE_UNITS.includes(unitId);
+    const isProcessingUnit = PROCESSING_UNITS.includes(unitId);
+    const isInputUnit = INPUT_UNITS.includes(unitId);
+    const isSemiFinishedUnit = SEMI_FINISHED_UNITS.includes(unitId);
+    const isOutputOnlyUnit = OUTPUT_ONLY_UNITS.includes(unitId);
+    
+    // Transferlerden cinsi bilgilerini çıkar
+    const cinsiMap = new Map<string, { stock: number; has: number; fire: number; input: number; output: number }>();
+    
+    // Bu birime gelen transferler
+    const incomingTransfers = transfers.filter(t => t.toUnit === unitId);
+    // Bu birimden çıkan transferler
+    const outgoingTransfers = transfers.filter(t => t.fromUnit === unitId);
+    
+    // Giriş transferlerini işle
+    incomingTransfers.forEach(transfer => {
+      const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
+      if (safeAmount > 0) {
+        // Cinsi kontrolü: undefined, null, boş string veya sadece boşluk ise atla
+        if (!transfer.cinsi || !String(transfer.cinsi).trim()) return;
+        const cinsi = String(transfer.cinsi).trim();
+        const existing = cinsiMap.get(cinsi) || { stock: 0, has: 0, fire: 0, input: 0, output: 0 };
+        existing.stock += safeAmount;
+        existing.input += safeAmount;
+        const karatRatio = (KARAT_HAS_RATIOS[transfer.karat as keyof typeof KARAT_HAS_RATIOS]) || 0;
+        existing.has += safeAmount * karatRatio;
+        cinsiMap.set(cinsi, existing);
+      }
+    });
+    
+    // Çıkış transferlerini işle
+    outgoingTransfers.forEach(transfer => {
+      const safeAmount = typeof transfer.amount === 'number' ? transfer.amount : parseFloat(String(transfer.amount)) || 0;
+      if (safeAmount > 0) {
+        // Cinsi kontrolü: undefined, null, boş string veya sadece boşluk ise atla
+        if (!transfer.cinsi || !String(transfer.cinsi).trim()) return;
+        const cinsi = String(transfer.cinsi).trim();
+        const existing = cinsiMap.get(cinsi) || { stock: 0, has: 0, fire: 0, input: 0, output: 0 };
+        existing.stock -= safeAmount;
+        existing.output += safeAmount;
+        const karatRatio = (KARAT_HAS_RATIOS[transfer.karat as keyof typeof KARAT_HAS_RATIOS]) || 0;
+        existing.has -= safeAmount * karatRatio;
+        cinsiMap.set(cinsi, existing);
+      }
+    });
+    
+    // Fire ve stok hesaplama - birim tipine göre
+    if (hasFire || isProcessingUnit) {
+      // Lazer Kesim, Tezgah, Cila gibi fire/işlem birimleri
+      cinsiMap.forEach((data) => {
+        data.fire = Math.max(0, data.input - data.output);
+        data.stock = 0;
+        data.has = 0;
+      });
+    } else {
+      // Normal birimler
+      cinsiMap.forEach((data) => {
+        data.fire = 0;
+        data.stock = Math.max(0, data.stock);
+        data.has = Math.max(0, data.has);
+      });
+    }
+    
+    // Sonuçları filtrele ve düzenle
+    const result = Array.from(cinsiMap.entries())
+      .map(([cinsi, data]) => ({
+        key: cinsi,
+        cinsi,
+        stock: Number(data.stock.toFixed(3)),
+        has: Number(data.has.toFixed(3)),
+        fire: Number(data.fire.toFixed(3))
+      }))
+      .filter(item => {
+        if (isSemiFinishedUnit) {
+          return item.stock > 0;
+        }
+        return item.stock > 0 || item.fire > 0;
+      })
+      .sort((a, b) => {
+        // Cinsi ayarlarına göre sırala
+        const aIndex = cinsiOptions.findIndex(opt => opt.value === a.cinsi);
+        const bIndex = cinsiOptions.findIndex(opt => opt.value === b.cinsi);
+        
+        if (aIndex !== -1 && bIndex !== -1) {
+          return aIndex - bIndex;
+        }
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        
+        return a.cinsi.localeCompare(b.cinsi, 'tr');
+      });
+    
+    return result;
+  }, [transfers, cinsiOptions]);
 
   // Toplam özet istatistikler - TÜM birimler için (gizli olsalar bile)
   // Sadece gösterilen birimler değil, tüm birimlerin toplamı hesaplanmalı
@@ -803,10 +897,10 @@ const UnitDashboard: React.FC = () => {
               </Col>
             </Row>
 
-            <Title level={4}>Ayar Bazlı Stok Dağılımı</Title>
+            <Title level={4}>Cinsi Bazlı Stok Dağılımı</Title>
             <Table
-              columns={columns}
-              dataSource={getKaratDetailData(selectedUnit)}
+              columns={cinsiColumns}
+              dataSource={getCinsiDetailData(selectedUnit)}
               pagination={false}
               size="small"
               locale={{ emptyText: 'Bu birimde henüz stok yok' }}
