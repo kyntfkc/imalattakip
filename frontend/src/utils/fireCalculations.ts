@@ -40,6 +40,11 @@ export const calculateUnitStocks = (transfers: Transfer[]): Map<string, UnitStoc
 
   // Her transfer için giriş ve çıkışları hesapla
   transfers.forEach(transfer => {
+    // Transfer amount'ı sayıya dönüştür
+    const amount = typeof transfer.amount === 'number' 
+      ? (isNaN(transfer.amount) ? 0 : transfer.amount)
+      : (parseFloat(String(transfer.amount)) || 0);
+    
     const fromKey = `${transfer.fromUnit}-${transfer.karat}`;
     const toKey = `${transfer.toUnit}-${transfer.karat}`;
 
@@ -59,15 +64,15 @@ export const calculateUnitStocks = (transfers: Transfer[]): Map<string, UnitStoc
     
     // OUTPUT_ONLY_UNITS için özel hesaplama: sadece çıkış, giriş yok
     if (OUTPUT_ONLY_UNITS.includes(transfer.fromUnit)) {
-      fromStock.totalOutput += transfer.amount;
+      fromStock.totalOutput += amount;
       fromStock.currentStock = fromStock.totalOutput; // Mevcut stok = toplam çıkış
     } else if (INPUT_UNITS.includes(transfer.fromUnit)) {
       // INPUT_UNITS birimleri (Tedarik, Döküm): Dışarıdan malzeme alır
       // Çıkış yapıldığında, o birime giriş olarak da kaydet (dışarıdan alımı temsil eder)
-      fromStock.totalInput += transfer.amount;
-      fromStock.totalOutput += transfer.amount;
+      fromStock.totalInput += amount;
+      fromStock.totalOutput += amount;
     } else {
-      fromStock.totalOutput += transfer.amount;
+      fromStock.totalOutput += amount;
     }
 
     // Giriş birimi - INPUT artır
@@ -86,7 +91,7 @@ export const calculateUnitStocks = (transfers: Transfer[]): Map<string, UnitStoc
     
     // OUTPUT_ONLY_UNITS için özel hesaplama: giriş olmaz
     if (!OUTPUT_ONLY_UNITS.includes(transfer.toUnit)) {
-      toStock.totalInput += transfer.amount;
+      toStock.totalInput += amount;
     }
   });
 
