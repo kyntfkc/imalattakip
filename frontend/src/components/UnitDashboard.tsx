@@ -459,16 +459,40 @@ const UnitDashboard: React.FC = () => {
   // unitSummaries'den hesapla (externalVaultUnit dahil edilmez)
   const totalStats = useMemo(() => {
     const total = unitSummaries
-      .filter(unit => unit.unitId !== 'dis-kasa')
+      .filter(unit => unit && unit.unitId !== 'dis-kasa')
       .reduce((acc, unit) => {
-        const stock = typeof unit?.totalStock === 'number' ? unit.totalStock : parseFloat(unit?.totalStock) || 0;
-        const has = typeof unit?.hasEquivalent === 'number' ? unit.hasEquivalent : parseFloat(unit?.hasEquivalent) || 0;
+        // Güvenli sayısal dönüşüm
+        const stockValue = unit?.totalStock;
+        const hasValue = unit?.hasEquivalent;
+        
+        let stock = 0;
+        let has = 0;
+        
+        if (typeof stockValue === 'number') {
+          stock = isNaN(stockValue) ? 0 : stockValue;
+        } else if (stockValue != null) {
+          const parsed = parseFloat(String(stockValue));
+          stock = isNaN(parsed) ? 0 : parsed;
+        }
+        
+        if (typeof hasValue === 'number') {
+          has = isNaN(hasValue) ? 0 : hasValue;
+        } else if (hasValue != null) {
+          const parsed = parseFloat(String(hasValue));
+          has = isNaN(parsed) ? 0 : parsed;
+        }
+        
         return {
           stock: acc.stock + stock,
           has: acc.has + has
         };
       }, { stock: 0, has: 0 });
-    return total;
+    
+    // Final kontrol - NaN kontrolü
+    return {
+      stock: isNaN(total.stock) ? 0 : total.stock,
+      has: isNaN(total.has) ? 0 : total.has
+    };
   }, [unitSummaries]);
 
   // Loading state
@@ -622,7 +646,7 @@ const UnitDashboard: React.FC = () => {
                           wordBreak: 'break-word',
                           lineHeight: 1.2
                         }}>
-                          {(typeof totalStats.stock === 'number' ? totalStats.stock : parseFloat(totalStats.stock) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                          {(isNaN(totalStats.stock) ? 0 : (typeof totalStats.stock === 'number' ? totalStats.stock : parseFloat(totalStats.stock) || 0)).toFixed(2).replace(/^0+(?=\d)/, '')} gr
                         </Text>
                       </div>
                     </div>
@@ -675,7 +699,7 @@ const UnitDashboard: React.FC = () => {
                           wordBreak: 'break-word',
                           lineHeight: 1.2
                         }}>
-                          {(typeof totalStats.has === 'number' ? totalStats.has : parseFloat(totalStats.has) || 0).toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                          {(isNaN(totalStats.has) ? 0 : (typeof totalStats.has === 'number' ? totalStats.has : parseFloat(totalStats.has) || 0)).toFixed(2).replace(/^0+(?=\d)/, '')} gr
                         </Text>
                       </div>
                     </div>
