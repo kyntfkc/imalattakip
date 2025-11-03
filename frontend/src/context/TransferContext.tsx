@@ -92,12 +92,13 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
 
   // Real-time socket event listeners
   useEffect(() => {
+    // Socket bağlı değilse listener kurma
     if (!socketService.isConnected()) {
       return;
     }
 
     // Transfer oluşturuldu
-    socketService.onTransferCreated((data: any) => {
+    const handleTransferCreated = (data: any) => {
       const formattedTransfer: Transfer = {
         id: data.id.toString(),
         fromUnit: data.from_unit,
@@ -116,10 +117,10 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
         if (exists) return prev;
         return [formattedTransfer, ...prev];
       });
-    });
+    };
 
     // Transfer güncellendi
-    socketService.onTransferUpdated((data: any) => {
+    const handleTransferUpdated = (data: any) => {
       const formattedTransfer: Transfer = {
         id: data.id.toString(),
         fromUnit: data.from_unit,
@@ -135,20 +136,25 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
       setTransfers(prev => prev.map(t => 
         t.id === formattedTransfer.id ? formattedTransfer : t
       ));
-    });
+    };
 
     // Transfer silindi
-    socketService.onTransferDeleted((data: { id: number }) => {
+    const handleTransferDeleted = (data: { id: number }) => {
       setTransfers(prev => prev.filter(t => t.id !== data.id.toString()));
-    });
+    };
+
+    // Listener'ları kur
+    socketService.onTransferCreated(handleTransferCreated);
+    socketService.onTransferUpdated(handleTransferUpdated);
+    socketService.onTransferDeleted(handleTransferDeleted);
 
     return () => {
-      // Cleanup listeners
+      // Cleanup: listener'ları kaldır
       socketService.off('transfer:created');
       socketService.off('transfer:updated');
       socketService.off('transfer:deleted');
     };
-  }, []);
+  }, [socketService.isConnected()]); // Socket bağlantı durumunu dependency'ye ekle
 
   // Transfer değiştiğinde özetleri hesapla
   const unitSummaries = useMemo(() => {

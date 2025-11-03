@@ -59,6 +59,25 @@ interface UnitPageProps {
   unitId: UnitType;
 }
 
+// Türkçe karakter desteği için helper fonksiyon - component dışında optimize edildi
+// jsPDF'in standart font'ları Türkçe karakterleri desteklemiyor
+// Bu yüzden Türkçe karakterleri ASCII benzeri karakterlere çeviriyoruz
+const normalizeTurkishChars = (text: string): string => {
+  return text
+    .replace(/İ/g, 'I')
+    .replace(/ı/g, 'i')
+    .replace(/Ş/g, 'S')
+    .replace(/ş/g, 's')
+    .replace(/Ğ/g, 'G')
+    .replace(/ğ/g, 'g')
+    .replace(/Ü/g, 'U')
+    .replace(/ü/g, 'u')
+    .replace(/Ö/g, 'O')
+    .replace(/ö/g, 'o')
+    .replace(/Ç/g, 'C')
+    .replace(/ç/g, 'c');
+};
+
 const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const { unitSummaries, transfers, deleteTransfer } = useTransfers();
   const { addLog } = useLog();
@@ -412,25 +431,6 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
 
     // PDF oluştur
     const doc = new jsPDF('landscape', 'mm', 'a4');
-    
-    // Türkçe karakter desteği için helper fonksiyon
-    // jsPDF'in standart font'ları Türkçe karakterleri desteklemiyor
-    // Bu yüzden Türkçe karakterleri ASCII benzeri karakterlere çeviriyoruz
-    const normalizeTurkishChars = (text: string): string => {
-      return text
-        .replace(/İ/g, 'I')
-        .replace(/ı/g, 'i')
-        .replace(/Ş/g, 'S')
-        .replace(/ş/g, 's')
-        .replace(/Ğ/g, 'G')
-        .replace(/ğ/g, 'g')
-        .replace(/Ü/g, 'U')
-        .replace(/ü/g, 'u')
-        .replace(/Ö/g, 'O')
-        .replace(/ö/g, 'o')
-        .replace(/Ç/g, 'C')
-        .replace(/ç/g, 'c');
-    };
     
     const addText = (text: string, x: number, y: number, options?: { fontSize?: number; color?: [number, number, number]; font?: string; style?: string; normalize?: boolean }) => {
       if (options?.fontSize) doc.setFontSize(options.fontSize);
