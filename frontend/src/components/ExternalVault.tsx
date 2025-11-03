@@ -82,6 +82,59 @@ const ExternalVault: React.FC = () => {
 
   const karatOptions: KaratType[] = ['14K', '18K', '22K', '24K'];
 
+  // Filtrelenmiş işlemleri hesapla
+  const filteredTransactions = useMemo(() => {
+    let filtered = transactions;
+
+    // Arama filtresi
+    if (searchText) {
+      const searchLower = searchText.toLowerCase();
+      filtered = filtered.filter(t => 
+        (t.companyName && t.companyName.toLowerCase().includes(searchLower)) ||
+        (t.notes && t.notes.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // İşlem tipi filtresi
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(t => t.type === typeFilter);
+    }
+
+    // Tarih filtresi
+    if (dateRange[0] && dateRange[1]) {
+      const startDate = dateRange[0].startOf('day');
+      const endDate = dateRange[1].endOf('day');
+      filtered = filtered.filter(t => {
+        const tDate = dayjs(t.date);
+        return tDate.isAfter(startDate.subtract(1, 'day')) && tDate.isBefore(endDate.add(1, 'day'));
+      });
+    } else if (dateFilter !== 'all') {
+      const now = dayjs();
+      let startDate: Dayjs;
+      
+      switch (dateFilter) {
+        case 'week':
+          startDate = now.subtract(7, 'day');
+          break;
+        case 'month':
+          startDate = now.subtract(1, 'month');
+          break;
+        case 'year':
+          startDate = now.subtract(1, 'year');
+          break;
+        default:
+          return filtered;
+      }
+      
+      filtered = filtered.filter(t => {
+        const tDate = dayjs(t.date);
+        return tDate.isAfter(startDate.subtract(1, 'day'));
+      });
+    }
+
+    return filtered;
+  }, [transactions, searchText, typeFilter, dateFilter, dateRange]);
+
   // Ayar bazlı stok verilerini hazırla
   const stockData: ExternalVaultStock[] = karatOptions
     .map(karat => stockByKarat[karat])
@@ -321,7 +374,80 @@ const ExternalVault: React.FC = () => {
             }
             style={{ borderRadius: 12 }}
           >
-            {transactions.length === 0 ? (
+            {/* Filtre Sistemi */}
+            <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+              <Col xs={24} sm={12} md={6}>
+                <Input
+                  placeholder="Firma, notlarda ara..."
+                  prefix={<SearchOutlined />}
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  allowClear
+                  style={{ borderRadius: '8px' }}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Select
+                  placeholder="İşlem Tipi"
+                  value={typeFilter}
+                  onChange={(value) => setTypeFilter(value)}
+                  style={{ width: '100%', borderRadius: '8px' }}
+                  allowClear
+                >
+                  <Option value="all">Tüm İşlemler</Option>
+                  <Option value="input">Giriş</Option>
+                  <Option value="output">Çıkış</Option>
+                </Select>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Segmented
+                  options={[
+                    { label: 'Tümü', value: 'all' },
+                    { label: 'Son 7 Gün', value: 'week' },
+                    { label: 'Son Ay', value: 'month' },
+                    { label: 'Son Yıl', value: 'year' }
+                  ]}
+                  value={dateFilter}
+                  onChange={(value) => {
+                    setDateFilter(value as 'all' | 'week' | 'month' | 'year');
+                    setDateRange([null, null]);
+                  }}
+                  style={{ borderRadius: '8px' }}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <RangePicker
+                  style={{ width: '100%', borderRadius: '8px' }}
+                  placeholder={['Başlangıç Tarihi', 'Bitiş Tarihi']}
+                  value={dateRange}
+                  onChange={(dates) => {
+                    if (dates) {
+                      setDateRange([dates[0], dates[1]]);
+                      setDateFilter('all');
+                    } else {
+                      setDateRange([null, null]);
+                    }
+                  }}
+                  format="DD.MM.YYYY"
+                />
+              </Col>
+            </Row>
+
+            {filteredTransactions.length === 0 && transactions.length > 0 ? (
+              <Empty 
+                description="Filtre kriterlerine uygun işlem bulunamadı"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              >
+                <Button onClick={() => {
+                  setSearchText('');
+                  setTypeFilter('all');
+                  setDateFilter('all');
+                  setDateRange([null, null]);
+                }}>
+                  Filtreleri Temizle
+                </Button>
+              </Empty>
+            ) : filteredTransactions.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px' }}>
                 <HistoryOutlined style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: 16 }} />
                 <Title level={4} type="secondary">Henüz işlem yok</Title>
@@ -406,8 +532,11 @@ const ExternalVault: React.FC = () => {
                     )
                   }
                 ]}
-                dataSource={transactions.slice().reverse()}
-                pagination={{ pageSize: 10 }}
+                dataSource={filteredTransactions.slice().reverse()}
+                pagination={{ 
+                  pageSize: 10,
+                  showTotal: (total, range) => `${range[0]}-${range[1]} / ${total} işlem (${transactions.length} toplam)`
+                }}
                 rowKey="id"
               />
             )}
