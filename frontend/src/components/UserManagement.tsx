@@ -194,16 +194,27 @@ const UserManagement: React.FC = () => {
   };
 
   const handlePasswordResetSubmit = async (values: any) => {
+    if (!resettingUser) return;
+    
     try {
       setSubmitting(true);
-      // Şifre sıfırlama için backend API'ye ihtiyaç var
-      // Şimdilik sadece mesaj göster
-      message.warning('Şifre sıfırlama özelliği henüz backend\'de implement edilmedi');
+      await apiService.resetUserPassword(resettingUser.id, values.newPassword);
+      await loadUsers();
+      message.success('Şifre başarıyla sıfırlandı');
       setPasswordResetModalVisible(false);
       passwordResetForm.resetFields();
+      setResettingUser(null);
     } catch (error: any) {
       console.error('Şifre sıfırlama başarısız:', error);
-      message.error(error.message || 'Şifre sıfırlama başarısız');
+      let errorMessage = 'Şifre sıfırlama başarısız';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.error) {
+        errorMessage = error.error;
+      }
+      
+      message.error(errorMessage);
     } finally {
       setSubmitting(false);
     }

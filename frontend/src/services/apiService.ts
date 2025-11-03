@@ -412,6 +412,13 @@ class ApiService {
     });
   }
 
+  async resetUserPassword(userId: number, newPassword: string) {
+    return this.request<{ message: string; userId: number }>(`/users/${userId}/reset-password`, {
+      method: 'POST',
+      body: JSON.stringify({ newPassword }),
+    });
+  }
+
   // Cinsi methods
   async getCinsiOptions() {
     return this.request<any[]>('/cinsi');
