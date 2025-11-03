@@ -924,6 +924,38 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       onFilter: (value, record) => record.karat === value
     },
     {
+      title: 'Cinsi',
+      dataIndex: 'cinsi',
+      key: 'cinsi',
+      width: 120,
+      render: (cinsi: string) => {
+        if (!cinsi) {
+          return <Text type="secondary" style={{ fontSize: '12px', color: '#d1d5db' }}>-</Text>;
+        }
+        const cinsiLabel = cinsiOptions.find((opt: CinsiOption) => opt.value === cinsi)?.label || cinsi;
+        return (
+          <Tag 
+            color="purple"
+            style={{
+              borderRadius: '6px',
+              padding: '4px 12px',
+              fontSize: '12px',
+              fontWeight: 500,
+              border: 'none'
+            }}
+          >
+            {cinsiLabel}
+          </Tag>
+        );
+      },
+      filters: cinsiOptions.map((opt: CinsiOption) => ({
+        text: opt.label,
+        value: opt.value
+      })),
+      filteredValue: tableFilteredInfo.cinsi || null,
+      onFilter: (value, record) => record.cinsi === value
+    },
+    {
       title: 'Miktar',
       dataIndex: 'amount',
       key: 'amount',
