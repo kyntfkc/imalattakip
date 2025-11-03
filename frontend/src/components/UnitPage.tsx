@@ -372,13 +372,32 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     const doc = new jsPDF('landscape', 'mm', 'a4');
     
     // Türkçe karakter desteği için helper fonksiyon
-    const addText = (text: string, x: number, y: number, options?: { fontSize?: number; color?: [number, number, number]; font?: string; style?: string }) => {
+    // jsPDF'in standart font'ları Türkçe karakterleri desteklemiyor
+    // Bu yüzden Türkçe karakterleri ASCII benzeri karakterlere çeviriyoruz
+    const normalizeTurkishChars = (text: string): string => {
+      return text
+        .replace(/İ/g, 'I')
+        .replace(/ı/g, 'i')
+        .replace(/Ş/g, 'S')
+        .replace(/ş/g, 's')
+        .replace(/Ğ/g, 'G')
+        .replace(/ğ/g, 'g')
+        .replace(/Ü/g, 'U')
+        .replace(/ü/g, 'u')
+        .replace(/Ö/g, 'O')
+        .replace(/ö/g, 'o')
+        .replace(/Ç/g, 'C')
+        .replace(/ç/g, 'c');
+    };
+    
+    const addText = (text: string, x: number, y: number, options?: { fontSize?: number; color?: [number, number, number]; font?: string; style?: string; normalize?: boolean }) => {
       if (options?.fontSize) doc.setFontSize(options.fontSize);
       if (options?.color) doc.setTextColor(options.color[0], options.color[1], options.color[2]);
       if (options?.font) doc.setFont(options.font, options.style || 'normal');
       
-      // Türkçe karakterleri koru - Unicode desteği için
-      const textLines = doc.splitTextToSize(text, 250);
+      // Türkçe karakterleri normalize et (varsayılan olarak normalize et)
+      const normalizedText = options?.normalize === false ? text : normalizeTurkishChars(text);
+      const textLines = doc.splitTextToSize(normalizedText, 250);
       doc.text(textLines, x, y);
     };
     
@@ -545,43 +564,32 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       },
       margin: { left: 10, right: 10 },
       didParseCell: function(data: any) {
-        // Türkçe karakterleri doğru encode et - Unicode karakterleri koru
+        // Türkçe karakterleri normalize et - jsPDF'in standart font'ları Türkçe karakterleri desteklemiyor
         if (data.cell && typeof data.cell.text !== 'undefined') {
-          const convertText = (text: any): string => {
+          const normalizeText = (text: any): string => {
             if (typeof text === 'string') {
-              // Unicode karakterleri olduğu gibi koru - Türkçe karakter desteği
-              // jsPDF'in internal text encoding'i Unicode'u destekler
-              return text;
+              // Türkçe karakterleri ASCII benzeri karakterlere dönüştür
+              return text
+                .replace(/İ/g, 'I')
+                .replace(/ı/g, 'i')
+                .replace(/Ş/g, 'S')
+                .replace(/ş/g, 's')
+                .replace(/Ğ/g, 'G')
+                .replace(/ğ/g, 'g')
+                .replace(/Ü/g, 'U')
+                .replace(/ü/g, 'u')
+                .replace(/Ö/g, 'O')
+                .replace(/ö/g, 'o')
+                .replace(/Ç/g, 'C')
+                .replace(/ç/g, 'c');
             }
             return String(text || '');
           };
           
           if (Array.isArray(data.cell.text)) {
-            data.cell.text = data.cell.text.map(convertText);
+            data.cell.text = data.cell.text.map(normalizeText);
           } else {
-            data.cell.text = convertText(data.cell.text);
-          }
-          
-          // Türkçe karakterleri doğru şekilde render etmek için
-          if (data.cell.text && typeof data.cell.text === 'string') {
-            // Özel Türkçe karakterlerin doğru gösterilmesi için
-            const turkishChars: { [key: string]: string } = {
-              'ı': 'ı',
-              'İ': 'İ',
-              'ğ': 'ğ',
-              'Ğ': 'Ğ',
-              'ş': 'ş',
-              'Ş': 'Ş',
-              'ü': 'ü',
-              'Ü': 'Ü',
-              'ö': 'ö',
-              'Ö': 'Ö',
-              'ç': 'ç',
-              'Ç': 'Ç'
-            };
-            
-            // Karakterler zaten doğru Unicode değerlerinde olmalı
-            // jsPDF'in autoTable'ı Unicode'u destekler
+            data.cell.text = normalizeText(data.cell.text);
           }
         }
       },
