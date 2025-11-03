@@ -135,6 +135,28 @@ const ExternalVault: React.FC = () => {
     return filtered;
   }, [transactions, searchText, typeFilter, dateFilter, dateRange]);
 
+  // Filtrelenmiş işlemlerden toplamları hesapla
+  const filteredTotals = useMemo(() => {
+    const totalInput = filteredTransactions
+      .filter(t => t.type === 'input')
+      .reduce((sum, t) => {
+        const amount = typeof t.amount === 'number' ? t.amount : (parseFloat(t.amount) || 0);
+        return sum + amount;
+      }, 0);
+    
+    const totalOutput = filteredTransactions
+      .filter(t => t.type === 'output')
+      .reduce((sum, t) => {
+        const amount = typeof t.amount === 'number' ? t.amount : (parseFloat(t.amount) || 0);
+        return sum + amount;
+      }, 0);
+
+    return {
+      input: totalInput,
+      output: totalOutput
+    };
+  }, [filteredTransactions]);
+
   // Ayar bazlı stok verilerini hazırla
   const stockData: ExternalVaultStock[] = karatOptions
     .map(karat => stockByKarat[karat])
@@ -539,6 +561,33 @@ const ExternalVault: React.FC = () => {
                 }}
                 rowKey="id"
               />
+            )}
+
+            {/* Toplam Özet */}
+            {filteredTransactions.length > 0 && (
+              <div style={{
+                marginTop: 16,
+                padding: '12px 16px',
+                background: '#f8fafc',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontSize: '14px',
+                color: '#64748b'
+              }}>
+                <Space size="large">
+                  <Text style={{ fontSize: '14px', color: '#64748b' }}>
+                    <Text strong style={{ color: '#52c41a' }}>Toplam Giriş: </Text>
+                    {filteredTotals.input.toFixed(2)} gr
+                  </Text>
+                  <Text style={{ fontSize: '14px', color: '#64748b' }}>
+                    <Text strong style={{ color: '#ff4d4f' }}>Toplam Çıkış: </Text>
+                    {filteredTotals.output.toFixed(2)} gr
+                  </Text>
+                </Space>
+              </div>
             )}
           </Card>
         </Col>
