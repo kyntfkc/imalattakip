@@ -20,9 +20,7 @@ import {
   Tooltip,
   Select
 } from 'antd';
-
-const { Option } = Select;
-const { RangePicker } = DatePicker;
+import type { ColumnsType } from 'antd/es/table';
 import dayjs, { Dayjs } from 'dayjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -47,11 +45,13 @@ import { useLog } from '../context/LogContext';
 import { useAuth } from '../context/AuthContext';
 import { useCinsiSettings, CinsiOption } from '../context/CinsiSettingsContext';
 import { UnitType, KaratType, UNIT_NAMES, FIRE_UNITS, OUTPUT_ONLY_UNITS, SEMI_FINISHED_UNITS, PROCESSING_UNITS, INPUT_UNITS, KARAT_HAS_RATIOS } from '../types';
-import type { ColumnsType } from 'antd/es/table';
 import TransferModal from './TransferModal';
 import { unitColors, commonStyles } from '../styles/theme';
 import { useBackendStatus } from '../hooks/useBackendStatus';
 import { useResponsive } from '../hooks/useResponsive';
+
+const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 const { Title, Text } = Typography;
 
