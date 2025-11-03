@@ -547,18 +547,18 @@ const RequiredHas: React.FC = () => {
               icon={<PlusOutlined />}
               onClick={handleOpenInputModal}
               size="large"
-              style={{ background: '#f0f9ff', borderColor: '#52c41a', color: '#52c41a' }}
+              style={{ background: '#fff1f0', borderColor: '#ff4d4f', color: '#ff4d4f' }}
             >
-              Giriş Ekle
+              Alınacak Has
             </Button>
             <Button
               type="default"
               icon={<PlusOutlined />}
               onClick={handleOpenOutputModal}
               size="large"
-              style={{ background: '#fff1f0', borderColor: '#ff4d4f', color: '#ff4d4f' }}
+              style={{ background: '#f0f9ff', borderColor: '#52c41a', color: '#52c41a' }}
             >
-              Çıkış Ekle
+              Alınan Has
             </Button>
           </Space>
         }
@@ -574,17 +574,17 @@ const RequiredHas: React.FC = () => {
                 type="default" 
                 icon={<PlusOutlined />} 
                 onClick={handleOpenInputModal}
-                style={{ background: '#f0f9ff', borderColor: '#52c41a', color: '#52c41a' }}
+                style={{ background: '#fff1f0', borderColor: '#ff4d4f', color: '#ff4d4f' }}
               >
-                Giriş Ekle
+                Alınacak Has
               </Button>
               <Button 
                 type="default" 
                 icon={<PlusOutlined />} 
                 onClick={handleOpenOutputModal}
-                style={{ background: '#fff1f0', borderColor: '#ff4d4f', color: '#ff4d4f' }}
+                style={{ background: '#f0f9ff', borderColor: '#52c41a', color: '#52c41a' }}
               >
-                Çıkış Ekle
+                Alınan Has
               </Button>
             </Space>
           </Empty>
@@ -635,7 +635,7 @@ const RequiredHas: React.FC = () => {
             {modalType === 'edit' ? <EditOutlined /> : <PlusOutlined />}
             <span>
               {modalType === 'edit' ? 'Kayıt Düzenle' : 
-               modalType === 'input' ? 'Giriş Ekle' : 'Çıkış Ekle'}
+               modalType === 'input' ? 'Alınacak Has' : 'Alınan Has'}
             </span>
           </Space>
         }
