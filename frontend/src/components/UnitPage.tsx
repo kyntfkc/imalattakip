@@ -244,6 +244,43 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
 
   // Has karşılığı hesapla - Tüm birimler için transferlerden hesapla
   const filteredHasEquivalent = useMemo(() => {
+    // Fire birimleri için: fire'in has karşılığı (fire = giriş - çıkış)
+    if (hasFire || isProcessingUnit) {
+      const fireByKarat = new Map<string, { input: number; output: number }>();
+      
+      transfers.forEach(t => {
+        if (t.toUnit === unitId || t.fromUnit === unitId) {
+          // Karat değeri geçerlilik kontrolü
+          if (!t.karat || typeof t.karat !== 'string') {
+            return; // Geçersiz karat değerini atla
+          }
+          const key = t.karat;
+          if (!fireByKarat.has(key)) {
+            fireByKarat.set(key, { input: 0, output: 0 });
+          }
+          const fire = fireByKarat.get(key)!;
+          
+          if (t.toUnit === unitId) {
+            fire.input += typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+          }
+          if (t.fromUnit === unitId) {
+            fire.output += typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+          }
+        }
+      });
+      
+      // Her karat için fire'in has karşılığını hesapla
+      return Array.from(fireByKarat.entries()).reduce((sum, [karat, fire]) => {
+        const fireAmount = Math.max(0, fire.input - fire.output);
+        // Karat değeri geçerlilik kontrolü
+        if (!karat || typeof karat !== 'string') {
+          return sum;
+        }
+        const karatMultiplier = KARAT_HAS_RATIOS[karat as keyof typeof KARAT_HAS_RATIOS] || 0;
+        return sum + (fireAmount * karatMultiplier);
+      }, 0);
+    }
+    
     // Yarı mamül için: girişlerden çıkışları çıkar (mevcut stokun has karşılığı)
     if (isSemiFinishedUnit) {
       // Giriş ve çıkışları karat bazında topla
@@ -317,7 +354,31 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
       const karatMultiplier = KARAT_HAS_RATIOS[karat as keyof typeof KARAT_HAS_RATIOS] || 0;
       return sum + (currentStock * karatMultiplier);
     }, 0);
-  }, [transfers, unitId, isSemiFinishedUnit]);
+  }, [transfers, unitId, isSemiFinishedUnit, hasFire, isProcessingUnit]);
+
+  // Cila sayfası için günlük kasa hesaplaması (bugünkü giriş - bugünkü çıkış)
+  const dailyCash = useMemo(() => {
+    if (unitId !== 'cila') return null;
+    
+    const today = dayjs().startOf('day').toDate();
+    const tomorrow = dayjs().add(1, 'day').startOf('day').toDate();
+    
+    const todayInput = transfers
+      .filter(t => t.toUnit === unitId && new Date(t.date) >= today && new Date(t.date) < tomorrow)
+      .reduce((sum, t) => {
+        const safeAmount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+        return sum + safeAmount;
+      }, 0);
+    
+    const todayOutput = transfers
+      .filter(t => t.fromUnit === unitId && new Date(t.date) >= today && new Date(t.date) < tomorrow)
+      .reduce((sum, t) => {
+        const safeAmount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+        return sum + safeAmount;
+      }, 0);
+    
+    return todayInput - todayOutput;
+  }, [transfers, unitId]);
 
   const handleDeleteTransfer = (id: string) => {
     // Silinecek transfer'i bul
@@ -1386,6 +1447,41 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         </div>
       )}
 
+      {/* Cila sayfası için Günlük Kasa Kartı */}
+      {unitId === 'cila' && dailyCash !== null && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ 
+            padding: '16px 20px',
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
+          }}>
+            <Space size={16} align="center" style={{ width: '100%', justifyContent: 'center' }}>
+              <BankOutlined style={{ fontSize: '20px', color: '#64748b' }} />
+              <div style={{ textAlign: 'center' }}>
+                <Text style={{ 
+                  display: 'block', 
+                  fontSize: '12px', 
+                  color: '#6b7280',
+                  marginBottom: '4px'
+                }}>
+                  Günlük Kasa
+                </Text>
+                <Text strong style={{ 
+                  display: 'block', 
+                  fontSize: isMobile ? '24px' : '28px', 
+                  color: dailyCash < 0 ? '#ff4d4f' : '#1f2937',
+                  fontWeight: 600
+                }}>
+                  {dailyCash.toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                </Text>
+              </div>
+            </Space>
+          </div>
+        </div>
+      )}
+
       {/* İşlem Geçmişi - Profesyonel Tasarım */}
       <div style={{ marginTop: 16 }}>
         <Card
@@ -1738,7 +1834,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
                       color: '#059669',
                       fontWeight: 600
                     }}>
-                      {(hasFire || isProcessingUnit ? 0 : filteredHasEquivalent).toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                      {filteredHasEquivalent.toFixed(2).replace(/^0+(?=\d)/, '')} gr
                     </Text>
                   </div>
                 </Space>
