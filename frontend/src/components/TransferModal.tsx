@@ -546,8 +546,26 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                     name="semiFinishedAmount"
                     rules={[
                       { required: useSemiFinished, message: 'Kullanılan gram miktarını giriniz!' },
-                      { type: 'number', min: 0.01, message: 'Miktar 0.01\'den büyük olmalı!' }
+                      {
+                        validator: (_, value) => {
+                          if (!value && value !== 0 && value !== '') {
+                            return Promise.reject(new Error('Kullanılan gram miktarını giriniz!'));
+                          }
+                          if (value === '' || value === undefined) {
+                            return Promise.reject(new Error('Kullanılan gram miktarını giriniz!'));
+                          }
+                          const numValue = typeof value === 'string' ? parseNumberFromInput(value) : value;
+                          if (isNaN(numValue) || numValue < 0.01) {
+                            return Promise.reject(new Error('Miktar 0.01\'den büyük olmalı!'));
+                          }
+                          return Promise.resolve();
+                        }
+                      }
                     ]}
+                    getValueFromEvent={(e) => {
+                      const value = e.target?.value || e;
+                      return typeof value === 'string' ? value : String(value);
+                    }}
                   >
                     <Input
                       placeholder="0,00"
@@ -558,23 +576,40 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
                         borderRadius: '8px'
                       }}
                       addonAfter="gr"
-                      value={semiFinishedAmount ? formatNumberForDisplay(semiFinishedAmount) : ''}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        // Sadece sayı, virgül ve nokta karakterlerine izin ver
-                        if (/^[\d,.]*$/.test(value)) {
-                          const numericValue = parseNumberFromInput(value);
-                          if (!isNaN(numericValue)) {
-                            setSemiFinishedAmount(numericValue);
-                            form.setFieldsValue({ semiFinishedAmount: numericValue });
-                          }
+                      onKeyDown={(e) => {
+                        const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
+                        const key = e.key;
+                        const isNumber = /^\d$/.test(key);
+                        const isComma = key === ',';
+                        const isDot = key === '.';
+                        const isControl = allowedKeys.includes(key);
+                        
+                        if (isNumber || isComma || isDot || isControl || (e.ctrlKey || e.metaKey)) {
+                          return;
                         }
+                        e.preventDefault();
+                      }}
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        if (value === '') {
+                          form.setFieldsValue({ semiFinishedAmount: '' });
+                          setSemiFinishedAmount(0);
+                          return;
+                        }
+                        value = value.replace(/[^\d,.]/g, '');
+                        const parts = value.split(/[,.]/);
+                        if (parts.length > 2) {
+                          value = parts[0] + ',' + parts.slice(1).join('');
+                        }
+                        form.setFieldsValue({ semiFinishedAmount: value });
                       }}
                       onBlur={(e) => {
                         const value = e.target.value;
                         if (value && !isNaN(parseNumberFromInput(value))) {
-                          const formattedValue = formatNumberForDisplay(parseNumberFromInput(value));
-                          e.target.value = formattedValue;
+                          const numericValue = parseNumberFromInput(value);
+                          setSemiFinishedAmount(numericValue);
+                          const formattedValue = formatNumberForDisplay(numericValue);
+                          form.setFieldsValue({ semiFinishedAmount: formattedValue });
                         }
                       }}
                     />
