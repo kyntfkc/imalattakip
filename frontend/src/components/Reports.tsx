@@ -18,7 +18,8 @@ import {
   Tooltip,
   Empty,
   Spin,
-  Badge
+  Badge,
+  message
 } from 'antd';
 import { 
   BarChartOutlined, 
