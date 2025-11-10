@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Card, Row, Col, Statistic, Typography, Space, Tag, Button, Modal, Table, Divider, Popconfirm, message, Skeleton, Spin } from 'antd';
+import { Card, Row, Col, Statistic, Typography, Space, Tag, Button, Modal, Table, Divider, Popconfirm, message, Skeleton } from 'antd';
 import { 
   GoldOutlined, 
   ToolOutlined, 
@@ -10,7 +10,6 @@ import {
   ArrowRightOutlined,
   HistoryOutlined,
   DeleteOutlined,
-  EditOutlined,
   DragOutlined,
   ShoppingCartOutlined
 } from '@ant-design/icons';
@@ -37,10 +36,10 @@ import { useDashboardSettings } from '../context/DashboardSettingsContext';
 import { useLog } from '../context/LogContext';
 import { useAuth } from '../context/AuthContext';
 import { useCinsiSettings } from '../context/CinsiSettingsContext';
-import { UnitSummary, KaratType, FIRE_UNITS, UnitType, KARAT_HAS_RATIOS, PROCESSING_UNITS, INPUT_UNITS, SEMI_FINISHED_UNITS, OUTPUT_ONLY_UNITS } from '../types';
+import { UnitSummary, FIRE_UNITS, UnitType, KARAT_HAS_RATIOS, PROCESSING_UNITS, INPUT_UNITS, SEMI_FINISHED_UNITS, OUTPUT_ONLY_UNITS } from '../types';
 import type { ColumnsType } from 'antd/es/table';
 import TransferModal from './TransferModal';
-import { unitColors, commonStyles } from '../styles/theme';
+import { unitColors } from '../styles/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import '../styles/animations.css';
 
@@ -410,17 +409,6 @@ const UnitDashboard: React.FC = () => {
     return icons[unitId] || <BankOutlined style={{ fontSize: '24px', color }} />;
   };
 
-  const getUnitColor = (index: number) => {
-    const colors = ['#1890ff', '#52c41a', '#fa8c16', '#722ed1', '#eb2f96', '#13c2c2'];
-    return colors[index % colors.length];
-  };
-
-  const getFireColor = (fireAmount: number) => {
-    if (fireAmount === 0) return 'success';
-    if (fireAmount < 5) return 'warning';
-    return 'error';
-  };
-
   const cinsiColumns: ColumnsType<any> = useMemo(() => [
     {
       title: 'Cinsi',
@@ -457,9 +445,7 @@ const UnitDashboard: React.FC = () => {
     const unitId = unit.unitId;
     const hasFire = FIRE_UNITS.includes(unitId);
     const isProcessingUnit = PROCESSING_UNITS.includes(unitId);
-    const isInputUnit = INPUT_UNITS.includes(unitId);
     const isSemiFinishedUnit = SEMI_FINISHED_UNITS.includes(unitId);
-    const isOutputOnlyUnit = OUTPUT_ONLY_UNITS.includes(unitId);
     
     // Transferlerden cinsi bilgilerini çıkar
     const cinsiMap = new Map<string, { stock: number; has: number; fire: number; input: number; output: number }>();

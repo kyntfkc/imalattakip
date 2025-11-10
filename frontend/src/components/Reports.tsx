@@ -11,23 +11,16 @@ import {
   Select, 
   Button, 
   Space,
-  Statistic,
   Progress,
   Tag,
   Tabs,
-  type TabsProps,
   Radio,
-  Divider,
-  Popconfirm,
-  message,
-  Badge,
   Tooltip,
   Empty,
   Spin
 } from 'antd';
 import { 
   BarChartOutlined, 
-  DownloadOutlined, 
   PrinterOutlined,
   GoldOutlined,
   FireOutlined,
@@ -35,22 +28,15 @@ import {
   CalendarOutlined,
   FilterOutlined,
   ReloadOutlined,
-  DeleteOutlined,
-  EyeOutlined,
   FileExcelOutlined,
   FilePdfOutlined,
-  RiseOutlined,
-  FallOutlined,
-  InfoCircleOutlined,
   ExportOutlined,
-  LineChartOutlined,
   PieChartOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useTransfers } from '../context/TransferContext';
 import { useExternalVault } from '../context/ExternalVaultContext';
-import { commonStyles } from '../styles/theme';
-import { FIRE_UNITS, UNIT_NAMES, KARAT_HAS_RATIOS } from '../types';
+import { FIRE_UNITS, UNIT_NAMES } from '../types';
 import dayjs, { Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import '../styles/animations.css';
@@ -118,11 +104,6 @@ const Reports: React.FC = () => {
   const [selectedUnit, setSelectedUnit] = useState<string>('all');
   const [isExporting, setIsExporting] = useState(false);
 
-  const handleDeleteTransfer = (id: string) => {
-    deleteTransfer(id);
-    message.success('İşlem başarıyla silindi');
-  };
-
   // Tarih filtresi uygula
   const getDateRange = (): [Dayjs, Dayjs] | null => {
     const now = dayjs();
@@ -149,6 +130,7 @@ const Reports: React.FC = () => {
       const transferDate = dayjs(transfer.date);
       return transferDate.isBetween(dateRange[0], dateRange[1], null, '[]');
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transfers, dateFilter, customDateRange]);
 
   // Birim bazlı rapor verilerini hazırla

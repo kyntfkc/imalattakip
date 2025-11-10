@@ -5,7 +5,6 @@ import {
   Col, 
   Typography, 
   Space, 
-  Statistic, 
   Button, 
   Table, 
   Tag,
@@ -16,7 +15,6 @@ import {
   Segmented,
   Input,
   DatePicker,
-  Badge,
   Tooltip,
   Select
 } from 'antd';
@@ -30,9 +28,7 @@ import {
   ThunderboltOutlined,
   CrownOutlined,
   BankOutlined,
-  SwapOutlined,
   ArrowRightOutlined,
-  HistoryOutlined,
   DeleteOutlined,
   PlusOutlined,
   FilterOutlined,
@@ -43,10 +39,10 @@ import {
 import { useTransfers } from '../context/TransferContext';
 import { useLog } from '../context/LogContext';
 import { useAuth } from '../context/AuthContext';
-import { useCinsiSettings, CinsiOption } from '../context/CinsiSettingsContext';
-import { UnitType, KaratType, UNIT_NAMES, FIRE_UNITS, OUTPUT_ONLY_UNITS, SEMI_FINISHED_UNITS, PROCESSING_UNITS, INPUT_UNITS, KARAT_HAS_RATIOS } from '../types';
+import { useCinsiSettings } from '../context/CinsiSettingsContext';
+import { UnitType, UNIT_NAMES, FIRE_UNITS, OUTPUT_ONLY_UNITS, SEMI_FINISHED_UNITS, PROCESSING_UNITS, INPUT_UNITS, KARAT_HAS_RATIOS } from '../types';
 import TransferModal from './TransferModal';
-import { unitColors, commonStyles } from '../styles/theme';
+import { unitColors } from '../styles/theme';
 import { useBackendStatus } from '../hooks/useBackendStatus';
 import { useResponsive } from '../hooks/useResponsive';
 
@@ -97,7 +93,6 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
   const unit = unitSummaries.find(u => u.unitId === unitId);
   const unitName = UNIT_NAMES[unitId];
   const hasFire = FIRE_UNITS.includes(unitId);
-  const unitColor = unitColors[unitId];
   const isProcessingUnit = PROCESSING_UNITS.includes(unitId);
   const isInputUnit = INPUT_UNITS.includes(unitId);
   const isOutputOnlyUnit = OUTPUT_ONLY_UNITS.includes(unitId);
@@ -720,7 +715,7 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     doc.save(fileName);
     
     message.success(`${dataToExport.length} işlem PDF olarak dışa aktarıldı`);
-  }, [unitTransfers, filteredTransfers, isOutputOnlyUnit, isInputUnit, unitId, isSemiFinishedUnit, unitName, tableSearchText, tableFilteredInfo, dateRange, dateFilter, cinsiOptions, hasFire, isProcessingUnit]);
+  }, [unitTransfers, unitId, unitName, tableSearchText, tableFilteredInfo, dateRange, dateFilter, cinsiOptions, hasFire, isProcessingUnit]);
 
   const columns: ColumnsType<any> = [
     {

@@ -178,7 +178,7 @@ export const TransferProvider: React.FC<TransferProviderProps> = ({ children }) 
         throw new Error('Geçersiz karat değeri');
       }
 
-      const response = await apiService.createTransfer({
+      await apiService.createTransfer({
         fromUnit: transfer.fromUnit,
         toUnit: transfer.toUnit,
         amount: transfer.amount,

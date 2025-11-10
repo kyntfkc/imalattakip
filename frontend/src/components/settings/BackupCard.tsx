@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Space, Typography, Button, Upload, message, Modal, Input, Divider, Alert } from 'antd';
-import { DownloadOutlined, UploadOutlined, FileTextOutlined, CloudDownloadOutlined, CloudUploadOutlined, InfoCircleOutlined, DatabaseOutlined } from '@ant-design/icons';
+import { DownloadOutlined, UploadOutlined, FileTextOutlined, CloudUploadOutlined, InfoCircleOutlined, DatabaseOutlined } from '@ant-design/icons';
 import apiService from '../../services/apiService';
 
 const { Title, Text } = Typography;

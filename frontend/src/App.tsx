@@ -1,5 +1,5 @@
 import React, { useState, Suspense, lazy, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Layout, Menu, Card, Row, Col, Typography, Space, Button, Dropdown, Avatar } from 'antd';
+import { Layout, Menu, Typography, Button, Dropdown, Avatar } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   HomeOutlined,
@@ -26,14 +26,12 @@ import { DashboardSettingsProvider } from './context/DashboardSettingsContext';
 import { CinsiSettingsProvider } from './context/CinsiSettingsContext';
 import { LogProvider } from './context/LogContext';
 import { MenuSettingsProvider, useMenuSettings } from './context/MenuSettingsContext';
-import { useBackendStatus } from './hooks/useBackendStatus';
 import { useResponsive } from './hooks/useResponsive';
 import Login from './components/Login';
 import TransferModal from './components/TransferModal';
 import DataSyncIndicator from './components/DataSyncIndicator';
 import UnitDashboard from './components/UnitDashboard';
-import { UnitType } from './types';
-import { colors, commonStyles } from './styles/theme';
+import { colors } from './styles/theme';
 import './App.css';
 import './styles/animations.css';
 
@@ -77,7 +75,6 @@ const App: React.FC = () => {
 const AppContent: React.FC = () => {
   const { user, isAuthenticated, logout, isLoading } = useAuth();
   const { settings: menuSettings, isLoading: menuSettingsLoading } = useMenuSettings();
-  const { isBackendOnline, isChecking } = useBackendStatus();
   const { isMobile } = useResponsive();
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
@@ -300,7 +297,7 @@ const AppContent: React.FC = () => {
       }] : [])
     ])
     ];
-  }, [menuSettings, menuSettingsLoading, isAdmin, isMenuVisible]);
+  }, [isAdmin, isMenuVisible]);
 
   // Loading durumunda spinner göster
   if (isLoading) {

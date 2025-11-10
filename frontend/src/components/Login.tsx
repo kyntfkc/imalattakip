@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, Card, Typography, Alert, Checkbox } from 'antd';
 import { UserOutlined, LockOutlined, LoginOutlined, CrownOutlined } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
-import { colors, commonStyles } from '../styles/theme';
+import { commonStyles } from '../styles/theme';
 
 const { Title, Text } = Typography;
 

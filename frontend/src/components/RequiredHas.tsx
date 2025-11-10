@@ -8,7 +8,6 @@ import {
   Button, 
   Space, 
   Statistic,
-  Tag,
   Modal,
   Form,
   Input,
@@ -25,9 +24,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   GoldOutlined,
-  SearchOutlined,
-  FilterOutlined,
-  CalendarOutlined
+  SearchOutlined
 } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
@@ -50,7 +47,6 @@ interface RequiredHasItem {
 }
 
 const { RangePicker } = DatePicker;
-const { Option } = Select;
 
 const RequiredHas: React.FC = () => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();

@@ -3,8 +3,6 @@ import { Card, Space, Typography, Row, Col, Statistic } from 'antd';
 import { SafetyOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { SETTINGS_TEXTS } from '../../constants/settings';
 
-const { Title } = Typography;
-
 interface DataStatsCardProps {
   className?: string;
 }

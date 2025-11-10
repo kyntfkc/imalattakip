@@ -50,7 +50,6 @@ const getGroupedMenus = (isAdmin: boolean) => {
 const MenuVisibilityCard: React.FC = () => {
   const { 
     settings, 
-    roleDefaults, 
     toggleMenuVisibility, 
     resetToRoleDefaults, 
     updateRoleDefaults,
@@ -72,6 +71,7 @@ const MenuVisibilityCard: React.FC = () => {
     if (isAdmin) {
       loadUserRoleDefaults();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
   const loadUserRoleDefaults = async () => {

@@ -12,7 +12,6 @@ import {
   Modal,
   Form,
   Input,
-  InputNumber,
   Select,
   DatePicker,
   Segmented,
@@ -29,10 +28,8 @@ import {
   GoldOutlined,
   HistoryOutlined,
   CalculatorOutlined,
-  ShoppingOutlined,
   UserOutlined,
   DeleteOutlined,
-  EditOutlined,
   SearchOutlined
 } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
@@ -157,71 +154,71 @@ const ExternalVault: React.FC = () => {
     };
   }, [filteredTransactions]);
 
-  // Ayar bazlı stok verilerini hazırla
-  const stockData: ExternalVaultStock[] = karatOptions
-    .map(karat => stockByKarat[karat])
-    .filter(item => item.currentStock !== 0 || item.totalInput !== 0 || item.totalOutput !== 0);
+  // Ayar bazlı stok verilerini hazırla - Şu an kullanılmıyor
+  // const stockData: ExternalVaultStock[] = karatOptions
+  //   .map(karat => stockByKarat[karat])
+  //   .filter(item => item.currentStock !== 0 || item.totalInput !== 0 || item.totalOutput !== 0);
 
-  const stockColumns: ColumnsType<ExternalVaultStock> = [
-    {
-      title: 'Ayar',
-      dataIndex: 'karat',
-      key: 'karat',
-      render: (karat: string) => (
-        <Tag color="blue" style={{ fontSize: '14px', padding: '4px 12px' }}>
-          {karat === '24K' ? 'Has Altın' : karat.replace('K', ' Ayar')}
-        </Tag>
-      )
-    },
-    {
-      title: 'Toplam Giriş',
-      dataIndex: 'totalInput',
-      key: 'totalInput',
-      render: (value: any) => {
-        const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
-        return `${numValue.toFixed(2)} gr`;
-      },
-      sorter: (a, b) => a.totalInput - b.totalInput
-    },
-    {
-      title: 'Toplam Çıkış',
-      dataIndex: 'totalOutput',
-      key: 'totalOutput',
-      render: (value: any) => {
-        const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
-        return `${numValue.toFixed(2)} gr`;
-      },
-      sorter: (a, b) => a.totalOutput - b.totalOutput
-    },
-    {
-      title: 'Mevcut Stok',
-      dataIndex: 'currentStock',
-      key: 'currentStock',
-      render: (value: any) => {
-        const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
-        return (
-          <Text strong style={{ color: '#1890ff', fontSize: '16px' }}>
-            {numValue.toFixed(2)} gr
-          </Text>
-        );
-      },
-      sorter: (a, b) => a.currentStock - b.currentStock
-    },
-    {
-      title: 'Has Karşılığı',
-      dataIndex: 'hasEquivalent',
-      key: 'hasEquivalent',
-      render: (value: any) => {
-        const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
-        return (
-          <Text style={{ color: '#52c41a' }}>
-            {numValue.toFixed(2)} gr
-          </Text>
-        );
-      },
-      sorter: (a, b) => a.hasEquivalent - b.hasEquivalent
-    }
-  ];
+  // const stockColumns: ColumnsType<ExternalVaultStock> = [
+  //   {
+  //     title: 'Ayar',
+  //     dataIndex: 'karat',
+  //     key: 'karat',
+  //     render: (karat: string) => (
+  //       <Tag color="blue" style={{ fontSize: '14px', padding: '4px 12px' }}>
+  //         {karat === '24K' ? 'Has Altın' : karat.replace('K', ' Ayar')}
+  //       </Tag>
+  //     )
+  //   },
+  //   {
+  //     title: 'Toplam Giriş',
+  //     dataIndex: 'totalInput',
+  //     key: 'totalInput',
+  //     render: (value: any) => {
+  //       const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
+  //       return `${numValue.toFixed(2)} gr`;
+  //     },
+  //     sorter: (a, b) => a.totalInput - b.totalInput
+  //   },
+  //   {
+  //     title: 'Toplam Çıkış',
+  //     dataIndex: 'totalOutput',
+  //     key: 'totalOutput',
+  //     render: (value: any) => {
+  //       const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
+  //       return `${numValue.toFixed(2)} gr`;
+  //     },
+  //     sorter: (a, b) => a.totalOutput - b.totalOutput
+  //   },
+  //   {
+  //     title: 'Mevcut Stok',
+  //     dataIndex: 'currentStock',
+  //     key: 'currentStock',
+  //     render: (value: any) => {
+  //       const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
+  //       return (
+  //         <Text strong style={{ color: '#1890ff', fontSize: '16px' }}>
+  //           {numValue.toFixed(2)} gr
+  //         </Text>
+  //       );
+  //     },
+  //     sorter: (a, b) => a.currentStock - b.currentStock
+  //   },
+  //   {
+  //     title: 'Has Karşılığı',
+  //     dataIndex: 'hasEquivalent',
+  //     key: 'hasEquivalent',
+  //     render: (value: any) => {
+  //       const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
+  //       return (
+  //         <Text style={{ color: '#52c41a' }}>
+  //           {numValue.toFixed(2)} gr
+  //         </Text>
+  //       );
+  //     },
+  //     sorter: (a, b) => a.hasEquivalent - b.hasEquivalent
+  //   }
+  // ];
 
   const handleOpenModal = (type: 'input' | 'output') => {
     setTransactionType(type);

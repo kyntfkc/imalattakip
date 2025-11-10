@@ -1,7 +1,6 @@
 // Güvenli logging utility - Production'da console.log'ları kapatır
 
 const isDevelopment = process.env.NODE_ENV === 'development';
-const isProduction = process.env.NODE_ENV === 'production';
 
 interface LogOptions {
   includeSensitiveData?: boolean;

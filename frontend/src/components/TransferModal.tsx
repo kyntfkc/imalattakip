@@ -1,17 +1,13 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Modal, 
   Form, 
   Select, 
-  InputNumber, 
   Button, 
   Row, 
   Col, 
   Typography, 
   Space, 
-  Divider,
-  Tag,
-  Statistic,
   Input,
   message
 } from 'antd';
@@ -33,7 +29,7 @@ import { useResponsive } from '../hooks/useResponsive';
 import { UnitType, KaratType } from '../types';
 import { parseNumberFromInput, formatNumberForDisplay } from '../utils/numberFormat';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { Option } = Select;
 
 interface TransferData {
@@ -86,7 +82,7 @@ const TransferModal: React.FC<TransferModalProps> = React.memo(({ open, onClose,
       return allUnits;
     }
     return allUnits.filter(unit => unit.value !== 'dokum' && unit.value !== 'tedarik');
-  }, [isAdmin]);
+  }, [isAdmin, allUnits]);
 
   const karatOptions = [
     { value: '14K', label: '14 Ayar' },
