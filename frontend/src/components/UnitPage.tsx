@@ -356,9 +356,9 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
     }, 0);
   }, [transfers, unitId, isSemiFinishedUnit, hasFire, isProcessingUnit]);
 
-  // Cila sayfası için günlük kasa hesaplaması (bugünkü giriş - bugünkü çıkış)
+  // Cila, Tezgah ve Lazer Kesim sayfaları için günlük kasa hesaplaması (bugünkü giriş - bugünkü çıkış)
   const dailyCash = useMemo(() => {
-    if (unitId !== 'cila') return null;
+    if (unitId !== 'cila' && unitId !== 'tezgah' && unitId !== 'lazer-kesim') return null;
     
     const today = dayjs().startOf('day').toDate();
     const tomorrow = dayjs().add(1, 'day').startOf('day').toDate();
@@ -1318,6 +1318,40 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
         </Space>
       </div>
 
+      {/* Cila, Tezgah ve Lazer Kesim sayfaları için Günlük Kasa Kartı - En Üstte */}
+      {(unitId === 'cila' || unitId === 'tezgah' || unitId === 'lazer-kesim') && dailyCash !== null && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ 
+            padding: '16px 20px',
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
+          }}>
+            <Space size={16} align="center" style={{ width: '100%', justifyContent: 'center' }}>
+              <BankOutlined style={{ fontSize: '20px', color: '#64748b' }} />
+              <div style={{ textAlign: 'center' }}>
+                <Text style={{ 
+                  display: 'block', 
+                  fontSize: '12px', 
+                  color: '#6b7280',
+                  marginBottom: '4px'
+                }}>
+                  Günlük Kasa
+                </Text>
+                <Text strong style={{ 
+                  display: 'block', 
+                  fontSize: isMobile ? '24px' : '28px', 
+                  color: dailyCash < 0 ? '#ff4d4f' : '#1f2937',
+                  fontWeight: 600
+                }}>
+                  {dailyCash.toFixed(2).replace(/^0+(?=\d)/, '')} gr
+                </Text>
+              </div>
+            </Space>
+          </div>
+        </div>
+      )}
 
       {/* İstatistikler ve Cinsi Bazlı Stok Dağılımı - Minimalist Kompakt (Satış, Tedarik, Döküm, Lazer Kesim, Tezgah ve Cila sayfası hariç) */}
       {unitId !== 'satis' && unitId !== 'tedarik' && unitId !== 'dokum' && unitId !== 'lazer-kesim' && unitId !== 'tezgah' && unitId !== 'cila' && (
@@ -1444,41 +1478,6 @@ const UnitPage: React.FC<UnitPageProps> = React.memo(({ unitId }) => {
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Cila sayfası için Günlük Kasa Kartı */}
-      {unitId === 'cila' && dailyCash !== null && (
-        <div style={{ marginTop: 16 }}>
-          <div style={{ 
-            padding: '16px 20px',
-            background: 'white',
-            borderRadius: '12px',
-            border: '1px solid #e5e7eb',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
-          }}>
-            <Space size={16} align="center" style={{ width: '100%', justifyContent: 'center' }}>
-              <BankOutlined style={{ fontSize: '20px', color: '#64748b' }} />
-              <div style={{ textAlign: 'center' }}>
-                <Text style={{ 
-                  display: 'block', 
-                  fontSize: '12px', 
-                  color: '#6b7280',
-                  marginBottom: '4px'
-                }}>
-                  Günlük Kasa
-                </Text>
-                <Text strong style={{ 
-                  display: 'block', 
-                  fontSize: isMobile ? '24px' : '28px', 
-                  color: dailyCash < 0 ? '#ff4d4f' : '#1f2937',
-                  fontWeight: 600
-                }}>
-                  {dailyCash.toFixed(2).replace(/^0+(?=\d)/, '')} gr
-                </Text>
-              </div>
-            </Space>
-          </div>
         </div>
       )}
 
